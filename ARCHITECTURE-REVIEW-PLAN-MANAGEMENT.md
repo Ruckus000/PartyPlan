@@ -104,6 +104,7 @@ type Store = {
   pendingOperations: PendingOperation[];
   addPendingOperation: (op: PendingOperation) => void;
   removePendingOperation: (id: string) => void;
+  updatePendingOperation: (id: string, updates: Partial<PendingOperation>) => void;
   getPendingDeleteIds: () => Set<string>;
 };
 
@@ -113,6 +114,11 @@ addPendingOperation: (op) => set((state) => ({
 })),
 removePendingOperation: (id) => set((state) => ({
   pendingOperations: state.pendingOperations.filter(o => o.id !== id)
+})),
+updatePendingOperation: (id, updates) => set((state) => ({
+  pendingOperations: state.pendingOperations.map(o =>
+    o.id === id ? { ...o, ...updates } : o
+  )
 })),
 getPendingDeleteIds: () => {
   const state = useStore.getState();

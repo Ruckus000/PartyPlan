@@ -150,8 +150,6 @@ export function useSyncManager() {
   }, [syncPlans, startSyncInterval, stopSyncInterval]);
 
   // Initial sync on mount and when active squad changes
-  // Note: startSyncInterval is intentionally not a dependency to avoid
-  // unnecessary syncs when only power mode changes
   useEffect(() => {
     if (activeSquadId) {
       syncPlans(false);
@@ -161,8 +159,7 @@ export function useSyncManager() {
     return () => {
       stopSyncInterval();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSquadId, syncPlans, stopSyncInterval]);
+  }, [activeSquadId, syncPlans, startSyncInterval, stopSyncInterval]);
 
   // Restart interval when power mode changes (without syncing)
   useEffect(() => {
