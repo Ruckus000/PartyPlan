@@ -129,7 +129,7 @@ export default function TimelineScreen() {
       }
       acc[plan.meet_time].push(plan);
       return acc;
-    }, {} as Record<string, typeof meetupPlans>);
+    }, {} as Record<string, Plan[]>);
   }, [meetupPlans]);
 
   // Group sets by time
