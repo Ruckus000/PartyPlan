@@ -161,6 +161,14 @@ export default function TimelineScreen() {
     return `${diffHours} hours ago`;
   };
 
+  // Check if data is stale (>2 hours old)
+  const isDataStale = (): boolean => {
+    if (!lastSyncedAt) return false;
+
+    const hoursSinceSync = (Date.now() - lastSyncedAt.getTime()) / (1000 * 60 * 60);
+    return hoursSinceSync > 2;
+  };
+
   return (
     <ScrollView
       style={styles.container}
@@ -178,6 +186,15 @@ export default function TimelineScreen() {
         <View style={styles.offlineBanner}>
           <Text style={styles.offlineText}>
             📵 Offline - Changes will sync when connected
+          </Text>
+        </View>
+      )}
+
+      {/* Staleness Warning */}
+      {!isOffline && isDataStale() && (
+        <View style={styles.staleWarning}>
+          <Text style={styles.staleWarningText}>
+            ⚠️ Data may be outdated. Pull to refresh.
           </Text>
         </View>
       )}
@@ -269,6 +286,18 @@ const styles = StyleSheet.create({
   },
   offlineText: {
     color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  staleWarning: {
+    backgroundColor: '#854d0e',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  staleWarningText: {
+    color: '#fef3c7',
     fontSize: 14,
     fontWeight: '600',
   },
