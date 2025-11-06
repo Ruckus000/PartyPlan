@@ -15,20 +15,38 @@ import { useStore } from './src/lib/store';
 import { Squad } from './src/types';
 import { useSyncManager } from './src/hooks/useSyncManager';
 import { SyncProvider } from './src/contexts/SyncContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Tab = createBottomTabNavigator();
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
-  const { profile, setProfile, modalVisible, setModalVisible } = useStore();
+  const { profile, setProfile, modalVisible, setModalVisible, pendingOperations } = useStore();
   const [loading, setLoading] = useState(true);
 
   // Initialize sync manager (only active when logged in with squads)
   const syncManager = useSyncManager();
 
+  // Persist pending operations to AsyncStorage
+  useEffect(() => {
+    AsyncStorage.setItem('pendingOps', JSON.stringify(pendingOperations));
+  }, [pendingOperations]);
+
   useEffect(() => {
     const fetchSessionAndProfile = async () => {
       setLoading(true);
+
+      // Load cached pending operations
+      const cachedPendingOps = await AsyncStorage.getItem('pendingOps');
+      if (cachedPendingOps) {
+        try {
+          const ops = JSON.parse(cachedPendingOps);
+          useStore.getState().setPendingOperations(ops);
+        } catch (error) {
+          console.error('Failed to load pending operations:', error);
+        }
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
 

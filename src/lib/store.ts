@@ -1,6 +1,6 @@
 
 import { create } from 'zustand';
-import { Profile, Plan, Squad } from '../types';
+import { Profile, Plan, Squad, PendingOperation } from '../types';
 
 type Store = {
   profile: Profile | null;
@@ -19,6 +19,12 @@ type Store = {
   setEditingPlan: (plan: Plan | null) => void;
   modalVisible: boolean;
   setModalVisible: (visible: boolean) => void;
+  pendingOperations: PendingOperation[];
+  setPendingOperations: (ops: PendingOperation[]) => void;
+  addPendingOperation: (op: PendingOperation) => void;
+  removePendingOperation: (id: string) => void;
+  updatePendingOperation: (id: string, updates: Partial<PendingOperation>) => void;
+  getPendingDeleteIds: () => Set<string>;
 };
 
 export const useStore = create<Store>((set) => ({
@@ -42,4 +48,25 @@ export const useStore = create<Store>((set) => ({
   setEditingPlan: (plan) => set({ editingPlan: plan }),
   modalVisible: false,
   setModalVisible: (visible) => set({ modalVisible: visible }),
+  pendingOperations: [],
+  setPendingOperations: (ops) => set({ pendingOperations: ops }),
+  addPendingOperation: (op) => set((state) => ({
+    pendingOperations: [...state.pendingOperations, op]
+  })),
+  removePendingOperation: (id) => set((state) => ({
+    pendingOperations: state.pendingOperations.filter(o => o.id !== id)
+  })),
+  updatePendingOperation: (id, updates) => set((state) => ({
+    pendingOperations: state.pendingOperations.map(o =>
+      o.id === id ? { ...o, ...updates } : o
+    )
+  })),
+  getPendingDeleteIds: () => {
+    const state = useStore.getState();
+    return new Set(
+      state.pendingOperations
+        .filter(op => op.type === 'delete')
+        .map(op => op.planId)
+    );
+  },
 }));

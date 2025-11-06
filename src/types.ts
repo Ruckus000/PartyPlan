@@ -34,3 +34,12 @@ export type Plan = {
   note?: string | null;
   created_at: string;
 };
+
+export type PendingOperation = {
+  id: string;
+  type: 'delete' | 'add' | 'update';
+  planId: string;
+  planData?: Partial<Plan>;
+  timestamp: number;
+  retryCount: number;
+};
