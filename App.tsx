@@ -12,13 +12,14 @@ import { supabase } from './src/lib/supabase';
 import AuthScreen from './src/screens/AuthScreen';
 import ProfileSetupScreen from './src/screens/ProfileSetupScreen';
 import { Session } from '@supabase/supabase-js';
+import { useStore } from './src/lib/store';
 
 const Tab = createBottomTabNavigator();
 
 export default function App() {
   const [modalVisible, setModalVisible] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const { profile, setProfile } = useStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
