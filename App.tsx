@@ -6,6 +6,7 @@ import SquadScreen from './src/screens/SquadScreen';
 import MapScreen from './src/screens/MapScreen';
 import Fab from './src/components/Fab';
 import AddModal from './src/components/AddModal';
+import ErrorBoundary from './src/components/ErrorBoundary';
 import { View } from 'react-native';
 import { supabase } from './src/lib/supabase';
 import AuthScreen from './src/screens/AuthScreen';
@@ -167,18 +168,20 @@ export default function App() {
   }
 
   return (
-    <SyncProvider value={syncManager}>
-      <View style={{ flex: 1 }}>
-        <NavigationContainer>
-          <Tab.Navigator screenOptions={{ headerShown: false }}>
-            <Tab.Screen name="Timeline" component={TimelineScreen} />
-            <Tab.Screen name="Squad" component={SquadScreen} />
-            <Tab.Screen name="Map" component={MapScreen} />
-          </Tab.Navigator>
-        </NavigationContainer>
-        <Fab onPress={() => setModalVisible(true)} />
-        <AddModal visible={modalVisible} onClose={() => setModalVisible(false)} />
-      </View>
-    </SyncProvider>
+    <ErrorBoundary>
+      <SyncProvider value={syncManager}>
+        <View style={{ flex: 1 }}>
+          <NavigationContainer>
+            <Tab.Navigator screenOptions={{ headerShown: false }}>
+              <Tab.Screen name="Timeline" component={TimelineScreen} />
+              <Tab.Screen name="Squad" component={SquadScreen} />
+              <Tab.Screen name="Map" component={MapScreen} />
+            </Tab.Navigator>
+          </NavigationContainer>
+          <Fab onPress={() => setModalVisible(true)} />
+          <AddModal visible={modalVisible} onClose={() => setModalVisible(false)} />
+        </View>
+      </SyncProvider>
+    </ErrorBoundary>
   );
 }
