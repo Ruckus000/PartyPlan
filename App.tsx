@@ -16,35 +16,63 @@ import { Squad } from './src/types';
 import { useSyncManager } from './src/hooks/useSyncManager';
 import { SyncProvider } from './src/contexts/SyncContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from '@react-native-community/netinfo';
 
 const Tab = createBottomTabNavigator();
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
-  const { profile, setProfile, modalVisible, setModalVisible, pendingOperations } = useStore();
+  const { profile, setProfile, modalVisible, setModalVisible, pendingOperations, plans, setIsOffline } = useStore();
   const [loading, setLoading] = useState(true);
 
   // Initialize sync manager (only active when logged in with squads)
   const syncManager = useSyncManager();
+
+  // Network detection - update offline state
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsOffline(!state.isConnected);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [setIsOffline]);
 
   // Persist pending operations to AsyncStorage
   useEffect(() => {
     AsyncStorage.setItem('pendingOps', JSON.stringify(pendingOperations));
   }, [pendingOperations]);
 
+  // Persist plans to AsyncStorage
+  useEffect(() => {
+    if (plans.length > 0) {
+      AsyncStorage.setItem('plans', JSON.stringify(plans));
+    }
+  }, [plans]);
+
   useEffect(() => {
     const fetchSessionAndProfile = async () => {
       setLoading(true);
 
-      // Load cached pending operations
-      const cachedPendingOps = await AsyncStorage.getItem('pendingOps');
-      if (cachedPendingOps) {
-        try {
+      // Load cached data from AsyncStorage
+      try {
+        const [cachedPendingOps, cachedPlans] = await Promise.all([
+          AsyncStorage.getItem('pendingOps'),
+          AsyncStorage.getItem('plans'),
+        ]);
+
+        if (cachedPendingOps) {
           const ops = JSON.parse(cachedPendingOps);
           useStore.getState().setPendingOperations(ops);
-        } catch (error) {
-          console.error('Failed to load pending operations:', error);
         }
+
+        if (cachedPlans) {
+          const parsedPlans = JSON.parse(cachedPlans);
+          useStore.getState().setPlans(parsedPlans);
+        }
+      } catch (error) {
+        console.error('Failed to load cached data:', error);
       }
 
       const { data: { session } } = await supabase.auth.getSession();
