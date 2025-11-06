@@ -1,6 +1,6 @@
 # Plan Management Architecture Review
 
-**Review Date:** 2025-11-06
+**Review Date:** 2025-11-06 (Revised)
 **Reviewer Role:** System Architect
 **Focus:** Lightweight, efficient, battery-conscious design without compromising UX/UI
 
@@ -8,100 +8,19 @@
 
 ## Executive Summary
 
-The current plan management architecture demonstrates **good fundamentals** with Zustand state management, battery-aware sync, and optimistic UI updates. However, there are **7 critical architectural issues** that impact reliability, efficiency, and scalability. This review identifies issues ranging from P0 (data loss risks) to P3 (future optimizations) with concrete solutions.
+The current plan management architecture demonstrates **good fundamentals** with Zustand state management, battery-aware sync, and optimistic UI updates. This review identifies **8 architectural issues** (4 critical, 4 polish) that impact reliability and user experience in festival environments.
 
-**Overall Assessment:** 7/10 - Solid foundation, needs refinement for production readiness.
+**Overall Assessment:** 8.5/10 - Solid foundation, needs production hardening for offline scenarios.
 
----
-
-## Architecture Overview
-
-### Current Data Flow
-
-```
-User Action → Component Handler → Optimistic Update (Store) → Background DB Operation
-                                          ↓
-                                   UI Updates Immediately
-                                          ↓
-                            (DB operation may succeed/fail silently)
-
-Periodic Sync: Every 30/60 min → Full Replace (setPlans) → UI Re-renders
-```
-
-### Components Analyzed
-
-1. **State Layer**: `src/lib/store.ts` (Zustand)
-2. **Sync Layer**: `src/hooks/useSyncManager.ts`
-3. **UI Layer**: `src/screens/TimelineScreen.tsx`, `src/components/AddModal.tsx`
-4. **Data Layer**: Supabase (PostgreSQL)
+**Key Focus:** Festival environment = spotty connectivity, battery conservation, real-time collaboration
 
 ---
 
 ## Critical Issues & Recommendations
 
-### P0 - Data Loss Risk (CRITICAL)
-
-**Issue 1: No Rollback on Failed Deletes**
-
-**Location:** `src/screens/TimelineScreen.tsx:28-43`, `46-57`
-
-**Problem:**
-```typescript
-removePlan(plan.id);  // Optimistic - immediately removes from UI
-
-try {
-  await supabase.from('plans').delete().eq('id', plan.id);
-} catch (error) {
-  console.error('Failed to delete plan:', error);
-  // Could add error handling/rollback here if needed  ⚠️ NO ROLLBACK
-}
-```
-
-**Impact:** If network fails or user goes offline, plan disappears from UI but remains in database. On next sync, the "deleted" plan reappears - confusing user experience. User thinks they deleted it, but it's back.
-
-**Solution:**
-```typescript
-// Add to store.ts
-type Store = {
-  // ... existing
-  undoRemovePlan: (plan: Plan) => void;
-}
-
-// Implementation
-removePlan: (planId) => set((state) => ({
-  plans: state.plans.filter(p => p.id !== planId),
-  removedPlans: [...(state.removedPlans || []), state.plans.find(p => p.id === planId)!]
-})),
-undoRemovePlan: (plan) => set((state) => ({
-  plans: [...state.plans, plan],
-  removedPlans: state.removedPlans?.filter(p => p.id !== plan.id)
-})),
-
-// In TimelineScreen.tsx
-const handleDeleteSet = async (setId: string) => {
-  const plan = plans.find(p => p.set_id === setId);
-  if (!plan) return;
-
-  removePlan(plan.id);
-
-  try {
-    await supabase.from('plans').delete().eq('id', plan.id);
-  } catch (error) {
-    console.error('Failed to delete plan:', error);
-    undoRemovePlan(plan); // ROLLBACK
-    Alert.alert('Error', 'Failed to delete. Please try again.');
-  }
-};
-```
-
-**Effort:** 2 hours
-**Priority:** P0 - Fix before production
-
----
-
 ### P0 - State Inconsistency
 
-**Issue 2: Inconsistent Store Update Patterns**
+**Issue 1: Inconsistent Store Update Patterns**
 
 **Location:** `src/components/AddModal.tsx:126`
 
@@ -119,7 +38,7 @@ const updatedPlans = plans.map(p => p.id === plan.id ? plan : p);
 
 **Impact:**
 - Code is harder to maintain
-- Pattern 3 is O(n) operation instead of O(1)
+- Pattern 3 is O(n) operation for every update
 - Missing a proper `updatePlan` action
 
 **Solution:**
@@ -134,128 +53,252 @@ updatePlan: (planId, updates) => set((state) => ({
   plans: state.plans.map(p => p.id === planId ? { ...p, ...updates } : p)
 })),
 
-// In AddModal.tsx
-if (editingPlan) {
-  const { data: plan, error } = await supabase
-    .from('plans')
-    .update({
-      meet_time: meetupTime,
-      meet_location: meetupLocation,
-      note: meetupNote || null,
-    })
-    .eq('id', editingPlan.id)
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  updatePlan(plan.id, plan); // ✅ Consistent pattern
-}
+// In AddModal.tsx - consistent pattern
+updatePlan(plan.id, plan);
 ```
 
 **Effort:** 1 hour
-**Priority:** P0 - Technical debt that leads to bugs
+**Priority:** P0 - Foundation for other fixes
 
 ---
 
-### P1 - Efficiency Issues
+### P0 - Data Loss Risk
 
-**Issue 3: Full Sync is Inefficient**
+**Issue 2: No Rollback on Failed Operations with Race Conditions**
 
-**Location:** `src/hooks/useSyncManager.ts:39-62`
+**Location:** `src/screens/TimelineScreen.tsx:28-43`, `46-57`
 
 **Problem:**
 ```typescript
-const { data: plansData } = await supabase
-  .from('plans')
-  .select('*')
-  .eq('squad_id', activeSquadId);
+removePlan(plan.id);  // Optimistic - immediately removes from UI
 
-setPlans(plansData); // Full replace every 30/60 min
+try {
+  await supabase.from('plans').delete().eq('id', plan.id);
+} catch (error) {
+  console.error('Failed to delete plan:', error);
+  // ⚠️ NO ROLLBACK + Race condition with sync
+}
 ```
 
-**Impact:**
-- Fetches ALL plans even if nothing changed
-- Unnecessary network usage (defeats battery-saving goal)
-- Unnecessary re-renders
-- At scale (1000+ plans), this becomes expensive
+**Critical Issues:**
+1. Network failure → no rollback → plan reappears on next sync
+2. Race condition: sync can restore deleted plan before delete completes
+3. No persistence across app restarts (offline delete lost)
 
-**Current Cost Analysis:**
-- 100 plans × 30 min intervals = ~3,000 rows/day
-- If nothing changed: 100% wasted bandwidth
-- Festival weekend: 3 days × 10,000 users = 90M wasted rows
-
-**Solution - Incremental Sync with Timestamps:**
+**Solution - Operation Queue with Retry:**
 
 ```typescript
-// Add to Plan type
-export type Plan = {
-  // ... existing
-  updated_at: string; // Add database trigger for auto-update
+// Add to types.ts
+export type PendingOperation = {
+  id: string;
+  type: 'delete' | 'add' | 'update';
+  planId: string;
+  planData?: Partial<Plan>;
+  timestamp: number;
+  retryCount: number;
 };
 
-// In useSyncManager.ts
-const [lastSyncTimestamp, setLastSyncTimestamp] = useState<string | null>(null);
+// Add to store.ts
+type Store = {
+  // ... existing
+  pendingOperations: PendingOperation[];
+  addPendingOperation: (op: PendingOperation) => void;
+  removePendingOperation: (id: string) => void;
+  getPendingDeleteIds: () => Set<string>;
+};
 
-const syncPlans = async (showLoading = true) => {
-  if (!activeSquadId) return;
-  if (showLoading) setIsSyncing(true);
+pendingOperations: [],
+addPendingOperation: (op) => set((state) => ({
+  pendingOperations: [...state.pendingOperations, op]
+})),
+removePendingOperation: (id) => set((state) => ({
+  pendingOperations: state.pendingOperations.filter(o => o.id !== id)
+})),
+getPendingDeleteIds: () => {
+  const state = useStore.getState();
+  return new Set(
+    state.pendingOperations
+      .filter(op => op.type === 'delete')
+      .map(op => op.planId)
+  );
+},
+
+// In TimelineScreen.tsx
+const handleDeleteSet = async (setId: string) => {
+  const plan = plans.find(p => p.set_id === setId);
+  if (!plan) return;
+
+  const opId = `delete-${Date.now()}`;
+
+  // Optimistically update UI
+  removePlan(plan.id);
+
+  // Queue operation for retry
+  addPendingOperation({
+    id: opId,
+    type: 'delete',
+    planId: plan.id,
+    planData: plan,
+    timestamp: Date.now(),
+    retryCount: 0,
+  });
 
   try {
-    let query = supabase
-      .from('plans')
-      .select('*')
-      .eq('squad_id', activeSquadId);
-
-    // Incremental sync: only fetch changes since last sync
-    if (lastSyncTimestamp) {
-      query = query.gt('updated_at', lastSyncTimestamp);
-    }
-
-    const { data: changedPlans, error } = await query;
-    if (error) throw error;
-
-    if (changedPlans && changedPlans.length > 0) {
-      if (lastSyncTimestamp) {
-        // Merge changes (update or add)
-        const existingIds = new Set(plans.map(p => p.id));
-        const toUpdate = changedPlans.filter(p => existingIds.has(p.id));
-        const toAdd = changedPlans.filter(p => !existingIds.has(p.id));
-
-        useStore.getState().setPlans([
-          ...plans.filter(p => !toUpdate.find(u => u.id === p.id)),
-          ...toUpdate,
-          ...toAdd
-        ]);
-      } else {
-        // First sync: full replace
-        setPlans(changedPlans);
-      }
-
-      const maxTimestamp = Math.max(...changedPlans.map(p => new Date(p.updated_at).getTime()));
-      setLastSyncTimestamp(new Date(maxTimestamp).toISOString());
-    }
-
-    setLastSyncedAt(new Date());
+    await supabase.from('plans').delete().eq('id', plan.id);
+    removePendingOperation(opId);
   } catch (error) {
-    console.error('Sync error:', error);
-  } finally {
-    if (showLoading) setIsSyncing(false);
+    // Will retry in background sync
+    console.error('Delete queued for retry:', error);
   }
 };
+
+// In useSyncManager.ts - process queue before syncing
+const processPendingOperations = async () => {
+  const ops = useStore.getState().pendingOperations;
+
+  for (const op of ops) {
+    try {
+      if (op.type === 'delete') {
+        await supabase.from('plans').delete().eq('id', op.planId);
+        useStore.getState().removePendingOperation(op.id);
+      }
+      // ... handle add/update
+    } catch (error) {
+      // Exponential backoff
+      if (op.retryCount > 5) {
+        // Give up, restore plan
+        if (op.planData) {
+          useStore.getState().addPlan(op.planData as Plan);
+        }
+        useStore.getState().removePendingOperation(op.id);
+        Alert.alert('Sync Failed', 'Some changes could not be saved');
+      } else {
+        // Increment retry count
+        useStore.getState().updatePendingOperation(op.id, {
+          retryCount: op.retryCount + 1
+        });
+      }
+    }
+  }
+};
+
+const syncPlans = async (showLoading = true) => {
+  // Process pending operations first
+  await processPendingOperations();
+
+  // Then fetch from server
+  const { data: plansData } = await supabase
+    .from('plans')
+    .select('*')
+    .eq('squad_id', activeSquadId);
+
+  // Filter out pending deletes
+  const pendingDeleteIds = useStore.getState().getPendingDeleteIds();
+  const filteredPlans = plansData.filter(p => !pendingDeleteIds.has(p.id));
+
+  setPlans(filteredPlans);
+};
+
+// Persist queue to AsyncStorage
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+useEffect(() => {
+  AsyncStorage.setItem('pendingOps', JSON.stringify(pendingOperations));
+}, [pendingOperations]);
 ```
 
-**Optimization Impact:**
-- 0 changes: 0 rows transferred (vs 100 rows)
-- 5 changes: 5 rows transferred (vs 100 rows)
-- **95% bandwidth reduction** in typical usage
-
-**Effort:** 4 hours (includes DB migration)
-**Priority:** P1 - Significant efficiency gain
+**Effort:** 4 hours
+**Priority:** P0 - Prevents data loss in offline scenarios
 
 ---
 
-### P1 - Missing Optimistic Updates
+### P1 - Offline Mode & Persistence
+
+**Issue 3: No Offline Awareness (NEW)**
+
+**Location:** Missing from entire app
+
+**Problem:**
+Festivals have spotty connectivity:
+- Crowded areas: network congestion
+- Remote stages: weak signal
+- Underground venues: no signal
+
+Current behavior:
+- App assumes network available
+- Operations fail silently
+- No user feedback about offline state
+- No local persistence (data lost on restart)
+
+**Solution:**
+
+```typescript
+// Install dependency
+npm install @react-native-community/netinfo
+
+// In App.tsx or dedicated hook
+import NetInfo from '@react-native-community/netinfo';
+
+const [isOffline, setIsOffline] = useState(false);
+
+useEffect(() => {
+  const unsubscribe = NetInfo.addEventListener(state => {
+    setIsOffline(!state.isConnected);
+  });
+  return unsubscribe;
+}, []);
+
+// Add to store
+type Store = {
+  // ... existing
+  isOffline: boolean;
+  setIsOffline: (offline: boolean) => void;
+};
+
+// In TimelineScreen.tsx - offline banner
+{isOffline && (
+  <View style={styles.offlineBanner}>
+    <Text style={styles.offlineText}>
+      📵 Offline - Changes will sync when connected
+    </Text>
+  </View>
+)}
+
+// Persist plans to AsyncStorage
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// In store.ts
+setPlans: (plans) => {
+  set({ plans });
+  AsyncStorage.setItem('plans', JSON.stringify(plans));
+},
+
+// On app launch (App.tsx)
+useEffect(() => {
+  const loadCachedData = async () => {
+    const [cachedPlans, cachedPendingOps] = await Promise.all([
+      AsyncStorage.getItem('plans'),
+      AsyncStorage.getItem('pendingOps'),
+    ]);
+
+    if (cachedPlans) {
+      useStore.getState().setPlans(JSON.parse(cachedPlans));
+    }
+    if (cachedPendingOps) {
+      useStore.getState().setPendingOperations(JSON.parse(cachedPendingOps));
+    }
+  };
+
+  loadCachedData();
+}, []);
+```
+
+**Effort:** 3 hours
+**Priority:** P1 - Critical for festival environment
+
+---
+
+### P1 - UX Consistency
 
 **Issue 4: No Optimistic Add/Edit**
 
@@ -263,22 +306,21 @@ const syncPlans = async (showLoading = true) => {
 
 **Problem:**
 ```typescript
-setLoading(true); // User sees loading spinner
-const { data: plan, error } = await supabase.from('plans').insert(...); // Wait for network
+setLoading(true); // User sees spinner
+const { data: plan } = await supabase.from('plans').insert(...); // Wait 200-2000ms
 addPlan(plan); // Only then update UI
 ```
 
 **Impact:**
-- Poor UX - user waits for network roundtrip (200-2000ms)
-- Feels sluggish compared to delete (which is instant)
-- Inconsistent interaction pattern
+- Slow: user waits for network (200-2000ms)
+- Inconsistent: delete is instant, add/edit is slow
+- Modal stays open during network call
 
 **Solution:**
 ```typescript
 const handleAddArtist = async (setId: string) => {
   // ... validation
 
-  // Generate temporary ID for optimistic update
   const tempPlan: Plan = {
     id: `temp-${Date.now()}`,
     squad_id: activeSquadId,
@@ -288,19 +330,14 @@ const handleAddArtist = async (setId: string) => {
     created_at: new Date().toISOString(),
   };
 
-  // Optimistic update - instant UI feedback
+  // Optimistic: instant UI update
   addPlan(tempPlan);
-  onClose(); // Close modal immediately
+  onClose(); // Close modal immediately!
 
   try {
     const { data: plan, error } = await supabase
       .from('plans')
-      .insert({
-        squad_id: activeSquadId,
-        created_by: profile.id,
-        type: 'set',
-        set_id: setId,
-      })
+      .insert({ ... })
       .select()
       .single();
 
@@ -312,18 +349,15 @@ const handleAddArtist = async (setId: string) => {
   } catch (error) {
     // Rollback on failure
     removePlan(tempPlan.id);
-    Alert.alert('Error', 'Failed to add artist. Please try again.');
+    Alert.alert('Failed to add', 'Please try again');
   }
 };
 ```
 
-**UX Improvement:**
-- Perceived performance: Instant vs 500ms average
-- Consistent with delete behavior
-- Users can continue browsing immediately
+**UX Improvement:** Instant (5ms) vs 500ms average
 
 **Effort:** 3 hours
-**Priority:** P1 - Significant UX improvement
+**Priority:** P1 - Major UX improvement
 
 ---
 
@@ -344,13 +378,13 @@ useEffect(() => {
 ```
 
 **Impact:**
-- Stale closures - may reference old values
+- Stale closures referencing old values
 - Potential memory leaks
-- React warns about missing dependencies (if ESLint is configured)
+- React warnings about missing deps
 
 **Solution:**
 ```typescript
-// Wrap functions in useCallback to stabilize references
+// Wrap in useCallback to stabilize references
 const syncPlans = useCallback(async (showLoading = true) => {
   if (!activeSquadId) return;
   // ... implementation
@@ -371,44 +405,48 @@ useEffect(() => {
     subscription.remove();
     stopSyncInterval();
   };
-}, [isLowPowerMode, activeSquadId, syncPlans, startSyncInterval]); // ✅ Complete deps
+}, [isLowPowerMode, activeSquadId, syncPlans, startSyncInterval]); // ✅ Complete
 ```
 
 **Effort:** 2 hours
-**Priority:** P2 - Prevents potential bugs
+**Priority:** P2 - Prevents bugs
 
 ---
 
-### P2 - Conflict Resolution
+### P1 - Multi-User Conflicts (Meetups Only)
 
-**Issue 6: No Multi-User Conflict Handling**
+**Issue 6: No Conflict Resolution for Meetup Plans**
 
-**Location:** All plan update operations
+**Location:** `src/components/AddModal.tsx` (edit operations)
 
 **Problem:**
-- User A edits meetup location to "Main Stage"
-- User B simultaneously edits to "Ferris Wheel"
-- Last write wins - no merge, no warning
-- User A's change is silently overwritten
+- User A edits meetup: "Meet at Main Stage"
+- User B edits same meetup: "Meet at Ferris Wheel"
+- Last write wins - no warning
 
-**Impact:** At a festival with 10+ squad members, conflicts are inevitable.
+**Important:** Only meetups need this. Artist plans are personal (each user adds their own).
 
-**Solution - Lightweight Optimistic Locking:**
+**Solution:**
 
 ```typescript
-// Add to Plan type
+// Add to Plan type (meetups only)
 export type Plan = {
   // ... existing
-  version: number; // Increment on each update
-  updated_by: string; // Track who made last change
+  version?: number;      // Only for type='meetup'
+  updated_by?: string;   // Only for type='meetup'
 };
 
-// Database trigger (PostgreSQL)
+// Database migration
+ALTER TABLE plans ADD COLUMN version INTEGER DEFAULT 1;
+ALTER TABLE plans ADD COLUMN updated_by UUID REFERENCES profiles(id);
+
 CREATE OR REPLACE FUNCTION increment_plan_version()
 RETURNS TRIGGER AS $$
 BEGIN
-  NEW.version = OLD.version + 1;
-  NEW.updated_at = NOW();
+  IF NEW.type = 'meetup' THEN
+    NEW.version = COALESCE(OLD.version, 0) + 1;
+    NEW.updated_at = NOW();
+  END IF;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -418,80 +456,193 @@ BEFORE UPDATE ON plans
 FOR EACH ROW
 EXECUTE FUNCTION increment_plan_version();
 
-// In AddModal.tsx
-const handleAddMeetup = async () => {
-  // ... validation
+// In AddModal.tsx - only for meetups
+if (editingPlan && editingPlan.type === 'meetup') {
+  const { data: plan, error } = await supabase
+    .from('plans')
+    .update({
+      meet_time: meetupTime,
+      meet_location: meetupLocation,
+      note: meetupNote || null,
+      updated_by: profile.id,
+    })
+    .eq('id', editingPlan.id)
+    .eq('version', editingPlan.version) // ✅ Optimistic lock
+    .select()
+    .single();
 
-  if (editingPlan) {
-    const { data: plan, error } = await supabase
-      .from('plans')
-      .update({
-        meet_time: meetupTime,
-        meet_location: meetupLocation,
-        note: meetupNote || null,
-      })
-      .eq('id', editingPlan.id)
-      .eq('version', editingPlan.version) // ✅ Optimistic lock
-      .select()
-      .single();
-
-    if (error || !plan) {
-      // Conflict detected
-      Alert.alert(
-        'Conflict Detected',
-        'Someone else modified this meetup. Refresh to see latest.',
-        [
-          { text: 'Refresh', onPress: () => syncNow() },
-          { text: 'Cancel', style: 'cancel' }
-        ]
-      );
-      return;
-    }
-
-    updatePlan(plan.id, plan);
+  if (!plan) {
+    // Conflict!
+    Alert.alert(
+      'Someone Else Edited This',
+      'This meetup was changed by another squad member. Refresh to see latest.',
+      [
+        { text: 'Refresh', onPress: () => syncNow() },
+        { text: 'Cancel', style: 'cancel' }
+      ]
+    );
+    return;
   }
-};
+
+  updatePlan(plan.id, plan);
+}
+
+// Artist plans: no conflict checking (they're personal)
+if (editingPlan && editingPlan.type === 'set') {
+  // Just update, no version check needed
+}
 ```
 
-**Alternative - Show Last Editor:**
-```typescript
-// In UI
-{meetup.updated_by !== profile.id && (
-  <Text style={styles.editWarning}>
-    Last edited by {getProfileName(meetup.updated_by)}
-  </Text>
-)}
-```
-
-**Effort:** 4 hours (with DB migration)
-**Priority:** P2 - Important for multi-user reliability
+**Effort:** 2 hours
+**Priority:** P1 - Multi-user reliability for meetups
 
 ---
 
-### P3 - Future Optimizations
+## Polish & Quality Improvements
 
-**Issue 7: Potential Over-Syncing**
+### P2 - Request Deduplication
+
+**Issue 7: No Double-Click Protection (NEW)**
+
+**Problem:**
+```
+User rapidly clicks "Add Artist" 5 times
+→ 5 duplicate plans created
+→ Confusing UX
+```
+
+**Solution:**
+```typescript
+const [isSubmitting, setIsSubmitting] = useState(false);
+
+const handleAddArtist = async (setId: string) => {
+  if (isSubmitting) return; // Guard
+
+  setIsSubmitting(true);
+  try {
+    // ... add logic
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+// Disable button
+<TouchableOpacity
+  disabled={isSubmitting || loading}
+  style={[styles.button, (isSubmitting || loading) && styles.buttonDisabled]}
+>
+```
+
+**Effort:** 30 minutes
+**Priority:** P2 - Quality of life
+
+---
+
+### P2 - Data Staleness Awareness
+
+**Issue 8: No Staleness Warning (NEW)**
+
+**Problem:** User opens app after 3 hours - no indication data may be stale
+
+**Solution:**
+```typescript
+// In TimelineScreen.tsx
+const getDataFreshnessIndicator = () => {
+  if (!lastSyncedAt) return null;
+
+  const hoursSinceSync = (Date.now() - lastSyncedAt.getTime()) / (1000 * 60 * 60);
+
+  if (hoursSinceSync > 2) {
+    return (
+      <View style={styles.staleWarning}>
+        <Text style={styles.staleWarningText}>
+          ⚠️ Data may be outdated. Pull to refresh.
+        </Text>
+      </View>
+    );
+  }
+  return null;
+};
+
+// Render above timeline
+{getDataFreshnessIndicator()}
+```
+
+**Effort:** 1 hour
+**Priority:** P2 - User trust
+
+---
+
+### P2 - Error Boundaries
+
+**Issue 9: No Error Recovery (NEW)**
+
+**Problem:** Uncaught error in plan management → entire app crashes
+
+**Solution:**
+```typescript
+// ErrorBoundary.tsx
+class PlanErrorBoundary extends React.Component {
+  state = { hasError: false, error: null };
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Plan management error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={styles.errorState}>
+          <Text style={styles.errorTitle}>Something went wrong</Text>
+          <Text style={styles.errorText}>
+            Plan management encountered an error
+          </Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => this.setState({ hasError: false })}
+          >
+            <Text>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// In App.tsx
+<PlanErrorBoundary>
+  <AddModal ... />
+  <TimelineScreen ... />
+</PlanErrorBoundary>
+```
+
+**Effort:** 1 hour
+**Priority:** P2 - Production safety
+
+---
+
+### P3 - Minor Optimizations
+
+**Issue 10: Sync on Power Mode Change**
 
 **Location:** `src/hooks/useSyncManager.ts:115-124`
 
 **Problem:**
 ```typescript
 useEffect(() => {
-  if (activeSquadId) {
-    syncPlans(false);    // Syncs on mount
-    startSyncInterval(); // Starts 30min timer
-  }
-  return () => stopSyncInterval();
-}, [activeSquadId, isLowPowerMode]); // ⚠️ Syncs when power mode changes
+  syncPlans(false);    // Syncs on mount
+  startSyncInterval();
+}, [activeSquadId, isLowPowerMode]); // Syncs when power mode changes (unnecessary)
 ```
-
-**Impact:**
-- Changing squads triggers immediate sync (good)
-- Low power mode toggle triggers sync (unnecessary)
-- Re-starts interval on power mode change (good, but could optimize)
 
 **Solution:**
 ```typescript
+// Separate effects
 useEffect(() => {
   if (activeSquadId) {
     syncPlans(false);
@@ -501,7 +652,7 @@ useEffect(() => {
 }, [activeSquadId]); // Only sync on squad change
 
 useEffect(() => {
-  // Just restart interval with new timing, don't sync
+  // Just restart interval, don't sync
   if (activeSquadId) {
     startSyncInterval();
   }
@@ -514,182 +665,104 @@ useEffect(() => {
 
 ---
 
+## NOT RECOMMENDED
+
+### ❌ Incremental Sync - OVER-ENGINEERED
+
+**Why Rejected:**
+
+Festival app reality:
+- Typical squad: 30-50 artist plans + 5-10 meetups = **~60 plans**
+- 60 plans × 150 bytes = **9KB per sync**
+- Festival weekend: 3 days × 48 syncs = **1.3MB total**
+
+This is **negligible** compared to:
+- App bundle (~5-10MB)
+- Festival website images
+- Music streaming (100MB+/day)
+
+**Critical Bug:** Incremental sync with `WHERE updated_at > lastSync` doesn't return deleted records. Other squad members never see deletions. Requires complex soft-delete mechanism.
+
+**Better Alternative:**
+```typescript
+// Simple time-based skip
+const timeSinceSync = Date.now() - lastSyncedAt.getTime();
+if (timeSinceSync < 15 * 60 * 1000) {
+  return; // Skip sync if <15 min (data is fresh)
+}
+```
+
+**Decision:** Skip incremental sync unless squads regularly exceed 200 plans.
+
+---
+
 ## Performance Metrics
 
 ### Current Performance
 | Operation | Time | Network | Renders |
 |-----------|------|---------|---------|
-| Delete Plan | ~5ms (optimistic) | 1 request | 1 |
+| Delete Plan | ~5ms | 1 request | 1 |
 | Add Plan | ~500ms (waits) | 1 request | 2 |
 | Edit Plan | ~500ms (waits) | 1 request | 2 |
-| Periodic Sync | ~800ms | 1 request (full) | 1 |
-| Battery Check | ~50ms | 0 | 0 |
+| Periodic Sync | ~800ms | 1 request (9KB) | 1 |
 
 ### After Optimizations
 | Operation | Time | Network | Renders |
 |-----------|------|---------|---------|
-| Delete Plan | ~5ms (optimistic) | 1 request | 1 |
-| Add Plan | ~5ms (optimistic) | 1 request | 2 |
-| Edit Plan | ~5ms (optimistic) | 1 request | 2 |
-| Periodic Sync | ~100ms | 1 request (incremental) | 0-1 |
-| Battery Check | ~50ms | 0 | 0 |
+| Delete Plan | ~5ms | 1 request (queued) | 1 |
+| Add Plan | ~5ms | 1 request (queued) | 1 |
+| Edit Plan | ~5ms | 1 request (queued) | 1 |
+| Periodic Sync | ~800ms | 1 request (9KB) | 0-1 |
 
-**Improvement:** 10x faster perceived performance, 95% less bandwidth
-
----
-
-## Memory & Bundle Analysis
-
-### Current State Management Footprint
-
-**Zustand Store Size:** ~2KB (code) + data
-- Profile: ~200 bytes
-- Squads: ~1KB (5 squads × 200 bytes)
-- Plans: **Variable** - 100 plans × ~150 bytes = ~15KB
-- UI State: ~100 bytes
-
-**Total Runtime Memory:** ~18KB + React overhead
-
-**Growth Scenario:**
-- 1000 plans: ~150KB (acceptable)
-- 10,000 plans: ~1.5MB (problematic on low-end devices)
-
-### Recommendation: Pagination or Virtualization
-
-For festival apps with 100s of artists across multiple days:
-
-```typescript
-// Store only visible time window
-type Store = {
-  plans: Plan[];
-  setPlans: (plans: Plan[]) => void;
-  visibleTimeRange: { start: Date; end: Date }; // e.g., current day ± 3 hours
-};
-
-// Load plans on-demand
-const loadPlansForTimeRange = async (start: Date, end: Date) => {
-  const { data } = await supabase
-    .from('plans')
-    .select('*')
-    .eq('squad_id', activeSquadId)
-    .gte('meet_time', start.toISOString())
-    .lte('meet_time', end.toISOString());
-
-  setPlans(data);
-};
-```
-
-**Effort:** 6 hours
-**Priority:** P3 - Only if scaling beyond 500 plans
-
----
-
-## Code Quality Assessment
-
-### Strengths ✅
-1. **TypeScript typing** - Excellent type safety
-2. **Zustand** - Lightweight state management (3KB vs Redux 45KB)
-3. **Memoization** - Good use of useMemo in TimelineScreen
-4. **Battery awareness** - expo-battery integration
-5. **Optimistic deletes** - Good UX pattern
-6. **No websockets** - Correct choice for battery life
-7. **Type guards** - Proper filtering with type guards
-
-### Weaknesses ❌
-1. **No error rollback** - Data loss risk
-2. **Inconsistent patterns** - Update operations differ
-3. **Full sync** - Inefficient at scale
-4. **No optimistic add/edit** - Slower UX
-5. **Missing conflict resolution** - Multi-user issues
-6. **useEffect dependencies** - Potential stale closures
-
-### Technical Debt Score: **4/10** (Medium)
-- Core architecture is sound
-- Needs production-hardening
-- No major refactoring required
+**Improvement:** 100x faster perceived performance (5ms vs 500ms)
 
 ---
 
 ## Recommended Implementation Order
 
-### Phase 1: Production Hardening (1 week)
-1. **P0 - Rollback on failures** (2h) - Prevents data loss
-2. **P0 - Add updatePlan action** (1h) - Fixes state inconsistency
-3. **P2 - Fix useEffect deps** (2h) - Prevents memory leaks
+### Phase 1: Production Hardening (13 hours)
+1. **P0 - Add updatePlan action** (1h) - Foundation
+2. **P0 - Operation queue with retry** (4h) - Prevents data loss
+3. **P1 - Offline mode & persistence** (3h) - Festival environment
 4. **P1 - Optimistic add/edit** (3h) - Better UX
+5. **P2 - Fix useEffect deps** (2h) - Prevents bugs
 
-**Total:** 8 hours
+**Total:** 13 hours
 
-### Phase 2: Efficiency (1 week)
-5. **P1 - Incremental sync** (4h) - 95% bandwidth reduction
-6. **P2 - Conflict resolution** (4h) - Multi-user safety
+### Phase 2: Multi-User & Polish (5 hours)
+6. **P1 - Conflict resolution (meetups)** (2h) - Multi-user safety
+7. **P2 - Request deduplication** (30min) - Quality of life
+8. **P2 - Staleness warnings** (1h) - User trust
+9. **P2 - Error boundaries** (1h) - Production safety
+10. **P3 - Optimize sync triggers** (30min) - Minor gains
 
-**Total:** 8 hours
+**Total:** 5 hours
 
-### Phase 3: Scale (Future)
-7. **P3 - Pagination** (6h) - Only if >500 plans
-8. **P3 - Optimize sync triggers** (30min) - Minor gains
-
-**Total:** 6.5 hours
-
----
-
-## Alternative Architectures Considered
-
-### Option A: Supabase Realtime (Rejected)
-```typescript
-const channel = supabase
-  .channel('plans')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'plans' }, payload => {
-    // Real-time updates
-  })
-  .subscribe();
-```
-
-**Pros:** Instant updates, no polling
-**Cons:**
-- Persistent websocket connection = 10-20% battery drain
-- Doesn't work offline
-- More complex error handling
-- Defeats battery-saving goal
-
-**Decision:** Rejected for festival use case
-
-### Option B: Redux + Redux-Persist (Rejected)
-**Pros:** Mature ecosystem, extensive debugging tools
-**Cons:**
-- 45KB bundle size (vs Zustand 3KB)
-- Boilerplate overhead
-- Overkill for this use case
-
-**Decision:** Zustand is sufficient
-
-### Option C: React Query / TanStack Query (Considered)
-**Pros:**
-- Built-in caching, refetching, optimistic updates
-- Automatic retry logic
-- Better DX for async state
-
-**Cons:**
-- 15KB bundle size
-- Another dependency
-- Learning curve
-
-**Decision:** Consider for Phase 2 refactor if complexity grows
+### Phase 3: Scale (If Needed)
+- **P3 - Incremental sync** - Only if >200 plans/squad (skip for now)
+- **P3 - Pagination** - Only if >500 plans (skip for now)
 
 ---
 
 ## Conclusion
 
-The current architecture is **functionally sound but needs production hardening**. The use of Zustand, battery-aware sync, and optimistic deletes demonstrates good architectural judgment. However, **missing rollback logic, inefficient full syncs, and lack of conflict resolution** present risks for production use.
+The current architecture is **functionally sound but needs production hardening for offline scenarios**. The use of Zustand, battery-aware sync, and optimistic deletes demonstrates good judgment.
 
-**Recommended Action:** Implement Phase 1 (8 hours) before production release. Phase 2 optimizations can be done post-launch based on actual usage patterns.
+**Critical Additions:**
+- **Operation queue** - Handles offline operations and retries
+- **Offline mode** - Festival environments demand this
+- **Conflict resolution** - But only for meetups, not artist plans
 
-### Final Score: 7/10
-- **Correctness:** 6/10 (rollback issues)
-- **Efficiency:** 6/10 (full sync wasteful)
-- **Maintainability:** 8/10 (clean code, good types)
-- **UX:** 7/10 (fast deletes, slow adds)
-- **Scalability:** 7/10 (good to 500 plans, needs work beyond)
+**Removed:**
+- **Incremental sync** - Over-engineered for ~60 plans (9KB)
 
-**Overall:** Solid B+ architecture that needs A-grade refinements for production.
+**Recommended Action:** Implement Phase 1 (13 hours) before production. Phase 2 can be done post-launch based on user feedback.
+
+### Final Score: 8.5/10
+- **Correctness:** 9/10 (with operation queue)
+- **Efficiency:** 8/10 (appropriate for scale)
+- **Maintainability:** 9/10 (clean patterns)
+- **UX:** 9/10 (optimistic, offline-aware)
+- **Scalability:** 8/10 (good to 200 plans)
+
+**Overall:** Production-ready architecture focused on festival environment needs.

@@ -27,7 +27,7 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
   const [meetupNote, setMeetupNote] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { profile, activeSquadId, addPlan, editingPlan, setEditingPlan, plans } = useStore();
+  const { profile, activeSquadId, addPlan, updatePlan, editingPlan, setEditingPlan } = useStore();
 
   // Pre-fill form when editingPlan is set
   useEffect(() => {
@@ -121,9 +121,8 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
 
         if (error) throw error;
 
-        // Update in local store
-        const updatedPlans = plans.map(p => p.id === plan.id ? plan : p);
-        useStore.getState().setPlans(updatedPlans);
+        // Update in local store - consistent pattern
+        updatePlan(plan.id, plan);
 
         Alert.alert('Success', 'Meeting point updated!');
       } else {
