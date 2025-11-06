@@ -47,9 +47,7 @@ export default function App() {
 
   // Persist plans to AsyncStorage
   useEffect(() => {
-    if (plans.length > 0) {
-      AsyncStorage.setItem('plans', JSON.stringify(plans));
-    }
+    AsyncStorage.setItem('plans', JSON.stringify(plans));
   }, [plans]);
 
   useEffect(() => {

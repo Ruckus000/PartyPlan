@@ -26,7 +26,6 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
   const [meetupTime, setMeetupTime] = useState('');
   const [meetupLocation, setMeetupLocation] = useState('');
   const [meetupNote, setMeetupNote] = useState('');
-  const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { profile, activeSquadId, addPlan, updatePlan, removePlan, editingPlan, setEditingPlan } = useStore();
@@ -113,7 +112,7 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
 
   const handleAddMeetup = async () => {
     // Guard: prevent double submission
-    if (isSubmitting || loading) return;
+    if (isSubmitting) return;
 
     if (!meetupTime || !meetupLocation) {
       Alert.alert('Error', 'Please fill in time and location');
@@ -132,8 +131,22 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
 
     // Check if we're in edit mode
     if (editingPlan) {
-      // UPDATE existing plan (not optimistic, shows loading state)
-      setLoading(true);
+      // UPDATE existing plan - optimistic update
+      setIsSubmitting(true);
+
+      // Save original plan for rollback
+      const originalPlan = { ...editingPlan };
+
+      // Optimistic: instant UI update
+      updatePlan(editingPlan.id, {
+        meet_time: meetupTime,
+        meet_location: meetupLocation,
+        note: meetupNote || null,
+      });
+      resetForm();
+      onClose(); // Close modal immediately!
+
+      // Background: sync to database
       try {
         const { data: plan, error } = await supabase
           .from('plans')
@@ -148,17 +161,15 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
 
         if (error) throw error;
 
-        // Update in local store - consistent pattern
+        // Update with server response
         updatePlan(plan.id, plan);
-
-        Alert.alert('Success', 'Meeting point updated!');
-        resetForm();
-        onClose();
       } catch (error) {
+        // Rollback on failure
+        updatePlan(originalPlan.id, originalPlan);
         const message = error instanceof Error ? error.message : 'Failed to update meeting point';
-        Alert.alert('Error', message);
+        Alert.alert('Failed to update', message);
       } finally {
-        setLoading(false);
+        setIsSubmitting(false);
       }
     } else {
       // INSERT new plan - optimistic update
@@ -295,12 +306,12 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
               />
 
               <TouchableOpacity
-                style={[styles.submitButton, (isSubmitting || loading) && styles.submitButtonDisabled]}
+                style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
                 onPress={handleAddMeetup}
-                disabled={isSubmitting || loading}
+                disabled={isSubmitting}
               >
                 <Text style={styles.submitButtonText}>
-                  {(isSubmitting || loading)
+                  {isSubmitting
                     ? (editingPlan ? 'Updating...' : 'Adding...')
                     : (editingPlan ? 'Update Meeting Point' : 'Add Meeting Point')}
                 </Text>
@@ -321,7 +332,7 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
                     key={set.id}
                     style={[styles.artistItem, isSubmitting && styles.artistItemDisabled]}
                     onPress={() => handleAddArtist(set.id)}
-                    disabled={isSubmitting || loading}
+                    disabled={isSubmitting}
                   >
                     <View style={styles.artistInfo}>
                       <Text style={styles.artistName}>{set.artist}</Text>
