@@ -16,7 +16,9 @@ const colors = {
 const stages = ['Kinetic Field', 'Circuit Grounds', 'Neon Garden', 'Quantum Valley'];
 
 export default function TimelineScreen() {
-  const { plans } = useStore();
+  const { plans, squads, activeSquadId } = useStore();
+
+  const activeSquad = squads.find(s => s.id === activeSquadId);
 
   // Create a Set of planned set IDs for quick lookup
   const plannedSetIds = useMemo(() => {
@@ -46,6 +48,21 @@ export default function TimelineScreen() {
 
   return (
     <ScrollView style={styles.container}>
+      {/* Active Squad Indicator */}
+      {activeSquad && (
+        <View style={styles.squadIndicator}>
+          <Text style={styles.squadLabel}>Squad:</Text>
+          <Text style={styles.squadName}>{activeSquad.name}</Text>
+        </View>
+      )}
+
+      {plans.length === 0 && (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>No plans yet</Text>
+          <Text style={styles.emptyStateSubtext}>Tap + to add artists or meetups</Text>
+        </View>
+      )}
+
       {Object.entries(setsByTime).map(([time, sets]) => {
         // Get meetups for this time slot
         const meetupsAtThisTime = meetupPlans.filter(plan => plan.meet_time === time);
@@ -90,6 +107,40 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bgSecondary,
     padding: 16,
+  },
+  squadIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.bgCard,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 12,
+    marginBottom: 16,
+  },
+  squadLabel: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    marginRight: 8,
+  },
+  squadName: {
+    color: colors.textPrimary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyStateText: {
+    color: colors.textPrimary,
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  emptyStateSubtext: {
+    color: colors.textSecondary,
+    fontSize: 14,
   },
   meetupCard: {
     backgroundColor: colors.bgCard,

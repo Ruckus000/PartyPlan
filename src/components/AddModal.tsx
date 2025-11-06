@@ -27,7 +27,7 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
   const [meetupNote, setMeetupNote] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { profile, addPlan } = useStore();
+  const { profile, activeSquadId, addPlan } = useStore();
 
   // Filter artists based on search query
   const filteredSets = seedSets.filter(set =>
@@ -35,66 +35,23 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
     set.stage.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Get or create default squad for the user
-  const getDefaultSquad = async (userId: string) => {
-    // Check if user has a default squad
-    const { data: existingSquad } = await supabase
-      .from('squads')
-      .select('*')
-      .eq('created_by', userId)
-      .eq('name', 'My Schedule')
-      .single();
-
-    if (existingSquad) {
-      return existingSquad.id;
-    }
-
-    // Create a default personal squad
-    const { data: newSquad, error } = await supabase
-      .from('squads')
-      .insert({
-        name: 'My Schedule',
-        created_by: userId,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating squad:', error);
-      throw error;
-    }
-
-    // Add user as a member of the squad
-    const { error: memberError } = await supabase
-      .from('squad_members')
-      .insert({
-        squad_id: newSquad.id,
-        profile_id: userId,
-        role: 'owner',
-      });
-
-    if (memberError) {
-      console.error('Error adding user to squad:', memberError);
-      // Don't throw - squad is created, just membership failed
-    }
-
-    return newSquad.id;
-  };
-
   const handleAddArtist = async (setId: string) => {
     if (!profile) {
       Alert.alert('Error', 'Please sign in to add plans');
       return;
     }
 
+    if (!activeSquadId) {
+      Alert.alert('Error', 'No active squad. Please create or join a squad first.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const squadId = await getDefaultSquad(profile.id);
-
       const { data: plan, error } = await supabase
         .from('plans')
         .insert({
-          squad_id: squadId,
+          squad_id: activeSquadId,
           created_by: profile.id,
           type: 'set',
           set_id: setId,
@@ -128,14 +85,17 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       return;
     }
 
+    if (!activeSquadId) {
+      Alert.alert('Error', 'No active squad. Please create or join a squad first.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const squadId = await getDefaultSquad(profile.id);
-
       const { data: plan, error } = await supabase
         .from('plans')
         .insert({
-          squad_id: squadId,
+          squad_id: activeSquadId,
           created_by: profile.id,
           type: 'meetup',
           meet_time: meetupTime,
