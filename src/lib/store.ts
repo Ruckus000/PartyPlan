@@ -64,9 +64,9 @@ export const useStore = create<Store>((set) => ({
     )
   })),
   getPendingDeleteIds: (): Set<string> => {
-    const state = useStore.getState() as Store;
+    const { pendingOperations } = useStore.getState();
     return new Set(
-      state.pendingOperations
+      pendingOperations
         .filter((op: PendingOperation) => op.type === 'delete')
         .map((op: PendingOperation) => op.planId)
     );
