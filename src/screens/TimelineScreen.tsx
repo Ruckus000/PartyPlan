@@ -20,7 +20,7 @@ const colors = {
 const stages = ['Kinetic Field', 'Circuit Grounds', 'Neon Garden', 'Quantum Valley'];
 
 export default function TimelineScreen() {
-  const { plans, squads, activeSquadId, removePlan, addPendingOperation, removePendingOperation, setEditingPlan, setModalVisible } = useStore();
+  const { plans, squads, activeSquadId, removePlan, addPendingOperation, removePendingOperation, setEditingPlan, setModalVisible, isOffline } = useStore();
   const { isSyncing, lastSyncedAt, syncNow } = useSyncContext();
 
   const activeSquad = squads.find(s => s.id === activeSquadId);
@@ -173,6 +173,15 @@ export default function TimelineScreen() {
         />
       }
     >
+      {/* Offline Banner */}
+      {isOffline && (
+        <View style={styles.offlineBanner}>
+          <Text style={styles.offlineText}>
+            📵 Offline - Changes will sync when connected
+          </Text>
+        </View>
+      )}
+
       {/* Active Squad Indicator with Last Synced */}
       {activeSquad && (
         <View style={styles.squadIndicator}>
@@ -250,6 +259,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bgSecondary,
     padding: 16,
+  },
+  offlineBanner: {
+    backgroundColor: '#d97706',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  offlineText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   squadIndicator: {
     flexDirection: 'row',

@@ -25,6 +25,8 @@ type Store = {
   removePendingOperation: (id: string) => void;
   updatePendingOperation: (id: string, updates: Partial<PendingOperation>) => void;
   getPendingDeleteIds: () => Set<string>;
+  isOffline: boolean;
+  setIsOffline: (offline: boolean) => void;
 };
 
 export const useStore = create<Store>((set) => ({
@@ -69,4 +71,6 @@ export const useStore = create<Store>((set) => ({
         .map(op => op.planId)
     );
   },
+  isOffline: false,
+  setIsOffline: (offline) => set({ isOffline: offline }),
 }));
