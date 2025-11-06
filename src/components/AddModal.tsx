@@ -30,9 +30,11 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
   const { profile, activeSquadId, addPlan } = useStore();
 
   // Filter artists based on search query
+  // Optimize by calculating toLowerCase() once
+  const lowercasedQuery = searchQuery.toLowerCase();
   const filteredSets = seedSets.filter(set =>
-    set.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    set.stage.toLowerCase().includes(searchQuery.toLowerCase())
+    set.artist.toLowerCase().includes(lowercasedQuery) ||
+    set.stage.toLowerCase().includes(lowercasedQuery)
   );
 
   const handleAddArtist = async (setId: string) => {
@@ -67,8 +69,9 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       Alert.alert('Success', 'Artist added to schedule!');
       resetForm();
       onClose();
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to add artist');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to add artist';
+      Alert.alert('Error', message);
     } finally {
       setLoading(false);
     }
@@ -113,8 +116,9 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       Alert.alert('Success', 'Meeting point added!');
       resetForm();
       onClose();
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to add meeting point');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to add meeting point';
+      Alert.alert('Error', message);
     } finally {
       setLoading(false);
     }

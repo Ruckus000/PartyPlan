@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert, Share } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { useStore } from '../lib/store';
-import { Squad, SquadMember } from '../types';
+import { Squad, SquadMember, Profile } from '../types';
 import { generateInviteCode, isValidInviteCode } from '../utils/inviteCode';
 
 const colors = {
@@ -35,7 +35,7 @@ export default function SquadScreen() {
     if (!error && data) {
       setSquadMembers(prev => ({
         ...prev,
-        [squadId]: data.map((m: any) => ({
+        [squadId]: data.map((m: SquadMember & { profiles: Profile | null }) => ({
           ...m,
           profile: m.profiles,
         })),
@@ -73,29 +73,28 @@ export default function SquadScreen() {
         attempts++;
       }
 
-      // Create squad
-      const { data: newSquad, error: squadError } = await supabase
-        .from('squads')
-        .insert({
-          name: newSquadName.trim(),
-          invite_code: inviteCode,
-          created_by: profile.id,
-        })
-        .select()
-        .single();
-
-      if (squadError) throw squadError;
-
-      // Add creator as member
-      const { error: memberError } = await supabase
-        .from('squad_members')
-        .insert({
-          squad_id: newSquad.id,
-          profile_id: profile.id,
-          role: 'owner',
+      // Create squad and add member atomically using RPC
+      const { data: rpcResult, error: rpcError } = await supabase
+        .rpc('create_squad_with_member', {
+          squad_name: newSquadName.trim(),
+          invite_code_param: inviteCode,
+          creator_id: profile.id,
         });
 
-      if (memberError) throw memberError;
+      if (rpcError) throw rpcError;
+
+      if (!rpcResult || rpcResult.length === 0) {
+        throw new Error('Failed to create squad');
+      }
+
+      // Map RPC result to Squad type
+      const newSquad: Squad = {
+        id: rpcResult[0].squad_id,
+        name: rpcResult[0].squad_name,
+        invite_code: rpcResult[0].squad_invite_code,
+        created_by: rpcResult[0].squad_created_by,
+        created_at: rpcResult[0].squad_created_at,
+      };
 
       // Add to local store
       addSquad(newSquad);
@@ -103,8 +102,9 @@ export default function SquadScreen() {
       Alert.alert('Success', `Squad "${newSquadName}" created!\nInvite code: ${inviteCode}`);
       setNewSquadName('');
       setShowCreateModal(false);
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to create squad');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create squad';
+      Alert.alert('Error', message);
     } finally {
       setLoading(false);
     }
@@ -169,8 +169,9 @@ export default function SquadScreen() {
       Alert.alert('Success', `Joined squad "${squad.name}"!`);
       setJoinCode('');
       setShowJoinModal(false);
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to join squad');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to join squad';
+      Alert.alert('Error', message);
     } finally {
       setLoading(false);
     }
