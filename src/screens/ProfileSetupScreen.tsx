@@ -26,7 +26,6 @@ export default function ProfileSetupScreen({ onProfileSetupComplete }: { onProfi
         id: user.id,
         display_name: displayName,
         emoji,
-        updated_at: new Date(),
       });
 
       if (error) {
