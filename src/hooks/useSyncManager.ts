@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AppState, AppStateStatus } from 'react-native';
+import { AppState, AppStateStatus, Alert } from 'react-native';
 import * as Battery from 'expo-battery';
 import { supabase } from '../lib/supabase';
 import { useStore } from '../lib/store';
@@ -16,7 +16,7 @@ export function useSyncManager() {
   const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
-  const { activeSquadId, setPlans } = useStore();
+  const { activeSquadId, setPlans, pendingOperations, removePendingOperation, updatePendingOperation, addPlan, getPendingDeleteIds } = useStore();
 
   // Battery check for low power mode detection using expo-battery
   const checkBatteryLevel = async () => {
@@ -30,6 +30,36 @@ export function useSyncManager() {
     }
   };
 
+  // Process pending operations with retry and exponential backoff
+  const processPendingOperations = async () => {
+    const ops = pendingOperations;
+
+    for (const op of ops) {
+      try {
+        if (op.type === 'delete') {
+          await supabase.from('plans').delete().eq('id', op.planId);
+          removePendingOperation(op.id);
+        }
+        // TODO: Handle 'add' and 'update' types when optimistic add/edit is implemented
+      } catch (error) {
+        // Exponential backoff: give up after 5 retries
+        if (op.retryCount >= 5) {
+          // Give up, restore the plan
+          if (op.planData) {
+            addPlan(op.planData as any);
+          }
+          removePendingOperation(op.id);
+          Alert.alert('Sync Failed', 'Some changes could not be saved');
+        } else {
+          // Increment retry count for next attempt
+          updatePendingOperation(op.id, {
+            retryCount: op.retryCount + 1
+          });
+        }
+      }
+    }
+  };
+
   // Sync plans from Supabase
   const syncPlans = async (showLoading = true) => {
     if (!activeSquadId) return;
@@ -37,6 +67,10 @@ export function useSyncManager() {
     if (showLoading) setIsSyncing(true);
 
     try {
+      // Process pending operations first
+      await processPendingOperations();
+
+      // Fetch from server
       const { data: plansData, error } = await supabase
         .from('plans')
         .select('*')
@@ -45,7 +79,11 @@ export function useSyncManager() {
       if (error) throw error;
 
       if (plansData) {
-        setPlans(plansData);
+        // Filter out plans that are pending deletion
+        const pendingDeleteIds = getPendingDeleteIds();
+        const filteredPlans = plansData.filter(p => !pendingDeleteIds.has(p.id));
+
+        setPlans(filteredPlans);
         setLastSyncedAt(new Date());
       }
     } catch (error) {

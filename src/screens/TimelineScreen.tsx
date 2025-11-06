@@ -20,40 +20,66 @@ const colors = {
 const stages = ['Kinetic Field', 'Circuit Grounds', 'Neon Garden', 'Quantum Valley'];
 
 export default function TimelineScreen() {
-  const { plans, squads, activeSquadId, removePlan, setEditingPlan, setModalVisible } = useStore();
+  const { plans, squads, activeSquadId, removePlan, addPendingOperation, removePendingOperation, setEditingPlan, setModalVisible } = useStore();
   const { isSyncing, lastSyncedAt, syncNow } = useSyncContext();
 
   const activeSquad = squads.find(s => s.id === activeSquadId);
 
   // Delete handler for artist plans
   const handleDeleteSet = async (setId: string) => {
-    // Find the plan for this set
     const plan = plans.find(p => p.set_id === setId);
     if (!plan) return;
 
-    // Optimistic UI update - remove immediately from store
+    const opId = `delete-${Date.now()}`;
+
+    // Optimistic UI update - remove immediately
     removePlan(plan.id);
 
-    // Background sync to database
+    // Queue operation for retry
+    addPendingOperation({
+      id: opId,
+      type: 'delete',
+      planId: plan.id,
+      planData: plan,
+      timestamp: Date.now(),
+      retryCount: 0,
+    });
+
     try {
       await supabase.from('plans').delete().eq('id', plan.id);
+      removePendingOperation(opId); // Success!
     } catch (error) {
-      console.error('Failed to delete plan:', error);
-      // Could add error handling/rollback here if needed
+      // Will retry in background sync
+      console.error('Delete queued for retry:', error);
     }
   };
 
   // Delete handler for meetup plans
   const handleDeleteMeetup = async (planId: string) => {
-    // Optimistic UI update - remove immediately from store
+    const plan = plans.find(p => p.id === planId);
+    if (!plan) return;
+
+    const opId = `delete-${Date.now()}`;
+
+    // Optimistic UI update - remove immediately
     removePlan(planId);
 
-    // Background sync to database
+    // Queue operation for retry
+    addPendingOperation({
+      id: opId,
+      type: 'delete',
+      planId: plan.id,
+      planData: plan,
+      timestamp: Date.now(),
+      retryCount: 0,
+    });
+
     try {
       await supabase.from('plans').delete().eq('id', planId);
+      removePendingOperation(opId); // Success!
     } catch (error) {
-      console.error('Failed to delete meetup:', error);
-      // Could add error handling/rollback here if needed
+      // Will retry in background sync
+      console.error('Delete queued for retry:', error);
     }
   };
 
