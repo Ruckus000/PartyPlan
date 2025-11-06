@@ -27,6 +27,7 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
   const [meetupLocation, setMeetupLocation] = useState('');
   const [meetupNote, setMeetupNote] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { profile, activeSquadId, addPlan, updatePlan, removePlan, editingPlan, setEditingPlan } = useStore();
 
@@ -49,6 +50,9 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
   );
 
   const handleAddArtist = async (setId: string) => {
+    // Guard: prevent double submission
+    if (isSubmitting) return;
+
     if (!profile) {
       Alert.alert('Error', 'Please sign in to add plans');
       return;
@@ -58,6 +62,8 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       Alert.alert('Error', 'No active squad. Please create or join a squad first.');
       return;
     }
+
+    setIsSubmitting(true);
 
     // Create temporary plan for optimistic update
     const tempPlan: Plan = {
@@ -100,10 +106,15 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       removePlan(tempPlan.id);
       const message = error instanceof Error ? error.message : 'Failed to add artist';
       Alert.alert('Failed to add', message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleAddMeetup = async () => {
+    // Guard: prevent double submission
+    if (isSubmitting || loading) return;
+
     if (!meetupTime || !meetupLocation) {
       Alert.alert('Error', 'Please fill in time and location');
       return;
@@ -151,6 +162,8 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       }
     } else {
       // INSERT new plan - optimistic update
+      setIsSubmitting(true);
+
       const tempPlan: Plan = {
         id: `temp-${Date.now()}`,
         squad_id: activeSquadId,
@@ -193,6 +206,8 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
         removePlan(tempPlan.id);
         const message = error instanceof Error ? error.message : 'Failed to add meeting point';
         Alert.alert('Failed to add', message);
+      } finally {
+        setIsSubmitting(false);
       }
     }
   };
@@ -280,12 +295,12 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
               />
 
               <TouchableOpacity
-                style={styles.submitButton}
+                style={[styles.submitButton, (isSubmitting || loading) && styles.submitButtonDisabled]}
                 onPress={handleAddMeetup}
-                disabled={loading}
+                disabled={isSubmitting || loading}
               >
                 <Text style={styles.submitButtonText}>
-                  {loading
+                  {(isSubmitting || loading)
                     ? (editingPlan ? 'Updating...' : 'Adding...')
                     : (editingPlan ? 'Update Meeting Point' : 'Add Meeting Point')}
                 </Text>
@@ -304,9 +319,9 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
                 {filteredSets.map(set => (
                   <TouchableOpacity
                     key={set.id}
-                    style={styles.artistItem}
+                    style={[styles.artistItem, isSubmitting && styles.artistItemDisabled]}
                     onPress={() => handleAddArtist(set.id)}
-                    disabled={loading}
+                    disabled={isSubmitting || loading}
                   >
                     <View style={styles.artistInfo}>
                       <Text style={styles.artistName}>{set.artist}</Text>
@@ -468,9 +483,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
+  submitButtonDisabled: {
+    backgroundColor: '#1e3a5f',
+    opacity: 0.6,
+  },
   submitButtonText: {
     color: colors.textPrimary,
     fontSize: 16,
     fontWeight: '600',
+  },
+  artistItemDisabled: {
+    opacity: 0.5,
   },
 });
