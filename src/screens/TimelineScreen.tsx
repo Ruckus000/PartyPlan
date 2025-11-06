@@ -6,6 +6,7 @@ import StageLane from '../components/StageLane';
 import { useStore } from '../lib/store';
 import { useSyncContext } from '../contexts/SyncContext';
 import { supabase } from '../lib/supabase';
+import { Plan } from '../types';
 
 const colors = {
   bgSecondary: '#0a0a0a',
@@ -57,7 +58,7 @@ export default function TimelineScreen() {
   };
 
   // Long-press handler for meetup cards
-  const handleMeetupLongPress = (meetup: typeof meetupPlans[0]) => {
+  const handleMeetupLongPress = (meetup: Plan) => {
     Alert.alert(
       'Manage Meetup',
       `${meetup.meet_location}`,
@@ -88,9 +89,9 @@ export default function TimelineScreen() {
     );
   }, [plans]);
 
-  // Get meetup plans
+  // Get meetup plans with explicit type guard
   const meetupPlans = useMemo(() => {
-    return plans.filter(plan => plan.type === 'meetup');
+    return plans.filter((plan): plan is Plan => plan.type === 'meetup');
   }, [plans]);
 
   // Group meetups by time for efficient lookup
