@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -13,6 +12,7 @@ import AuthScreen from './src/screens/AuthScreen';
 import ProfileSetupScreen from './src/screens/ProfileSetupScreen';
 import { Session } from '@supabase/supabase-js';
 import { useStore } from './src/lib/store';
+import { Squad } from './src/types';
 
 const Tab = createBottomTabNavigator();
 
@@ -43,25 +43,29 @@ export default function App() {
           .eq('profile_id', session.user.id);
 
         if (squadMemberships && squadMemberships.length > 0) {
+          // Use type guard to filter out null squads safely
           const squads = squadMemberships
             .map(m => m.squads)
-            .filter(Boolean) as any[];
+            .filter((s): s is Squad => Boolean(s));
 
           useStore.getState().setSquads(squads);
 
           // Set first squad as active (or find "My Schedule")
-          const mySchedule = squads.find(s => s.name === 'My Schedule');
-          const activeSquad = mySchedule || squads[0];
-          useStore.getState().setActiveSquadId(activeSquad.id);
+          // Guard against empty squads array after filtering
+          if (squads.length > 0) {
+            const mySchedule = squads.find(s => s.name === 'My Schedule');
+            const activeSquad = mySchedule || squads[0];
+            useStore.getState().setActiveSquadId(activeSquad.id);
 
-          // Fetch plans for active squad (ALL plans, not just user's)
-          const { data: plansData } = await supabase
-            .from('plans')
-            .select('*')
-            .eq('squad_id', activeSquad.id);
+            // Fetch plans for active squad (ALL plans, not just user's)
+            const { data: plansData } = await supabase
+              .from('plans')
+              .select('*')
+              .eq('squad_id', activeSquad.id);
 
-          if (plansData) {
-            useStore.getState().setPlans(plansData);
+            if (plansData) {
+              useStore.getState().setPlans(plansData);
+            }
           }
         }
       }

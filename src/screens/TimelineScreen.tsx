@@ -34,6 +34,18 @@ export default function TimelineScreen() {
     return plans.filter(plan => plan.type === 'meetup');
   }, [plans]);
 
+  // Group meetups by time for efficient lookup
+  const meetupsByTime = useMemo(() => {
+    return meetupPlans.reduce((acc, plan) => {
+      if (!plan.meet_time) return acc;
+      if (!acc[plan.meet_time]) {
+        acc[plan.meet_time] = [];
+      }
+      acc[plan.meet_time].push(plan);
+      return acc;
+    }, {} as Record<string, typeof meetupPlans>);
+  }, [meetupPlans]);
+
   // Group sets by time
   const setsByTime = useMemo(() => {
     return seedSets.reduce((acc, set) => {
@@ -64,8 +76,8 @@ export default function TimelineScreen() {
       )}
 
       {Object.entries(setsByTime).map(([time, sets]) => {
-        // Get meetups for this time slot
-        const meetupsAtThisTime = meetupPlans.filter(plan => plan.meet_time === time);
+        // Get meetups for this time slot (pre-grouped for performance)
+        const meetupsAtThisTime = meetupsByTime[time] || [];
 
         const setsByStage = stages.map(stage => ({
           stage,
