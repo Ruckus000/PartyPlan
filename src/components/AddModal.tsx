@@ -108,6 +108,7 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       addPlan(plan);
 
       Alert.alert('Success', 'Artist added to schedule!');
+      resetForm();
       onClose();
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to add artist');
@@ -150,6 +151,7 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       addPlan(plan);
 
       Alert.alert('Success', 'Meeting point added!');
+      resetForm();
       onClose();
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to add meeting point');
