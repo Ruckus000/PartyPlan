@@ -413,18 +413,22 @@ useEffect(() => {
 
 ---
 
-### P1 - Multi-User Conflicts (Meetups Only)
+### ~~P1 - Multi-User Conflicts (Meetups Only)~~ **[REMOVED - See Phase 2]**
 
-**Issue 6: No Conflict Resolution for Meetup Plans**
+**Issue 6: No Conflict Resolution for Meetup Plans** - **OBSOLETE**
+
+> **Design Decision:** This entire issue has been removed. Meetups are now personal (like artist plans), eliminating the need for conflict resolution. See Phase 2 for detailed rationale.
 
 **Location:** `src/components/AddModal.tsx` (edit operations)
 
-**Problem:**
+**Problem:** *(Obsolete - based on old shared meetup design)*
 - User A edits meetup: "Meet at Main Stage"
 - User B edits same meetup: "Meet at Ferris Wheel"
 - Last write wins - no warning
 
-**Important:** Only meetups need this. Artist plans are personal (each user adds their own).
+**~~Important:~~ Only meetups need this. Artist plans are personal (each user adds their own).**
+
+**New Approach:** Make meetups personal too. Simpler, more consistent, no conflicts.
 
 **Solution:**
 
@@ -729,14 +733,39 @@ if (timeSinceSync < 15 * 60 * 1000) {
 
 **Total:** 13 hours
 
-### Phase 2: Multi-User & Polish (5 hours)
-6. **P1 - Conflict resolution (meetups)** (2h) - Multi-user safety
+### Phase 2: Polish & Quality of Life (3 hours)
+6. ~~**P1 - Conflict resolution (meetups)** (2h)~~ - **REMOVED** (see decision below)
 7. **P2 - Request deduplication** (30min) - Quality of life
 8. **P2 - Staleness warnings** (1h) - User trust
 9. **P2 - Error boundaries** (1h) - Production safety
 10. **P3 - Optimize sync triggers** (30min) - Minor gains
 
-**Total:** 5 hours
+**Total:** 3 hours
+
+#### Decision: Meetups Should Be Personal (Not Shared)
+
+**Removed Issue 6 (Conflict Resolution)** based on design simplification:
+
+**Old Design:** Shared meetups that any squad member can edit → requires conflict resolution
+**New Design:** Personal meetups (like artist plans) → no conflicts possible
+
+**Rationale:**
+- ✅ **Consistent Pattern** - Artist plans and meetups work the same way
+- ✅ **Simpler Code** - No version tracking, triggers, or conflict alerts needed
+- ✅ **No Complexity** - Removes entire 2-hour task
+- ✅ **Still Coordinated** - Squad members see each other's meetups and can spot mismatches
+- ✅ **Lightweight** - Aligns with core design principle
+
+**Example:**
+```
+9:00 PM - Meetup
+  📍 You: Main Stage
+  📍 Sarah: Main Stage
+  📍 Mike: Main Stage
+  ✅ Coordinated!
+```
+
+If plans don't match, users communicate and each updates their own. The visibility is what matters for coordination, not shared editing.
 
 ### Phase 3: Scale (If Needed)
 - **P3 - Incremental sync** - Only if >200 plans/squad (skip for now)
@@ -751,12 +780,16 @@ The current architecture is **functionally sound but needs production hardening 
 **Critical Additions:**
 - **Operation queue** - Handles offline operations and retries
 - **Offline mode** - Festival environments demand this
-- **Conflict resolution** - But only for meetups, not artist plans
+- **Optimistic add/edit** - Instant UX for all operations
 
 **Removed:**
 - **Incremental sync** - Over-engineered for ~60 plans (9KB)
+- **Conflict resolution** - Meetups should be personal (like artist plans), removing need for conflict handling
 
-**Recommended Action:** Implement Phase 1 (13 hours) before production. Phase 2 can be done post-launch based on user feedback.
+**Design Decision:**
+- **Personal meetups** - Each user creates their own meetups, squad visibility provides coordination. Simpler and more consistent than shared meetups.
+
+**Recommended Action:** Implement Phase 1 (13 hours) before production. Phase 2 (3 hours) can be done post-launch based on user feedback.
 
 ### Final Score: 8.5/10
 - **Correctness:** 9/10 (with operation queue)
