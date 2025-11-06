@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
+import * as Battery from 'expo-battery';
 import { supabase } from '../lib/supabase';
 import { useStore } from '../lib/store';
 
@@ -17,20 +18,14 @@ export function useSyncManager() {
 
   const { activeSquadId, setPlans } = useStore();
 
-  // Simple battery check for low power mode detection
+  // Battery check for low power mode detection using expo-battery
   const checkBatteryLevel = async () => {
     try {
-      // Try to get battery level if available (web API or native)
-      if (typeof navigator !== 'undefined' && 'getBattery' in navigator) {
-        const battery = await (navigator as any).getBattery();
-        const level = battery.level;
-        setIsLowPowerMode(level < LOW_BATTERY_THRESHOLD);
-      } else {
-        // Fallback: assume normal mode if battery API unavailable
-        setIsLowPowerMode(false);
-      }
-    } catch {
-      // If battery check fails, assume normal mode
+      const batteryLevel = await Battery.getBatteryLevelAsync();
+      setIsLowPowerMode(batteryLevel < LOW_BATTERY_THRESHOLD);
+    } catch (error) {
+      // If battery check fails (e.g., unsupported device), assume normal mode
+      console.warn('Battery check failed, assuming normal mode:', error);
       setIsLowPowerMode(false);
     }
   };
