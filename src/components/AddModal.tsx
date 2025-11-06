@@ -64,6 +64,20 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       throw error;
     }
 
+    // Add user as a member of the squad
+    const { error: memberError } = await supabase
+      .from('squad_members')
+      .insert({
+        squad_id: newSquad.id,
+        profile_id: userId,
+        role: 'owner',
+      });
+
+    if (memberError) {
+      console.error('Error adding user to squad:', memberError);
+      // Don't throw - squad is created, just membership failed
+    }
+
     return newSquad.id;
   };
 
