@@ -3,6 +3,7 @@ import { AppState, AppStateStatus, Alert } from 'react-native';
 import * as Battery from 'expo-battery';
 import { supabase } from '../lib/supabase';
 import { useStore } from '../lib/store';
+import { Plan } from '../types';
 
 const SYNC_INTERVAL_NORMAL = 30 * 60 * 1000; // 30 minutes
 const SYNC_INTERVAL_LOW_POWER = 60 * 60 * 1000; // 60 minutes
@@ -46,7 +47,7 @@ export function useSyncManager() {
         if (op.retryCount >= 5) {
           // Give up, restore the plan
           if (op.planData) {
-            addPlan(op.planData as any);
+            addPlan(op.planData as Plan);
           }
           removePendingOperation(op.id);
           Alert.alert('Sync Failed', 'Some changes could not be saved');
