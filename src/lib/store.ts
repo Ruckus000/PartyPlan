@@ -13,6 +13,7 @@ type Store = {
   plans: Plan[];
   setPlans: (plans: Plan[]) => void;
   addPlan: (plan: Plan) => void;
+  updatePlan: (planId: string, updates: Partial<Plan>) => void;
   removePlan: (planId: string) => void;
   editingPlan: Plan | null;
   setEditingPlan: (plan: Plan | null) => void;
@@ -31,6 +32,9 @@ export const useStore = create<Store>((set) => ({
   plans: [],
   setPlans: (plans) => set({ plans }),
   addPlan: (plan) => set((state) => ({ plans: [...state.plans, plan] })),
+  updatePlan: (planId, updates) => set((state) => ({
+    plans: state.plans.map(p => p.id === planId ? { ...p, ...updates } : p)
+  })),
   removePlan: (planId) => set((state) => ({
     plans: state.plans.filter(p => p.id !== planId)
   })),
