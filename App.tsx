@@ -13,6 +13,8 @@ import ProfileSetupScreen from './src/screens/ProfileSetupScreen';
 import { Session } from '@supabase/supabase-js';
 import { useStore } from './src/lib/store';
 import { Squad } from './src/types';
+import { useSyncManager } from './src/hooks/useSyncManager';
+import { SyncProvider } from './src/contexts/SyncContext';
 
 const Tab = createBottomTabNavigator();
 
@@ -21,6 +23,9 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const { profile, setProfile } = useStore();
   const [loading, setLoading] = useState(true);
+
+  // Initialize sync manager (only active when logged in with squads)
+  const syncManager = useSyncManager();
 
   useEffect(() => {
     const fetchSessionAndProfile = async () => {
@@ -117,16 +122,18 @@ export default function App() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <NavigationContainer>
-        <Tab.Navigator screenOptions={{ headerShown: false }}>
-          <Tab.Screen name="Timeline" component={TimelineScreen} />
-          <Tab.Screen name="Squad" component={SquadScreen} />
-          <Tab.Screen name="Map" component={MapScreen} />
-        </Tab.Navigator>
-      </NavigationContainer>
-      <Fab onPress={() => setModalVisible(true)} />
-      <AddModal visible={modalVisible} onClose={() => setModalVisible(false)} />
-    </View>
+    <SyncProvider value={syncManager}>
+      <View style={{ flex: 1 }}>
+        <NavigationContainer>
+          <Tab.Navigator screenOptions={{ headerShown: false }}>
+            <Tab.Screen name="Timeline" component={TimelineScreen} />
+            <Tab.Screen name="Squad" component={SquadScreen} />
+            <Tab.Screen name="Map" component={MapScreen} />
+          </Tab.Navigator>
+        </NavigationContainer>
+        <Fab onPress={() => setModalVisible(true)} />
+        <AddModal visible={modalVisible} onClose={() => setModalVisible(false)} />
+      </View>
+    </SyncProvider>
   );
 }

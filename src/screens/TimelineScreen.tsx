@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { View, StyleSheet, ScrollView, Text } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, RefreshControl } from 'react-native';
 import { seedSets } from '../data/seedLineup';
 import TimeBlock from '../components/TimeBlock';
 import StageLane from '../components/StageLane';
 import { useStore } from '../lib/store';
+import { useSyncContext } from '../contexts/SyncContext';
 
 const colors = {
   bgSecondary: '#0a0a0a',
@@ -11,12 +12,14 @@ const colors = {
   border: 'rgba(255, 255, 255, 0.08)',
   textPrimary: '#ffffff',
   textSecondary: '#a0a0a0',
+  accentBlue: '#3b82f6',
 };
 
 const stages = ['Kinetic Field', 'Circuit Grounds', 'Neon Garden', 'Quantum Valley'];
 
 export default function TimelineScreen() {
   const { plans, squads, activeSquadId } = useStore();
+  const { isSyncing, lastSyncedAt, syncNow } = useSyncContext();
 
   const activeSquad = squads.find(s => s.id === activeSquadId);
 
@@ -58,13 +61,45 @@ export default function TimelineScreen() {
     }, {} as Record<string, typeof seedSets>);
   }, []);
 
+  // Helper to format last synced time
+  const getLastSyncedText = () => {
+    if (!lastSyncedAt) return '';
+
+    const now = new Date();
+    const diffMs = now.getTime() - lastSyncedAt.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins === 1) return '1 min ago';
+    if (diffMins < 60) return `${diffMins} mins ago`;
+
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours === 1) return '1 hour ago';
+    return `${diffHours} hours ago`;
+  };
+
   return (
-    <ScrollView style={styles.container}>
-      {/* Active Squad Indicator */}
+    <ScrollView
+      style={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={isSyncing}
+          onRefresh={syncNow}
+          tintColor={colors.textSecondary}
+          colors={[colors.accentBlue]}
+        />
+      }
+    >
+      {/* Active Squad Indicator with Last Synced */}
       {activeSquad && (
         <View style={styles.squadIndicator}>
-          <Text style={styles.squadLabel}>Squad:</Text>
-          <Text style={styles.squadName}>{activeSquad.name}</Text>
+          <View style={styles.squadInfo}>
+            <Text style={styles.squadLabel}>Squad:</Text>
+            <Text style={styles.squadName}>{activeSquad.name}</Text>
+          </View>
+          {lastSyncedAt && (
+            <Text style={styles.lastSynced}>{getLastSyncedText()}</Text>
+          )}
         </View>
       )}
 
@@ -122,6 +157,7 @@ const styles = StyleSheet.create({
   },
   squadIndicator: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: colors.bgCard,
     borderRadius: 8,
@@ -129,6 +165,10 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     padding: 12,
     marginBottom: 16,
+  },
+  squadInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   squadLabel: {
     color: colors.textSecondary,
@@ -139,6 +179,10 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontSize: 16,
     fontWeight: '600',
+  },
+  lastSynced: {
+    color: colors.textSecondary,
+    fontSize: 12,
   },
   emptyState: {
     alignItems: 'center',
