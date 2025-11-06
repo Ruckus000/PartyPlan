@@ -4,6 +4,7 @@ import { Modal, View, Text, StyleSheet, TouchableOpacity, SafeAreaView, TextInpu
 import { seedSets } from '../data/seedLineup';
 import { supabase } from '../lib/supabase';
 import { useStore } from '../lib/store';
+import { Plan } from '../types';
 
 const colors = {
   bgSecondary: '#0a0a0a',
@@ -27,7 +28,7 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
   const [meetupNote, setMeetupNote] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { profile, activeSquadId, addPlan, updatePlan, editingPlan, setEditingPlan } = useStore();
+  const { profile, activeSquadId, addPlan, updatePlan, removePlan, editingPlan, setEditingPlan } = useStore();
 
   // Pre-fill form when editingPlan is set
   useEffect(() => {
@@ -58,7 +59,25 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       return;
     }
 
-    setLoading(true);
+    // Create temporary plan for optimistic update
+    const tempPlan: Plan = {
+      id: `temp-${Date.now()}`,
+      squad_id: activeSquadId,
+      created_by: profile.id,
+      type: 'set',
+      set_id: setId,
+      meet_time: null,
+      meet_location: null,
+      note: null,
+      created_at: new Date().toISOString(),
+    };
+
+    // Optimistic: instant UI update
+    addPlan(tempPlan);
+    resetForm();
+    onClose(); // Close modal immediately!
+
+    // Background: sync to database
     try {
       const { data: plan, error } = await supabase
         .from('plans')
@@ -73,17 +92,14 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
 
       if (error) throw error;
 
-      // Add to local store
+      // Replace temp with real plan
+      removePlan(tempPlan.id);
       addPlan(plan);
-
-      Alert.alert('Success', 'Artist added to schedule!');
-      resetForm();
-      onClose();
     } catch (error) {
+      // Rollback on failure
+      removePlan(tempPlan.id);
       const message = error instanceof Error ? error.message : 'Failed to add artist';
-      Alert.alert('Error', message);
-    } finally {
-      setLoading(false);
+      Alert.alert('Failed to add', message);
     }
   };
 
@@ -103,11 +119,11 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       return;
     }
 
-    setLoading(true);
-    try {
-      // Check if we're in edit mode
-      if (editingPlan) {
-        // UPDATE existing plan
+    // Check if we're in edit mode
+    if (editingPlan) {
+      // UPDATE existing plan (not optimistic, shows loading state)
+      setLoading(true);
+      try {
         const { data: plan, error } = await supabase
           .from('plans')
           .update({
@@ -125,8 +141,35 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
         updatePlan(plan.id, plan);
 
         Alert.alert('Success', 'Meeting point updated!');
-      } else {
-        // INSERT new plan
+        resetForm();
+        onClose();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to update meeting point';
+        Alert.alert('Error', message);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // INSERT new plan - optimistic update
+      const tempPlan: Plan = {
+        id: `temp-${Date.now()}`,
+        squad_id: activeSquadId,
+        created_by: profile.id,
+        type: 'meetup',
+        set_id: null,
+        meet_time: meetupTime,
+        meet_location: meetupLocation,
+        note: meetupNote || null,
+        created_at: new Date().toISOString(),
+      };
+
+      // Optimistic: instant UI update
+      addPlan(tempPlan);
+      resetForm();
+      onClose(); // Close modal immediately!
+
+      // Background: sync to database
+      try {
         const { data: plan, error } = await supabase
           .from('plans')
           .insert({
@@ -142,19 +185,15 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
 
         if (error) throw error;
 
-        // Add to local store
+        // Replace temp with real plan
+        removePlan(tempPlan.id);
         addPlan(plan);
-
-        Alert.alert('Success', 'Meeting point added!');
+      } catch (error) {
+        // Rollback on failure
+        removePlan(tempPlan.id);
+        const message = error instanceof Error ? error.message : 'Failed to add meeting point';
+        Alert.alert('Failed to add', message);
       }
-
-      resetForm();
-      onClose();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to save meeting point';
-      Alert.alert('Error', message);
-    } finally {
-      setLoading(false);
     }
   };
 
