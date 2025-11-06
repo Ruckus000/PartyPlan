@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { AppState, AppStateStatus, Alert } from 'react-native';
 import * as Battery from 'expo-battery';
 import { supabase } from '../lib/supabase';
@@ -19,7 +19,7 @@ export function useSyncManager() {
   const { activeSquadId, setPlans, pendingOperations, removePendingOperation, updatePendingOperation, addPlan, getPendingDeleteIds } = useStore();
 
   // Battery check for low power mode detection using expo-battery
-  const checkBatteryLevel = async () => {
+  const checkBatteryLevel = useCallback(async () => {
     try {
       const batteryLevel = await Battery.getBatteryLevelAsync();
       setIsLowPowerMode(batteryLevel < LOW_BATTERY_THRESHOLD);
@@ -28,10 +28,10 @@ export function useSyncManager() {
       console.warn('Battery check failed, assuming normal mode:', error);
       setIsLowPowerMode(false);
     }
-  };
+  }, []);
 
   // Process pending operations with retry and exponential backoff
-  const processPendingOperations = async () => {
+  const processPendingOperations = useCallback(async () => {
     const ops = pendingOperations;
 
     for (const op of ops) {
@@ -58,10 +58,10 @@ export function useSyncManager() {
         }
       }
     }
-  };
+  }, [pendingOperations, removePendingOperation, updatePendingOperation, addPlan]);
 
   // Sync plans from Supabase
-  const syncPlans = async (showLoading = true) => {
+  const syncPlans = useCallback(async (showLoading = true) => {
     if (!activeSquadId) return;
 
     if (showLoading) setIsSyncing(true);
@@ -92,15 +92,15 @@ export function useSyncManager() {
     } finally {
       if (showLoading) setIsSyncing(false);
     }
-  };
+  }, [activeSquadId, processPendingOperations, getPendingDeleteIds, setPlans]);
 
   // Manual sync (for pull-to-refresh)
-  const syncNow = async () => {
+  const syncNow = useCallback(async () => {
     await syncPlans(true);
-  };
+  }, [syncPlans]);
 
   // Start periodic sync
-  const startSyncInterval = () => {
+  const startSyncInterval = useCallback(() => {
     // Clear any existing timer
     if (syncTimerRef.current) {
       clearInterval(syncTimerRef.current);
@@ -113,15 +113,15 @@ export function useSyncManager() {
     syncTimerRef.current = setInterval(() => {
       syncPlans(false); // Don't show loading for background syncs
     }, interval);
-  };
+  }, [isLowPowerMode, syncPlans]);
 
   // Stop periodic sync
-  const stopSyncInterval = () => {
+  const stopSyncInterval = useCallback(() => {
     if (syncTimerRef.current) {
       clearInterval(syncTimerRef.current);
       syncTimerRef.current = null;
     }
-  };
+  }, []);
 
   // Handle app state changes (foreground/background)
   useEffect(() => {
@@ -147,7 +147,7 @@ export function useSyncManager() {
       subscription.remove();
       stopSyncInterval();
     };
-  }, [isLowPowerMode, activeSquadId]);
+  }, [syncPlans, startSyncInterval, stopSyncInterval]);
 
   // Initial sync on mount and when active squad changes
   useEffect(() => {
@@ -159,7 +159,7 @@ export function useSyncManager() {
     return () => {
       stopSyncInterval();
     };
-  }, [activeSquadId, isLowPowerMode]);
+  }, [activeSquadId, syncPlans, startSyncInterval, stopSyncInterval]);
 
   // Check battery level periodically
   useEffect(() => {
@@ -171,7 +171,7 @@ export function useSyncManager() {
     return () => {
       clearInterval(batteryCheckInterval);
     };
-  }, []);
+  }, [checkBatteryLevel]);
 
   return {
     isSyncing,
