@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 
 const colors = {
   accentBlue: '#3b82f6',
@@ -12,9 +12,11 @@ const colors = {
 type ArtistPillProps = {
   artist: string;
   variant?: 'friend' | 'conflict' | 'maybe' | 'planned';
+  setId?: string; // For planned pills, to enable delete
+  onDelete?: (setId: string) => void; // Delete handler
 };
 
-export default function ArtistPill({ artist, variant }: ArtistPillProps) {
+export default function ArtistPill({ artist, variant, setId, onDelete }: ArtistPillProps) {
   const pillStyle = [
     styles.pill,
     variant === 'friend' && styles.friend,
@@ -23,6 +25,39 @@ export default function ArtistPill({ artist, variant }: ArtistPillProps) {
     variant === 'planned' && styles.planned,
   ];
 
+  const handleLongPress = () => {
+    if (variant === 'planned' && setId && onDelete) {
+      Alert.alert(
+        'Remove from schedule?',
+        `Remove ${artist} from your schedule?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: () => onDelete(setId),
+          },
+        ]
+      );
+    }
+  };
+
+  // If it's a planned pill, make it interactive
+  if (variant === 'planned' && setId && onDelete) {
+    return (
+      <TouchableOpacity
+        onLongPress={handleLongPress}
+        delayLongPress={500}
+        activeOpacity={0.7}
+      >
+        <View style={pillStyle}>
+          <Text style={styles.pillText}>{artist}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+
+  // Otherwise, just a static pill
   return (
     <View style={pillStyle}>
       <Text style={styles.pillText}>{artist}</Text>

@@ -19,9 +19,8 @@ import { SyncProvider } from './src/contexts/SyncContext';
 const Tab = createBottomTabNavigator();
 
 export default function App() {
-  const [modalVisible, setModalVisible] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
-  const { profile, setProfile } = useStore();
+  const { profile, setProfile, modalVisible, setModalVisible } = useStore();
   const [loading, setLoading] = useState(true);
 
   // Initialize sync manager (only active when logged in with squads)

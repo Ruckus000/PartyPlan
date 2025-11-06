@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, StyleSheet, TouchableOpacity, SafeAreaView, TextInput, ScrollView, Alert } from 'react-native';
 import { seedSets } from '../data/seedLineup';
 import { supabase } from '../lib/supabase';
@@ -27,7 +27,17 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
   const [meetupNote, setMeetupNote] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { profile, activeSquadId, addPlan } = useStore();
+  const { profile, activeSquadId, addPlan, editingPlan, setEditingPlan, plans } = useStore();
+
+  // Pre-fill form when editingPlan is set
+  useEffect(() => {
+    if (editingPlan && editingPlan.type === 'meetup') {
+      setActiveTab('Meetup');
+      setMeetupTime(editingPlan.meet_time || '');
+      setMeetupLocation(editingPlan.meet_location || '');
+      setMeetupNote(editingPlan.note || '');
+    }
+  }, [editingPlan]);
 
   // Filter artists based on search query
   // Optimize by calculating toLowerCase() once
@@ -95,29 +105,54 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
 
     setLoading(true);
     try {
-      const { data: plan, error } = await supabase
-        .from('plans')
-        .insert({
-          squad_id: activeSquadId,
-          created_by: profile.id,
-          type: 'meetup',
-          meet_time: meetupTime,
-          meet_location: meetupLocation,
-          note: meetupNote || null,
-        })
-        .select()
-        .single();
+      // Check if we're in edit mode
+      if (editingPlan) {
+        // UPDATE existing plan
+        const { data: plan, error } = await supabase
+          .from('plans')
+          .update({
+            meet_time: meetupTime,
+            meet_location: meetupLocation,
+            note: meetupNote || null,
+          })
+          .eq('id', editingPlan.id)
+          .select()
+          .single();
 
-      if (error) throw error;
+        if (error) throw error;
 
-      // Add to local store
-      addPlan(plan);
+        // Update in local store
+        const updatedPlans = plans.map(p => p.id === plan.id ? plan : p);
+        useStore.getState().setPlans(updatedPlans);
 
-      Alert.alert('Success', 'Meeting point added!');
+        Alert.alert('Success', 'Meeting point updated!');
+      } else {
+        // INSERT new plan
+        const { data: plan, error } = await supabase
+          .from('plans')
+          .insert({
+            squad_id: activeSquadId,
+            created_by: profile.id,
+            type: 'meetup',
+            meet_time: meetupTime,
+            meet_location: meetupLocation,
+            note: meetupNote || null,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Add to local store
+        addPlan(plan);
+
+        Alert.alert('Success', 'Meeting point added!');
+      }
+
       resetForm();
       onClose();
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to add meeting point';
+      const message = error instanceof Error ? error.message : 'Failed to save meeting point';
       Alert.alert('Error', message);
     } finally {
       setLoading(false);
@@ -129,6 +164,8 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
     setMeetupTime('');
     setMeetupLocation('');
     setMeetupNote('');
+    setEditingPlan(null);
+    setActiveTab('Artist');
   };
 
   const handleClose = () => {
@@ -146,59 +183,34 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       <View style={styles.modalOverlay}>
         <SafeAreaView style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Add to Schedule</Text>
+            <Text style={styles.modalTitle}>
+              {editingPlan ? 'Edit Meeting Point' : 'Add to Schedule'}
+            </Text>
             <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
               <Text style={styles.closeButtonText}>×</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.modalTabs}>
-            <TouchableOpacity
-              style={[styles.modalTab, activeTab === 'Artist' && styles.activeTab]}
-              onPress={() => setActiveTab('Artist')}
-            >
-              <Text style={[styles.modalTabText, activeTab === 'Artist' && styles.activeTabText]}>Artist</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.modalTab, activeTab === 'Meetup' && styles.activeTab]}
-              onPress={() => setActiveTab('Meetup')}
-            >
-              <Text style={[styles.modalTabText, activeTab === 'Meetup' && styles.activeTabText]}>Meeting Point</Text>
-            </TouchableOpacity>
-          </View>
-
-          {activeTab === 'Artist' ? (
-            <View style={styles.tabContent}>
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search artists or stages..."
-                placeholderTextColor={colors.textSecondary}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-              <ScrollView style={styles.artistList}>
-                {filteredSets.map(set => (
-                  <TouchableOpacity
-                    key={set.id}
-                    style={styles.artistItem}
-                    onPress={() => handleAddArtist(set.id)}
-                    disabled={loading}
-                  >
-                    <View style={styles.artistInfo}>
-                      <Text style={styles.artistName}>{set.artist}</Text>
-                      <Text style={styles.artistMeta}>
-                        {set.stage} • {new Date(set.start).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                      </Text>
-                    </View>
-                    <Text style={styles.addButton}>+</Text>
-                  </TouchableOpacity>
-                ))}
-                {filteredSets.length === 0 && (
-                  <Text style={styles.emptyText}>No artists found</Text>
-                )}
-              </ScrollView>
+          {/* Hide tabs in edit mode */}
+          {!editingPlan && (
+            <View style={styles.modalTabs}>
+              <TouchableOpacity
+                style={[styles.modalTab, activeTab === 'Artist' && styles.activeTab]}
+                onPress={() => setActiveTab('Artist')}
+              >
+                <Text style={[styles.modalTabText, activeTab === 'Artist' && styles.activeTabText]}>Artist</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalTab, activeTab === 'Meetup' && styles.activeTab]}
+                onPress={() => setActiveTab('Meetup')}
+              >
+                <Text style={[styles.modalTabText, activeTab === 'Meetup' && styles.activeTabText]}>Meeting Point</Text>
+              </TouchableOpacity>
             </View>
-          ) : (
+          )}
+
+          {/* In edit mode, only show meetup form */}
+          {editingPlan || activeTab === 'Meetup' ? (
             <View style={styles.tabContent}>
               <Text style={styles.label}>Time</Text>
               <TextInput
@@ -235,11 +247,44 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
                 disabled={loading}
               >
                 <Text style={styles.submitButtonText}>
-                  {loading ? 'Adding...' : 'Add Meeting Point'}
+                  {loading
+                    ? (editingPlan ? 'Updating...' : 'Adding...')
+                    : (editingPlan ? 'Update Meeting Point' : 'Add Meeting Point')}
                 </Text>
               </TouchableOpacity>
             </View>
-          )}
+          ) : activeTab === 'Artist' ? (
+            <View style={styles.tabContent}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search artists or stages..."
+                placeholderTextColor={colors.textSecondary}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              <ScrollView style={styles.artistList}>
+                {filteredSets.map(set => (
+                  <TouchableOpacity
+                    key={set.id}
+                    style={styles.artistItem}
+                    onPress={() => handleAddArtist(set.id)}
+                    disabled={loading}
+                  >
+                    <View style={styles.artistInfo}>
+                      <Text style={styles.artistName}>{set.artist}</Text>
+                      <Text style={styles.artistMeta}>
+                        {set.stage} • {new Date(set.start).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                      </Text>
+                    </View>
+                    <Text style={styles.addButton}>+</Text>
+                  </TouchableOpacity>
+                ))}
+                {filteredSets.length === 0 && (
+                  <Text style={styles.emptyText}>No artists found</Text>
+                )}
+              </ScrollView>
+            </View>
+          ) : null}
         </SafeAreaView>
       </View>
     </Modal>

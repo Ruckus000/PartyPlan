@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react';
-import { View, StyleSheet, ScrollView, Text, RefreshControl } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { seedSets } from '../data/seedLineup';
 import TimeBlock from '../components/TimeBlock';
 import StageLane from '../components/StageLane';
 import { useStore } from '../lib/store';
 import { useSyncContext } from '../contexts/SyncContext';
+import { supabase } from '../lib/supabase';
 
 const colors = {
   bgSecondary: '#0a0a0a',
@@ -18,10 +19,65 @@ const colors = {
 const stages = ['Kinetic Field', 'Circuit Grounds', 'Neon Garden', 'Quantum Valley'];
 
 export default function TimelineScreen() {
-  const { plans, squads, activeSquadId } = useStore();
+  const { plans, squads, activeSquadId, removePlan, setEditingPlan, setModalVisible } = useStore();
   const { isSyncing, lastSyncedAt, syncNow } = useSyncContext();
 
   const activeSquad = squads.find(s => s.id === activeSquadId);
+
+  // Delete handler for artist plans
+  const handleDeleteSet = async (setId: string) => {
+    // Find the plan for this set
+    const plan = plans.find(p => p.set_id === setId);
+    if (!plan) return;
+
+    // Optimistic UI update - remove immediately from store
+    removePlan(plan.id);
+
+    // Background sync to database
+    try {
+      await supabase.from('plans').delete().eq('id', plan.id);
+    } catch (error) {
+      console.error('Failed to delete plan:', error);
+      // Could add error handling/rollback here if needed
+    }
+  };
+
+  // Delete handler for meetup plans
+  const handleDeleteMeetup = async (planId: string) => {
+    // Optimistic UI update - remove immediately from store
+    removePlan(planId);
+
+    // Background sync to database
+    try {
+      await supabase.from('plans').delete().eq('id', planId);
+    } catch (error) {
+      console.error('Failed to delete meetup:', error);
+      // Could add error handling/rollback here if needed
+    }
+  };
+
+  // Long-press handler for meetup cards
+  const handleMeetupLongPress = (meetup: typeof meetupPlans[0]) => {
+    Alert.alert(
+      'Manage Meetup',
+      `${meetup.meet_location}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Edit',
+          onPress: () => {
+            setEditingPlan(meetup);
+            setModalVisible(true);
+          },
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => handleDeleteMeetup(meetup.id),
+        },
+      ]
+    );
+  };
 
   // Create a Set of planned set IDs for quick lookup
   const plannedSetIds = useMemo(() => {
@@ -121,6 +177,7 @@ export default function TimelineScreen() {
             .map(s => ({
               artist: s.artist,
               variant: plannedSetIds.has(s.id) ? ('planned' as const) : undefined,
+              setId: s.id,
             })),
         }));
 
@@ -128,19 +185,31 @@ export default function TimelineScreen() {
           <View key={time}>
             <TimeBlock time={time} meta="">
               {setsByStage.map(stageData => (
-                <StageLane key={stageData.stage} stage={stageData.stage} sets={stageData.sets} />
+                <StageLane
+                  key={stageData.stage}
+                  stage={stageData.stage}
+                  sets={stageData.sets}
+                  onDeleteSet={handleDeleteSet}
+                />
               ))}
             </TimeBlock>
 
             {/* Display meetup plans */}
             {meetupsAtThisTime.map(meetup => (
-              <View key={meetup.id} style={styles.meetupCard}>
-                <Text style={styles.meetupIcon}>📍</Text>
-                <View style={styles.meetupInfo}>
-                  <Text style={styles.meetupLocation}>{meetup.meet_location}</Text>
-                  {meetup.note && <Text style={styles.meetupNote}>{meetup.note}</Text>}
+              <TouchableOpacity
+                key={meetup.id}
+                onLongPress={() => handleMeetupLongPress(meetup)}
+                delayLongPress={500}
+                activeOpacity={0.7}
+              >
+                <View style={styles.meetupCard}>
+                  <Text style={styles.meetupIcon}>📍</Text>
+                  <View style={styles.meetupInfo}>
+                    <Text style={styles.meetupLocation}>{meetup.meet_location}</Text>
+                    {meetup.note && <Text style={styles.meetupNote}>{meetup.note}</Text>}
+                  </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         );
