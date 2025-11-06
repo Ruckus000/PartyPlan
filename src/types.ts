@@ -7,6 +7,22 @@ export type Profile = {
   created_at: string;
 };
 
+export type Squad = {
+  id: string;
+  name: string;
+  invite_code: string | null;
+  created_by: string;
+  created_at: string;
+  memberCount?: number; // Optional, for display purposes
+};
+
+export type SquadMember = {
+  squad_id: string;
+  profile_id: string;
+  role: 'owner' | 'member';
+  profile?: Profile; // Optional, populated via join
+};
+
 export type Plan = {
   id: string;
   squad_id: string;

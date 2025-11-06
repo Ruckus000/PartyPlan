@@ -36,14 +36,33 @@ export default function App() {
           .single();
         setProfile(profileData);
 
-        // Fetch user's plans
-        const { data: plansData } = await supabase
-          .from('plans')
-          .select('*')
-          .eq('created_by', session.user.id);
+        // Fetch user's squads (via squad_members join)
+        const { data: squadMemberships } = await supabase
+          .from('squad_members')
+          .select('squad_id, squads(*)')
+          .eq('profile_id', session.user.id);
 
-        if (plansData) {
-          useStore.getState().setPlans(plansData);
+        if (squadMemberships && squadMemberships.length > 0) {
+          const squads = squadMemberships
+            .map(m => m.squads)
+            .filter(Boolean) as any[];
+
+          useStore.getState().setSquads(squads);
+
+          // Set first squad as active (or find "My Schedule")
+          const mySchedule = squads.find(s => s.name === 'My Schedule');
+          const activeSquad = mySchedule || squads[0];
+          useStore.getState().setActiveSquadId(activeSquad.id);
+
+          // Fetch plans for active squad (ALL plans, not just user's)
+          const { data: plansData } = await supabase
+            .from('plans')
+            .select('*')
+            .eq('squad_id', activeSquad.id);
+
+          if (plansData) {
+            useStore.getState().setPlans(plansData);
+          }
         }
       }
       setLoading(false);
@@ -55,6 +74,8 @@ export default function App() {
       setSession(session);
       if (!session) {
         setProfile(null);
+        useStore.getState().setSquads([]);
+        useStore.getState().setActiveSquadId(null);
         useStore.getState().setPlans([]);
       } else {
         fetchSessionAndProfile(); // Re-fetch profile on login
