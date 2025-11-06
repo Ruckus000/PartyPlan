@@ -11,7 +11,7 @@ const colors = {
 
 type ArtistPillProps = {
   artist: string;
-  variant?: 'friend' | 'conflict' | 'maybe';
+  variant?: 'friend' | 'conflict' | 'maybe' | 'planned';
 };
 
 export default function ArtistPill({ artist, variant }: ArtistPillProps) {
@@ -20,6 +20,7 @@ export default function ArtistPill({ artist, variant }: ArtistPillProps) {
     variant === 'friend' && styles.friend,
     variant === 'conflict' && styles.conflict,
     variant === 'maybe' && styles.maybe,
+    variant === 'planned' && styles.planned,
   ];
 
   return (
@@ -45,6 +46,11 @@ const styles = StyleSheet.create({
   },
   maybe: {
     backgroundColor: colors.accentYellow,
+  },
+  planned: {
+    backgroundColor: colors.accentGreen,
+    borderWidth: 2,
+    borderColor: '#ffffff',
   },
   pillText: {
     color: colors.white,

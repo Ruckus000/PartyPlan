@@ -35,6 +35,16 @@ export default function App() {
           .eq('id', session.user.id)
           .single();
         setProfile(profileData);
+
+        // Fetch user's plans
+        const { data: plansData } = await supabase
+          .from('plans')
+          .select('*')
+          .eq('created_by', session.user.id);
+
+        if (plansData) {
+          useStore.getState().setPlans(plansData);
+        }
       }
       setLoading(false);
     };
@@ -45,6 +55,7 @@ export default function App() {
       setSession(session);
       if (!session) {
         setProfile(null);
+        useStore.getState().setPlans([]);
       } else {
         fetchSessionAndProfile(); // Re-fetch profile on login
       }

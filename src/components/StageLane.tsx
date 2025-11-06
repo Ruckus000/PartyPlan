@@ -9,7 +9,7 @@ const colors = {
 
 type StageLaneProps = {
   stage: string;
-  sets: { artist: string, variant?: 'friend' | 'conflict' | 'maybe' }[];
+  sets: { artist: string, variant?: 'friend' | 'conflict' | 'maybe' | 'planned' }[];
 };
 
 export default function StageLane({ stage, sets }: StageLaneProps) {
