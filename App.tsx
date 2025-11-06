@@ -40,14 +40,22 @@ export default function App() {
     };
   }, [setIsOffline]);
 
-  // Persist pending operations to AsyncStorage
+  // Debounced persistence for pending operations (reduces disk I/O)
   useEffect(() => {
-    AsyncStorage.setItem('pendingOps', JSON.stringify(pendingOperations));
+    const timeoutId = setTimeout(() => {
+      AsyncStorage.setItem('pendingOps', JSON.stringify(pendingOperations));
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
   }, [pendingOperations]);
 
-  // Persist plans to AsyncStorage
+  // Debounced persistence for plans (reduces disk I/O and battery usage)
   useEffect(() => {
-    AsyncStorage.setItem('plans', JSON.stringify(plans));
+    const timeoutId = setTimeout(() => {
+      AsyncStorage.setItem('plans', JSON.stringify(plans));
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
   }, [plans]);
 
   useEffect(() => {
