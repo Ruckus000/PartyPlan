@@ -14,6 +14,10 @@ type Store = {
   setPlans: (plans: Plan[]) => void;
   addPlan: (plan: Plan) => void;
   removePlan: (planId: string) => void;
+  editingPlan: Plan | null;
+  setEditingPlan: (plan: Plan | null) => void;
+  modalVisible: boolean;
+  setModalVisible: (visible: boolean) => void;
 };
 
 export const useStore = create<Store>((set) => ({
@@ -30,4 +34,8 @@ export const useStore = create<Store>((set) => ({
   removePlan: (planId) => set((state) => ({
     plans: state.plans.filter(p => p.id !== planId)
   })),
+  editingPlan: null,
+  setEditingPlan: (plan) => set({ editingPlan: plan }),
+  modalVisible: false,
+  setModalVisible: (visible) => set({ modalVisible: visible }),
 }));

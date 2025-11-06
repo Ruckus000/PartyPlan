@@ -9,16 +9,23 @@ const colors = {
 
 type StageLaneProps = {
   stage: string;
-  sets: { artist: string, variant?: 'friend' | 'conflict' | 'maybe' | 'planned' }[];
+  sets: { artist: string, variant?: 'friend' | 'conflict' | 'maybe' | 'planned', setId?: string }[];
+  onDeleteSet?: (setId: string) => void;
 };
 
-export default function StageLane({ stage, sets }: StageLaneProps) {
+export default function StageLane({ stage, sets, onDeleteSet }: StageLaneProps) {
   return (
     <View style={styles.lane}>
       <Text style={styles.stageLabel}>{stage}</Text>
       {sets.length > 0 ? (
         sets.map((set, index) => (
-          <ArtistPill key={index} artist={set.artist} variant={set.variant} />
+          <ArtistPill
+            key={index}
+            artist={set.artist}
+            variant={set.variant}
+            setId={set.setId}
+            onDelete={onDeleteSet}
+          />
         ))
       ) : (
         <Text style={styles.emptyText}>Empty</Text>
