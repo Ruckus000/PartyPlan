@@ -38,6 +38,9 @@ export default function SetBlock({
     variant === 'default' && styles.defaultBlock,
   ];
 
+  // Text color based on variant
+  const textColor = variant === 'default' ? styles.defaultText : styles.coloredText;
+
   return (
     <TouchableOpacity
       style={blockStyle}
@@ -46,17 +49,17 @@ export default function SetBlock({
       delayLongPress={500}
       activeOpacity={0.8}
     >
-      <Text style={styles.artistName} numberOfLines={2}>
+      <Text style={[styles.artistName, textColor]} numberOfLines={height < 50 ? 1 : 2}>
         {artist.toUpperCase()}
       </Text>
       {height > 40 && (
-        <Text style={styles.timeText} numberOfLines={1}>
+        <Text style={[styles.timeText, textColor]} numberOfLines={1}>
           {timeRange}
         </Text>
       )}
       {attendees.length > 0 && height > 60 && (
         <View style={styles.attendeesContainer}>
-          <Text style={styles.attendeesText} numberOfLines={1}>
+          <Text style={[styles.attendeesText, textColor]} numberOfLines={1}>
             {attendees.join(' ')}
           </Text>
         </View>
@@ -116,5 +119,12 @@ const styles = StyleSheet.create({
   defaultBlock: {
     backgroundColor: colors.bgCard,
     borderColor: colors.border,
+  },
+  // Text colors
+  coloredText: {
+    color: colors.white,
+  },
+  defaultText: {
+    color: colors.textSecondary,
   },
 });

@@ -165,6 +165,16 @@ export default function TimelineScreen() {
     }));
   }, []);
 
+  // Prepare meetups for Gantt view
+  const ganttMeetups = useMemo(() => {
+    return meetupPlans.map(plan => ({
+      id: plan.id,
+      time: plan.meet_time!,
+      location: plan.meet_location!,
+      note: plan.note || undefined,
+    }));
+  }, [meetupPlans]);
+
   // Handle set press in Gantt view
   const handleGanttSetPress = (setId: string) => {
     const set = seedSets.find(s => s.id === setId);
@@ -220,9 +230,18 @@ export default function TimelineScreen() {
         <TimelineGantt
           stages={ganttStages}
           sets={ganttSets}
+          meetups={ganttMeetups}
           plannedSetIds={plannedSetIds}
           onSetPress={handleGanttSetPress}
           onSetLongPress={handleGanttSetLongPress}
+          onMeetupPress={(meetupId) => {
+            const meetup = plans.find(p => p.id === meetupId);
+            if (meetup) {
+              console.log('Pressed meetup:', meetup.meet_location);
+              // TODO: Open meetup detail modal
+            }
+          }}
+          onMeetupLongPress={(meetupId) => handleMeetupLongPress(plans.find(p => p.id === meetupId)!)}
         />
       </View>
     );
