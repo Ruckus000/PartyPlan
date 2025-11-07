@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors } from '../../constants/colors';
 
@@ -15,7 +15,7 @@ type SetBlockProps = {
   onLongPress?: () => void;
 };
 
-export default function SetBlock({
+const SetBlock = memo(function SetBlock({
   artist,
   timeRange,
   topPosition,
@@ -66,7 +66,9 @@ export default function SetBlock({
       )}
     </TouchableOpacity>
   );
-}
+});
+
+export default SetBlock;
 
 const styles = StyleSheet.create({
   block: {
