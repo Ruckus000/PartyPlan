@@ -91,11 +91,10 @@ export default function SquadScreen() {
             attempts++;
             if (attempts < MAX_ATTEMPTS) {
               console.warn(`Invite code collision (attempt ${attempts}/${MAX_ATTEMPTS}), retrying...`);
-              continue;
+              continue; // Continue to the next iteration of the while loop
             }
-            throw new Error('Unable to generate unique invite code. Please try again.');
           }
-          // Other errors - don't retry
+          // For any other error, or if max attempts are reached, throw to be caught by the outer catch block.
           throw rpcError;
         }
 
@@ -118,20 +117,14 @@ export default function SquadScreen() {
         Alert.alert('Success', `Squad "${newSquadName}" created!\nInvite code: ${inviteCode}`);
         setNewSquadName('');
         setShowCreateModal(false);
-        setLoading(false);
-        return; // Success - exit the retry loop
+        return; // Success - exit the function
       } catch (error) {
-        // If this was the last attempt or a non-retryable error, throw it
-        if (attempts >= MAX_ATTEMPTS - 1 || !(error instanceof Error && error.message.includes('invite_code'))) {
-          const message = error instanceof Error ? error.message : 'Failed to create squad';
-          Alert.alert('Error', message);
-          setLoading(false);
-          return;
-        }
-        // Otherwise, the loop will continue for retryable errors
+        const message = error instanceof Error ? error.message : 'Failed to create squad';
+        Alert.alert('Error', message);
+        break; // Exit the loop on failure
+      } finally {
+        setLoading(false);
       }
-
-      attempts++;
     }
   };
 
