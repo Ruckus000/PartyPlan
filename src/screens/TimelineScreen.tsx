@@ -232,6 +232,17 @@ export default function TimelineScreen() {
     return `${dayName}, ${monthName} ${dayNum}`;
   };
 
+  // Get unique days from seed data
+  const availableDays = useMemo(() => {
+    const uniqueDays = new Set(seedSets.map(set => formatDay(set.start)));
+    return Array.from(uniqueDays);
+  }, []);
+
+  // Get unique stages from seed data
+  const availableStages = useMemo(() => {
+    return ganttStages.map(stage => stage.id);
+  }, []);
+
   // Prepare set detail for modal
   const selectedSetDetail = useMemo(() => {
     if (!selectedSetId) return null;
@@ -247,6 +258,24 @@ export default function TimelineScreen() {
       isPlanned: plannedSetIds.has(set.id),
     };
   }, [selectedSetId, plannedSetIds]);
+
+  // Navigate to a set on a different day
+  const handleDayChange = (day: string) => {
+    // Find first set on the selected day
+    const firstSetOnDay = seedSets.find(set => formatDay(set.start) === day);
+    if (firstSetOnDay) {
+      setSelectedSetId(firstSetOnDay.id);
+    }
+  };
+
+  // Navigate to a set on a different stage
+  const handleStageChange = (stage: string) => {
+    // Find first set on the selected stage
+    const firstSetOnStage = seedSets.find(set => set.stage === stage);
+    if (firstSetOnStage) {
+      setSelectedSetId(firstSetOnStage.id);
+    }
+  };
 
   // Handle adding set to schedule from modal
   const handleAddSetToSchedule = async (setId: string) => {
@@ -349,6 +378,10 @@ export default function TimelineScreen() {
         onClose={() => setSelectedSetId(null)}
         onAddToSchedule={handleAddSetToSchedule}
         onRemoveFromSchedule={handleRemoveSetFromSchedule}
+        availableDays={availableDays}
+        availableStages={availableStages}
+        onDayChange={handleDayChange}
+        onStageChange={handleStageChange}
       />
     </View>
   );
