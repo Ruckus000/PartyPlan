@@ -33,11 +33,21 @@ export default function SquadScreen() {
       .eq('squad_id', squadId);
 
     if (!error && data) {
+      // Map Supabase result (with 'profiles') to SquadMember (with 'profile')
+      type SupabaseMember = {
+        squad_id: string;
+        profile_id: string;
+        role: 'owner' | 'member';
+        profiles: Profile | null;
+      };
+
       setSquadMembers(prev => ({
         ...prev,
-        [squadId]: data.map((m: SquadMember & { profiles: Profile | null }) => ({
-          ...m,
-          profile: m.profiles,
+        [squadId]: data.map((m: SupabaseMember): SquadMember => ({
+          squad_id: m.squad_id,
+          profile_id: m.profile_id,
+          role: m.role,
+          profile: m.profiles || undefined,
         })),
       }));
     }
@@ -55,58 +65,73 @@ export default function SquadScreen() {
     }
 
     setLoading(true);
-    try {
-      // Generate unique invite code
-      let inviteCode = generateInviteCode();
 
-      // Check if code is unique (retry if collision)
-      let attempts = 0;
-      while (attempts < 5) {
-        const { data: existing } = await supabase
-          .from('squads')
-          .select('id')
-          .eq('invite_code', inviteCode)
-          .single();
+    // Retry squad creation up to 5 times in case of invite code collision
+    let attempts = 0;
+    const MAX_ATTEMPTS = 5;
 
-        if (!existing) break;
-        inviteCode = generateInviteCode();
-        attempts++;
+    while (attempts < MAX_ATTEMPTS) {
+      try {
+        // Generate unique invite code
+        const inviteCode = generateInviteCode();
+
+        // Create squad and add member atomically using RPC
+        const { data: rpcResult, error: rpcError } = await supabase
+          .rpc('create_squad_with_member', {
+            squad_name: newSquadName.trim(),
+            invite_code_param: inviteCode,
+            creator_id: profile.id,
+          });
+
+        if (rpcError) {
+          // Check if error is due to unique constraint violation on invite_code
+          // PostgreSQL error code 23505 = unique_violation
+          if (rpcError.code === '23505' && rpcError.message.includes('invite_code')) {
+            // Invite code collision - retry with new code
+            attempts++;
+            if (attempts < MAX_ATTEMPTS) {
+              console.warn(`Invite code collision (attempt ${attempts}/${MAX_ATTEMPTS}), retrying...`);
+              continue;
+            }
+            throw new Error('Unable to generate unique invite code. Please try again.');
+          }
+          // Other errors - don't retry
+          throw rpcError;
+        }
+
+        if (!rpcResult || rpcResult.length === 0) {
+          throw new Error('Failed to create squad');
+        }
+
+        // Map RPC result to Squad type
+        const newSquad: Squad = {
+          id: rpcResult[0].squad_id,
+          name: rpcResult[0].squad_name,
+          invite_code: rpcResult[0].squad_invite_code,
+          created_by: rpcResult[0].squad_created_by,
+          created_at: rpcResult[0].squad_created_at,
+        };
+
+        // Add to local store
+        addSquad(newSquad);
+
+        Alert.alert('Success', `Squad "${newSquadName}" created!\nInvite code: ${inviteCode}`);
+        setNewSquadName('');
+        setShowCreateModal(false);
+        setLoading(false);
+        return; // Success - exit the retry loop
+      } catch (error) {
+        // If this was the last attempt or a non-retryable error, throw it
+        if (attempts >= MAX_ATTEMPTS - 1 || !(error instanceof Error && error.message.includes('invite_code'))) {
+          const message = error instanceof Error ? error.message : 'Failed to create squad';
+          Alert.alert('Error', message);
+          setLoading(false);
+          return;
+        }
+        // Otherwise, the loop will continue for retryable errors
       }
 
-      // Create squad and add member atomically using RPC
-      const { data: rpcResult, error: rpcError } = await supabase
-        .rpc('create_squad_with_member', {
-          squad_name: newSquadName.trim(),
-          invite_code_param: inviteCode,
-          creator_id: profile.id,
-        });
-
-      if (rpcError) throw rpcError;
-
-      if (!rpcResult || rpcResult.length === 0) {
-        throw new Error('Failed to create squad');
-      }
-
-      // Map RPC result to Squad type
-      const newSquad: Squad = {
-        id: rpcResult[0].squad_id,
-        name: rpcResult[0].squad_name,
-        invite_code: rpcResult[0].squad_invite_code,
-        created_by: rpcResult[0].squad_created_by,
-        created_at: rpcResult[0].squad_created_at,
-      };
-
-      // Add to local store
-      addSquad(newSquad);
-
-      Alert.alert('Success', `Squad "${newSquadName}" created!\nInvite code: ${inviteCode}`);
-      setNewSquadName('');
-      setShowCreateModal(false);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to create squad';
-      Alert.alert('Error', message);
-    } finally {
-      setLoading(false);
+      attempts++;
     }
   };
 
