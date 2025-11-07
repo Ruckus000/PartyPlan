@@ -140,7 +140,7 @@ const processPendingOperations = async () => {
       try {
         await supabase.from('plans').delete().eq('id', op.planId);
         removePendingOperation(op.id);
-      } catch {
+      } catch (error) {
         // Retry later (exponential backoff)
         if (op.retryCount > 5) {
           // Give up after 5 retries, restore the plan
