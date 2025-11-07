@@ -3,7 +3,6 @@ import { AppState, AppStateStatus, Alert } from 'react-native';
 import * as Battery from 'expo-battery';
 import { supabase } from '../lib/supabase';
 import { useStore } from '../lib/store';
-import { Plan } from '../types';
 
 const SYNC_INTERVAL_NORMAL = 30 * 60 * 1000; // 30 minutes
 const SYNC_INTERVAL_LOW_POWER = 60 * 60 * 1000; // 60 minutes
@@ -33,7 +32,9 @@ export function useSyncManager() {
 
   // Process pending operations with retry and exponential backoff
   const processPendingOperations = useCallback(async () => {
-    const ops = pendingOperations;
+    // Get latest pendingOperations from store to avoid recreating this callback
+    // when pendingOperations changes (which would reset sync timers)
+    const ops = useStore.getState().pendingOperations;
 
     for (const op of ops) {
       try {
@@ -45,9 +46,9 @@ export function useSyncManager() {
       } catch (error) {
         // Exponential backoff: give up after 5 retries
         if (op.retryCount >= 5) {
-          // Give up, restore the plan
+          // Give up, restore the plan (planData is the full Plan object)
           if (op.planData) {
-            addPlan(op.planData as Plan);
+            addPlan(op.planData);
           }
           removePendingOperation(op.id);
           Alert.alert('Sync Failed', 'Some changes could not be saved');
@@ -59,7 +60,7 @@ export function useSyncManager() {
         }
       }
     }
-  }, [pendingOperations, removePendingOperation, updatePendingOperation, addPlan]);
+  }, [removePendingOperation, updatePendingOperation, addPlan]);
 
   // Sync plans from Supabase
   const syncPlans = useCallback(async (showLoading = true) => {
