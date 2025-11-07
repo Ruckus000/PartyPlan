@@ -12,14 +12,13 @@ import { Plan } from '../types';
 import { colors } from '../constants/colors';
 import { formatTimeRange } from '../utils/timeCalculations';
 
-const stages = ['Kinetic Field', 'Circuit Grounds', 'Neon Garden', 'Quantum Valley'];
-
-// Stages for Gantt view
+// Stages for Gantt view - EDC Orlando 2025
 const ganttStages = [
-  { id: 'Kinetic Field', name: 'kineticFIELD', host: 'Main Stage' },
-  { id: 'Circuit Grounds', name: 'circuitGROUNDS', host: 'Bassrush' },
-  { id: 'Neon Garden', name: 'neonGARDEN', host: 'Factory 93' },
-  { id: 'Quantum Valley', name: 'stereoBLOOM', host: 'Insomniac' },
+  { id: 'kineticFIELD', name: 'kineticFIELD', host: 'Main Stage' },
+  { id: 'circuitGROUNDS', name: 'circuitGROUNDS', host: 'Bassrush' },
+  { id: 'neonGarden', name: 'neonGarden', host: 'Factory 93' },
+  { id: 'stereoBLOOM', name: 'stereoBLOOM', host: 'Insomniac' },
+  { id: 'casaBACARDÍ', name: 'casaBACARDÍ', host: 'Bacardí' },
 ];
 
 export default function TimelineScreen() {
