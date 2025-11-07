@@ -25,6 +25,9 @@ export default function TimeColumn() {
           >
             {marker.time}
           </Text>
+          {marker.isHour && (
+            <Text style={styles.dayText}>{marker.day}</Text>
+          )}
         </View>
       ))}
     </View>
@@ -58,5 +61,12 @@ const styles = StyleSheet.create({
   hourText: {
     fontWeight: '600',
     color: colors.textPrimary,
+  },
+  dayText: {
+    fontSize: 8,
+    color: colors.textMuted,
+    marginTop: 2,
+    fontWeight: '500',
+    letterSpacing: 0.5,
   },
 });

@@ -320,24 +320,39 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
             <View style={styles.tabContent}>
               <Text style={styles.label}>Time</Text>
               <TouchableOpacity
-                style={styles.input}
-                onPress={() => setShowTimePicker(true)}
+                style={styles.timePickerButton}
+                onPress={() => setShowTimePicker(!showTimePicker)}
               >
                 <Text style={styles.timeDisplayText}>{formatTime(meetupTime)}</Text>
+                <Text style={styles.timePickerIcon}>🕐</Text>
               </TouchableOpacity>
+
               {showTimePicker && (
-                <DateTimePicker
-                  value={meetupTime}
-                  mode="time"
-                  is24Hour={false}
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={(event, selectedDate) => {
-                    setShowTimePicker(Platform.OS === 'ios');
-                    if (selectedDate) {
-                      setMeetupTime(selectedDate);
-                    }
-                  }}
-                />
+                <View style={styles.timePickerContainer}>
+                  <DateTimePicker
+                    value={meetupTime}
+                    mode="time"
+                    is24Hour={false}
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={(event, selectedDate) => {
+                      if (Platform.OS === 'android') {
+                        setShowTimePicker(false);
+                      }
+                      if (selectedDate) {
+                        setMeetupTime(selectedDate);
+                      }
+                    }}
+                    textColor={colors.textPrimary}
+                  />
+                  {Platform.OS === 'ios' && (
+                    <TouchableOpacity
+                      style={styles.doneButton}
+                      onPress={() => setShowTimePicker(false)}
+                    >
+                      <Text style={styles.doneButtonText}>Done</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               )}
 
               <Text style={styles.label}>Location</Text>
@@ -620,9 +635,45 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginBottom: 16,
   },
+  timePickerButton: {
+    backgroundColor: colors.bgCard,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 12,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   timeDisplayText: {
     color: colors.textPrimary,
     fontSize: 16,
+    flex: 1,
+  },
+  timePickerIcon: {
+    fontSize: 20,
+    marginLeft: 8,
+  },
+  timePickerContainer: {
+    backgroundColor: colors.bgCard,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  doneButton: {
+    backgroundColor: colors.accentBlue,
+    padding: 12,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  doneButtonText: {
+    color: colors.textPrimary,
+    fontSize: 16,
+    fontWeight: '600',
   },
   textArea: {
     minHeight: 80,

@@ -103,27 +103,35 @@ export function formatTimeRange(startTime: string, endTime: string): string {
 }
 
 /**
- * Generate time markers for the timeline (every 15 minutes)
+ * Generate time markers for the timeline (every 15 minutes) across 3 days
  */
-export function generateTimeMarkers(): Array<{ time: string; isHour: boolean; topOffset: number }> {
-  const markers: Array<{ time: string; isHour: boolean; topOffset: number }> = [];
+export function generateTimeMarkers(): Array<{ time: string; day: string; isHour: boolean; topOffset: number; dayIndex: number }> {
+  const markers: Array<{ time: string; day: string; isHour: boolean; topOffset: number; dayIndex: number }> = [];
+  const days = ['FRI', 'SAT', 'SUN'];
 
-  // From 1:00 PM to midnight (next day)
-  for (let hour = EVENT_START_HOUR; hour < EVENT_END_HOUR; hour++) {
-    for (let quarter = 0; quarter < 4; quarter++) {
-      const minutes = quarter * 15;
-      const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
-      const minutesStr = minutes === 0 ? '00' : minutes.toString();
-      const time = `${displayHour}:${minutesStr}`;
+  // Generate for 3 days (Nov 7, 8, 9)
+  for (let dayIndex = 0; dayIndex < 3; dayIndex++) {
+    // From 1:00 PM to midnight each day
+    for (let hour = EVENT_START_HOUR; hour < EVENT_END_HOUR; hour++) {
+      for (let quarter = 0; quarter < 4; quarter++) {
+        const minutes = quarter * 15;
+        const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+        const minutesStr = minutes === 0 ? '00' : minutes.toString();
+        const time = `${displayHour}:${minutesStr}`;
 
-      const totalMinutesFromStart = (hour - EVENT_START_HOUR) * 60 + minutes;
-      const topOffset = totalMinutesFromStart * PIXELS_PER_MINUTE;
+        // Calculate offset including day offset
+        const hoursInDay = EVENT_END_HOUR - EVENT_START_HOUR; // 11 hours per day
+        const totalMinutesFromStart = (dayIndex * hoursInDay * 60) + (hour - EVENT_START_HOUR) * 60 + minutes;
+        const topOffset = totalMinutesFromStart * PIXELS_PER_MINUTE;
 
-      markers.push({
-        time,
-        isHour: minutes === 0,
-        topOffset,
-      });
+        markers.push({
+          time,
+          day: days[dayIndex],
+          isHour: minutes === 0,
+          topOffset,
+          dayIndex,
+        });
+      }
     }
   }
 
