@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
+import { Modal, View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { seedSets } from '../data/seedLineup';
 import { supabase } from '../lib/supabase';
 import { useStore } from '../lib/store';
@@ -14,8 +15,12 @@ type AddModalProps = {
 
 export default function AddModal({ visible, onClose }: AddModalProps) {
   const [activeTab, setActiveTab] = useState('Artist');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [meetupTime, setMeetupTime] = useState('');
+  const [selectedDay, setSelectedDay] = useState<string>('All');
+  const [selectedStage, setSelectedStage] = useState<string>('All');
+  const [showDayDropdown, setShowDayDropdown] = useState(false);
+  const [showStageDropdown, setShowStageDropdown] = useState(false);
+  const [meetupTime, setMeetupTime] = useState(new Date());
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [meetupLocation, setMeetupLocation] = useState('');
   const [meetupNote, setMeetupNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,19 +31,58 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
   useEffect(() => {
     if (editingPlan && editingPlan.type === 'meetup') {
       setActiveTab('Meetup');
-      setMeetupTime(editingPlan.meet_time || '');
+      // Parse the time string (e.g., "9:00 PM") to a Date object
+      if (editingPlan.meet_time) {
+        const timeParts = editingPlan.meet_time.match(/(\d+):(\d+)\s*(AM|PM)/i);
+        if (timeParts) {
+          const hours = parseInt(timeParts[1]);
+          const minutes = parseInt(timeParts[2]);
+          const isPM = timeParts[3].toUpperCase() === 'PM';
+          const date = new Date();
+          date.setHours(isPM && hours !== 12 ? hours + 12 : !isPM && hours === 12 ? 0 : hours);
+          date.setMinutes(minutes);
+          setMeetupTime(date);
+        }
+      }
       setMeetupLocation(editingPlan.meet_location || '');
       setMeetupNote(editingPlan.note || '');
     }
   }, [editingPlan]);
 
-  // Filter artists based on search query
-  // Optimize by calculating toLowerCase() once
-  const lowercasedQuery = searchQuery.toLowerCase();
-  const filteredSets = seedSets.filter(set =>
-    set.artist.toLowerCase().includes(lowercasedQuery) ||
-    set.stage.toLowerCase().includes(lowercasedQuery)
-  );
+  // Helper to format time as "9:00 PM"
+  const formatTime = (date: Date): string => {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    const displayMinutes = minutes.toString().padStart(2, '0');
+    return `${displayHours}:${displayMinutes} ${ampm}`;
+  };
+
+  // Get unique days and stages
+  const uniqueDays = Array.from(new Set(seedSets.map(set => {
+    const date = new Date(set.start);
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${dayNames[date.getDay()]}, ${monthNames[date.getMonth()]} ${date.getDate()}`;
+  })));
+  const availableDays = ['All', ...uniqueDays];
+
+  const uniqueStages = Array.from(new Set(seedSets.map(set => set.stage)));
+  const availableStages = ['All', ...uniqueStages];
+
+  // Filter artists based on day and stage selections
+  const filteredSets = seedSets.filter(set => {
+    const setDate = new Date(set.start);
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const setDay = `${dayNames[setDate.getDay()]}, ${monthNames[setDate.getMonth()]} ${setDate.getDate()}`;
+
+    const dayMatch = selectedDay === 'All' || setDay === selectedDay;
+    const stageMatch = selectedStage === 'All' || set.stage === selectedStage;
+
+    return dayMatch && stageMatch;
+  });
 
   const handleAddArtist = async (setId: string) => {
     // Guard: prevent double submission
@@ -106,10 +150,12 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
     // Guard: prevent double submission
     if (isSubmitting) return;
 
-    if (!meetupTime || !meetupLocation) {
+    if (!meetupLocation) {
       Alert.alert('Error', 'Please fill in time and location');
       return;
     }
+
+    const formattedTime = formatTime(meetupTime);
 
     if (!profile) {
       Alert.alert('Error', 'Please sign in to add plans');
@@ -131,7 +177,7 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
 
       // Optimistic: instant UI update
       updatePlan(editingPlan.id, {
-        meet_time: meetupTime,
+        meet_time: formattedTime,
         meet_location: meetupLocation,
         note: meetupNote || null,
       });
@@ -143,7 +189,7 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
         const { data: plan, error } = await supabase
           .from('plans')
           .update({
-            meet_time: meetupTime,
+            meet_time: formattedTime,
             meet_location: meetupLocation,
             note: meetupNote || null,
           })
@@ -173,7 +219,7 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
         created_by: profile.id,
         type: 'meetup',
         set_id: null,
-        meet_time: meetupTime,
+        meet_time: formattedTime,
         meet_location: meetupLocation,
         note: meetupNote || null,
         created_at: new Date().toISOString(),
@@ -192,7 +238,7 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
             squad_id: activeSquadId,
             created_by: profile.id,
             type: 'meetup',
-            meet_time: meetupTime,
+            meet_time: formattedTime,
             meet_location: meetupLocation,
             note: meetupNote || null,
           })
@@ -216,8 +262,12 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
   };
 
   const resetForm = () => {
-    setSearchQuery('');
-    setMeetupTime('');
+    setSelectedDay('All');
+    setSelectedStage('All');
+    setShowDayDropdown(false);
+    setShowStageDropdown(false);
+    setMeetupTime(new Date());
+    setShowTimePicker(false);
     setMeetupLocation('');
     setMeetupNote('');
     setEditingPlan(null);
@@ -269,13 +319,26 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
           {editingPlan || activeTab === 'Meetup' ? (
             <View style={styles.tabContent}>
               <Text style={styles.label}>Time</Text>
-              <TextInput
+              <TouchableOpacity
                 style={styles.input}
-                placeholder="e.g., 9:00 PM"
-                placeholderTextColor={colors.textSecondary}
-                value={meetupTime}
-                onChangeText={setMeetupTime}
-              />
+                onPress={() => setShowTimePicker(true)}
+              >
+                <Text style={styles.timeDisplayText}>{formatTime(meetupTime)}</Text>
+              </TouchableOpacity>
+              {showTimePicker && (
+                <DateTimePicker
+                  value={meetupTime}
+                  mode="time"
+                  is24Hour={false}
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={(event, selectedDate) => {
+                    setShowTimePicker(Platform.OS === 'ios');
+                    if (selectedDate) {
+                      setMeetupTime(selectedDate);
+                    }
+                  }}
+                />
+              )}
 
               <Text style={styles.label}>Location</Text>
               <TextInput
@@ -311,13 +374,95 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
             </View>
           ) : activeTab === 'Artist' ? (
             <View style={styles.tabContent}>
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search artists or stages..."
-                placeholderTextColor={colors.textSecondary}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
+              {/* Filter Dropdowns */}
+              <View style={styles.filtersContainer}>
+                {/* Day Dropdown */}
+                <View style={styles.dropdownWrapper}>
+                  <Text style={styles.dropdownLabel}>DAY</Text>
+                  <TouchableOpacity
+                    style={styles.dropdown}
+                    onPress={() => {
+                      setShowDayDropdown(!showDayDropdown);
+                      setShowStageDropdown(false);
+                    }}
+                  >
+                    <Text style={styles.dropdownText}>{selectedDay}</Text>
+                    <Text style={styles.dropdownArrow}>{showDayDropdown ? '▲' : '▼'}</Text>
+                  </TouchableOpacity>
+                  {showDayDropdown && (
+                    <View style={styles.dropdownMenu}>
+                      <ScrollView style={styles.dropdownScrollView}>
+                        {availableDays.map((day) => (
+                          <TouchableOpacity
+                            key={day}
+                            style={[
+                              styles.dropdownItem,
+                              selectedDay === day && styles.dropdownItemSelected,
+                            ]}
+                            onPress={() => {
+                              setSelectedDay(day);
+                              setShowDayDropdown(false);
+                            }}
+                          >
+                            <Text
+                              style={[
+                                styles.dropdownItemText,
+                                selectedDay === day && styles.dropdownItemTextSelected,
+                              ]}
+                            >
+                              {day}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
+                </View>
+
+                {/* Stage Dropdown */}
+                <View style={styles.dropdownWrapper}>
+                  <Text style={styles.dropdownLabel}>STAGE</Text>
+                  <TouchableOpacity
+                    style={styles.dropdown}
+                    onPress={() => {
+                      setShowStageDropdown(!showStageDropdown);
+                      setShowDayDropdown(false);
+                    }}
+                  >
+                    <Text style={styles.dropdownText}>{selectedStage}</Text>
+                    <Text style={styles.dropdownArrow}>{showStageDropdown ? '▲' : '▼'}</Text>
+                  </TouchableOpacity>
+                  {showStageDropdown && (
+                    <View style={styles.dropdownMenu}>
+                      <ScrollView style={styles.dropdownScrollView}>
+                        {availableStages.map((stage) => (
+                          <TouchableOpacity
+                            key={stage}
+                            style={[
+                              styles.dropdownItem,
+                              selectedStage === stage && styles.dropdownItemSelected,
+                            ]}
+                            onPress={() => {
+                              setSelectedStage(stage);
+                              setShowStageDropdown(false);
+                            }}
+                          >
+                            <Text
+                              style={[
+                                styles.dropdownItemText,
+                                selectedStage === stage && styles.dropdownItemTextSelected,
+                              ]}
+                            >
+                              {stage}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
+                </View>
+              </View>
+
               <ScrollView style={styles.artistList}>
                 {filteredSets.map(set => (
                   <TouchableOpacity
@@ -475,6 +620,10 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginBottom: 16,
   },
+  timeDisplayText: {
+    color: colors.textPrimary,
+    fontSize: 16,
+  },
   textArea: {
     minHeight: 80,
     textAlignVertical: 'top',
@@ -497,5 +646,76 @@ const styles = StyleSheet.create({
   },
   artistItemDisabled: {
     opacity: 0.5,
+  },
+  filtersContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  dropdownWrapper: {
+    flex: 1,
+  },
+  dropdownLabel: {
+    fontSize: 11,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    color: colors.textMuted,
+    marginBottom: 8,
+  },
+  dropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.bgCard,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: 12,
+  },
+  dropdownText: {
+    fontSize: 14,
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  dropdownArrow: {
+    fontSize: 10,
+    color: colors.textSecondary,
+    marginLeft: 8,
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 60,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.bgCard,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: 8,
+    maxHeight: 200,
+    zIndex: 1000,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  dropdownScrollView: {
+    maxHeight: 200,
+  },
+  dropdownItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  dropdownItemSelected: {
+    backgroundColor: colors.bgHover,
+  },
+  dropdownItemText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  dropdownItemTextSelected: {
+    color: colors.accentBlue,
+    fontWeight: '600',
   },
 });
