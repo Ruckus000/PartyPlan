@@ -4,11 +4,13 @@ import { seedSets } from '../data/seedLineup';
 import TimeBlock from '../components/TimeBlock';
 import StageLane from '../components/StageLane';
 import TimelineGantt from '../components/gantt/TimelineGantt';
+import SetDetailModal from '../components/SetDetailModal';
 import { useStore } from '../lib/store';
 import { useSyncContext } from '../contexts/SyncContext';
 import { supabase } from '../lib/supabase';
 import { Plan } from '../types';
 import { colors } from '../constants/colors';
+import { formatTimeRange } from '../utils/timeCalculations';
 
 const stages = ['Kinetic Field', 'Circuit Grounds', 'Neon Garden', 'Quantum Valley'];
 
@@ -21,9 +23,10 @@ const ganttStages = [
 ];
 
 export default function TimelineScreen() {
-  const { plans, squads, activeSquadId, removePlan, addPendingOperation, removePendingOperation, setEditingPlan, setModalVisible, isOffline } = useStore();
+  const { plans, squads, activeSquadId, removePlan, addPendingOperation, removePendingOperation, setEditingPlan, setModalVisible, isOffline, addPlan } = useStore();
   const { isSyncing, lastSyncedAt, syncNow } = useSyncContext();
   const [useGanttView, setUseGanttView] = useState(true);
+  const [selectedSetId, setSelectedSetId] = useState<string | null>(null);
 
   const activeSquad = squads.find(s => s.id === activeSquadId);
 
@@ -175,13 +178,9 @@ export default function TimelineScreen() {
     }));
   }, [meetupPlans]);
 
-  // Handle set press in Gantt view
+  // Handle set press in Gantt view - open modal
   const handleGanttSetPress = (setId: string) => {
-    const set = seedSets.find(s => s.id === setId);
-    if (set) {
-      console.log('Pressed set:', set.artist);
-      // TODO: Open set detail modal (future phase)
-    }
+    setSelectedSetId(setId);
   };
 
   // Handle set long press in Gantt view (for delete)
@@ -200,6 +199,64 @@ export default function TimelineScreen() {
           },
         ]
       );
+    }
+  };
+
+  // Prepare set detail for modal
+  const selectedSetDetail = useMemo(() => {
+    if (!selectedSetId) return null;
+    const set = seedSets.find(s => s.id === selectedSetId);
+    if (!set) return null;
+
+    return {
+      artist: set.artist,
+      stage: set.stage,
+      timeRange: formatTimeRange(set.start, set.end),
+      setId: set.id,
+      isPlanned: plannedSetIds.has(set.id),
+    };
+  }, [selectedSetId, plannedSetIds]);
+
+  // Handle adding set to schedule from modal
+  const handleAddSetToSchedule = async (setId: string) => {
+    const set = seedSets.find(s => s.id === setId);
+    if (!set || !activeSquad) return;
+
+    const newPlan: Plan = {
+      id: `plan-${Date.now()}`,
+      squad_id: activeSquad.id,
+      created_by: activeSquad.created_by,
+      type: 'set',
+      set_id: setId,
+      meet_time: null,
+      meet_location: null,
+      note: null,
+      created_at: new Date().toISOString(),
+    };
+
+    addPlan(newPlan);
+    addPendingOperation({
+      id: `add-${Date.now()}`,
+      type: 'add',
+      planId: newPlan.id,
+      planData: newPlan,
+      timestamp: Date.now(),
+      retryCount: 0,
+    });
+
+    try {
+      await supabase.from('plans').insert(newPlan);
+      removePendingOperation(`add-${Date.now()}`);
+    } catch (error) {
+      console.error('Add queued for retry:', error);
+    }
+  };
+
+  // Handle removing set from schedule from modal
+  const handleRemoveSetFromSchedule = async (setId: string) => {
+    const plan = plans.find(p => p.set_id === setId);
+    if (plan) {
+      await handleDeletePlan(plan.id);
     }
   };
 
@@ -242,6 +299,15 @@ export default function TimelineScreen() {
             }
           }}
           onMeetupLongPress={(meetupId) => handleMeetupLongPress(plans.find(p => p.id === meetupId)!)}
+        />
+
+        {/* Set Detail Modal */}
+        <SetDetailModal
+          visible={selectedSetId !== null}
+          setDetail={selectedSetDetail}
+          onClose={() => setSelectedSetId(null)}
+          onAddToSchedule={handleAddSetToSchedule}
+          onRemoveFromSchedule={handleRemoveSetFromSchedule}
         />
       </View>
     );

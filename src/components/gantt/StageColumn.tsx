@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import SetBlock, { SetBlockVariant } from './SetBlock';
 import { colors } from '../../constants/colors';
@@ -19,7 +19,7 @@ type StageColumnProps = {
   onSetLongPress?: (setId: string) => void;
 };
 
-export default function StageColumn({ sets, onSetPress, onSetLongPress }: StageColumnProps) {
+const StageColumn = memo(function StageColumn({ sets, onSetPress, onSetLongPress }: StageColumnProps) {
   return (
     <View style={styles.container}>
       {sets.map((set) => {
@@ -43,7 +43,9 @@ export default function StageColumn({ sets, onSetPress, onSetLongPress }: StageC
       })}
     </View>
   );
-}
+});
+
+export default StageColumn;
 
 const styles = StyleSheet.create({
   container: {
