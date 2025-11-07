@@ -127,6 +127,6 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   defaultText: {
-    color: colors.textSecondary,
+    color: colors.textPrimary, // Changed from textSecondary for better contrast on dark background
   },
 });

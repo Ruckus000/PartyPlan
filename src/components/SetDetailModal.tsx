@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Alert, Image } from 'react-native';
 import { colors } from '../constants/colors';
+import { getArtistImagePath } from '../utils/artistImages';
 
 type SetDetail = {
   artist: string;
@@ -26,6 +27,8 @@ export default function SetDetailModal({
   onRemoveFromSchedule,
 }: SetDetailModalProps) {
   if (!setDetail) return null;
+
+  const artistImage = getArtistImagePath(setDetail.artist);
 
   const handleToggleSchedule = () => {
     if (setDetail.isPlanned) {
@@ -68,22 +71,35 @@ export default function SetDetailModal({
           onPress={(e) => e.stopPropagation()}
         >
           <ScrollView style={styles.modalContent}>
-            {/* Header */}
-            <View style={styles.header}>
-              <View style={styles.headerContent}>
-                <Text style={styles.artistName}>{setDetail.artist.toUpperCase()}</Text>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailIcon}>📍</Text>
-                  <Text style={styles.detailText}>{setDetail.stage}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailIcon}>🕐</Text>
-                  <Text style={styles.detailText}>{setDetail.timeRange}</Text>
-                </View>
-              </View>
+            {/* Close Button */}
+            <View style={styles.closeButtonContainer}>
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
                 <Text style={styles.closeButtonText}>✕</Text>
               </TouchableOpacity>
+            </View>
+
+            {/* Artist Image */}
+            {artistImage && (
+              <View style={styles.imageContainer}>
+                <Image
+                  source={artistImage}
+                  style={styles.artistImage}
+                  resizeMode="cover"
+                />
+              </View>
+            )}
+
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={styles.artistName}>{setDetail.artist.toUpperCase()}</Text>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailIcon}>📍</Text>
+                <Text style={styles.detailText}>{setDetail.stage}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailIcon}>🕐</Text>
+                <Text style={styles.detailText}>{setDetail.timeRange}</Text>
+              </View>
             </View>
 
             {/* Actions */}
@@ -134,20 +150,30 @@ const styles = StyleSheet.create({
   modalContent: {
     padding: 20,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  closeButtonContainer: {
+    alignItems: 'flex-end',
+    marginBottom: 16,
+  },
+  imageContainer: {
+    alignItems: 'center',
     marginBottom: 20,
   },
-  headerContent: {
-    flex: 1,
-    paddingRight: 40,
+  artistImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: colors.border,
+  },
+  header: {
+    marginBottom: 20,
   },
   artistName: {
     fontSize: 24,
     fontWeight: '700',
     color: colors.textPrimary,
     marginBottom: 12,
+    textAlign: 'center',
   },
   detailRow: {
     flexDirection: 'row',
