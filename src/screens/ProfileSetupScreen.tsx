@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { supabase } from '../lib/supabase';
 
 const colors = {
@@ -38,8 +38,9 @@ export default function ProfileSetupScreen({ onProfileSetupComplete }: { onProfi
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create Your Profile</Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Create Your Profile</Text>
       <Text style={styles.subtitle}>Choose a name and emoji for your account.</Text>
 
       <TextInput
@@ -61,7 +62,8 @@ export default function ProfileSetupScreen({ onProfileSetupComplete }: { onProfi
       <TouchableOpacity style={styles.button} onPress={handleProfileSetup} disabled={loading}>
         <Text style={styles.buttonText}>{loading ? 'Saving...' : 'Save Profile'}</Text>
       </TouchableOpacity>
-    </View>
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
 

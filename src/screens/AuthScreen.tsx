@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { authService } from '../lib/authService';
 
@@ -154,8 +154,9 @@ export default function AuthScreen() {
     passwordValidation.hasSymbol;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      <Text style={styles.title}>{isSignUp ? 'Create Account' : 'Welcome Back'}</Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.title}>{isSignUp ? 'Create Account' : 'Welcome Back'}</Text>
       <Text style={styles.subtitle}>Enter your details to get started.</Text>
 
       <TextInput
@@ -244,7 +245,8 @@ export default function AuthScreen() {
           {isSignUp ? 'Already have an account? Sign In' : 'Don\'t have an account? Sign Up'}
         </Text>
       </TouchableOpacity>
-    </ScrollView>
+      </ScrollView>
+    </TouchableWithoutFeedback>
   );
 }
 

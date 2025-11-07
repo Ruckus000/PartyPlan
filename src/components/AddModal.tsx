@@ -278,191 +278,191 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.modalOverlay}>
           <SafeAreaView style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>
-              {editingPlan ? 'Edit Meeting Point' : 'Add to Schedule'}
-            </Text>
-            <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>×</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Hide tabs in edit mode */}
-          {!editingPlan && (
-            <View style={styles.modalTabs}>
-              <TouchableOpacity
-                style={[styles.modalTab, activeTab === 'Artist' && styles.activeTab]}
-                onPress={() => setActiveTab('Artist')}
-              >
-                <Text style={[styles.modalTabText, activeTab === 'Artist' && styles.activeTabText]}>Artist</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalTab, activeTab === 'Meetup' && styles.activeTab]}
-                onPress={() => setActiveTab('Meetup')}
-              >
-                <Text style={[styles.modalTabText, activeTab === 'Meetup' && styles.activeTabText]}>Meeting Point</Text>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {editingPlan ? 'Edit Meeting Point' : 'Add to Schedule'}
+              </Text>
+              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+                <Text style={styles.closeButtonText}>×</Text>
               </TouchableOpacity>
             </View>
-          )}
 
-          {/* In edit mode, only show meetup form */}
-          {editingPlan || activeTab === 'Meetup' ? (
-            <View style={styles.tabContent}>
-              <Text style={styles.label}>Time</Text>
-              <View style={styles.timePickerContainer}>
-                <TimePicker
-                  value={meetupTime}
-                  onChange={setMeetupTime}
+            {/* Hide tabs in edit mode */}
+            {!editingPlan && (
+              <View style={styles.modalTabs}>
+                <TouchableOpacity
+                  style={[styles.modalTab, activeTab === 'Artist' && styles.activeTab]}
+                  onPress={() => setActiveTab('Artist')}
+                >
+                  <Text style={[styles.modalTabText, activeTab === 'Artist' && styles.activeTabText]}>Artist</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalTab, activeTab === 'Meetup' && styles.activeTab]}
+                  onPress={() => setActiveTab('Meetup')}
+                >
+                  <Text style={[styles.modalTabText, activeTab === 'Meetup' && styles.activeTabText]}>Meeting Point</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* In edit mode, only show meetup form */}
+            {editingPlan || activeTab === 'Meetup' ? (
+              <View style={styles.tabContent}>
+                <Text style={styles.label}>Time</Text>
+                <View style={styles.timePickerContainer}>
+                  <TimePicker
+                    value={meetupTime}
+                    onChange={setMeetupTime}
+                  />
+                </View>
+
+                <Text style={styles.label}>Location</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g., Main entrance, by the ferris wheel"
+                  placeholderTextColor={colors.textSecondary}
+                  value={meetupLocation}
+                  onChangeText={setMeetupLocation}
                 />
+
+                <Text style={styles.label}>Note (Optional)</Text>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  placeholder="Add any additional details..."
+                  placeholderTextColor={colors.textSecondary}
+                  value={meetupNote}
+                  onChangeText={setMeetupNote}
+                  multiline
+                  numberOfLines={3}
+                />
+
+                <TouchableOpacity
+                  style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+                  onPress={handleAddMeetup}
+                  disabled={isSubmitting}
+                >
+                  <Text style={styles.submitButtonText}>
+                    {isSubmitting
+                      ? (editingPlan ? 'Updating...' : 'Adding...')
+                      : (editingPlan ? 'Update Meeting Point' : 'Add Meeting Point')}
+                  </Text>
+                </TouchableOpacity>
               </View>
-
-              <Text style={styles.label}>Location</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g., Main entrance, by the ferris wheel"
-                placeholderTextColor={colors.textSecondary}
-                value={meetupLocation}
-                onChangeText={setMeetupLocation}
-              />
-
-              <Text style={styles.label}>Note (Optional)</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                placeholder="Add any additional details..."
-                placeholderTextColor={colors.textSecondary}
-                value={meetupNote}
-                onChangeText={setMeetupNote}
-                multiline
-                numberOfLines={3}
-              />
-
-              <TouchableOpacity
-                style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
-                onPress={handleAddMeetup}
-                disabled={isSubmitting}
-              >
-                <Text style={styles.submitButtonText}>
-                  {isSubmitting
-                    ? (editingPlan ? 'Updating...' : 'Adding...')
-                    : (editingPlan ? 'Update Meeting Point' : 'Add Meeting Point')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : activeTab === 'Artist' ? (
-            <View style={styles.tabContent}>
-              {/* Filter Dropdowns */}
-              <View style={styles.filtersContainer}>
-                {/* Day Dropdown */}
-                <View style={styles.dropdownWrapper}>
-                  <Text style={styles.dropdownLabel}>DAY</Text>
-                  <TouchableOpacity
-                    style={styles.dropdown}
-                    onPress={() => {
-                      setShowDayDropdown(!showDayDropdown);
-                      setShowStageDropdown(false);
-                    }}
-                  >
-                    <Text style={styles.dropdownText}>{selectedDay}</Text>
-                    <Text style={styles.dropdownArrow}>{showDayDropdown ? '▲' : '▼'}</Text>
-                  </TouchableOpacity>
-                  {showDayDropdown && (
-                    <View style={styles.dropdownMenu}>
-                      <ScrollView style={styles.dropdownScrollView}>
-                        {availableDays.map((day) => (
-                          <TouchableOpacity
-                            key={day}
-                            style={[
-                              styles.dropdownItem,
-                              selectedDay === day && styles.dropdownItemSelected,
-                            ]}
-                            onPress={() => {
-                              setSelectedDay(day);
-                              setShowDayDropdown(false);
-                            }}
-                          >
-                            <Text
+            ) : activeTab === 'Artist' ? (
+              <View style={styles.tabContent}>
+                {/* Filter Dropdowns */}
+                <View style={styles.filtersContainer}>
+                  {/* Day Dropdown */}
+                  <View style={styles.dropdownWrapper}>
+                    <Text style={styles.dropdownLabel}>DAY</Text>
+                    <TouchableOpacity
+                      style={styles.dropdown}
+                      onPress={() => {
+                        setShowDayDropdown(!showDayDropdown);
+                        setShowStageDropdown(false);
+                      }}
+                    >
+                      <Text style={styles.dropdownText}>{selectedDay}</Text>
+                      <Text style={styles.dropdownArrow}>{showDayDropdown ? '▲' : '▼'}</Text>
+                    </TouchableOpacity>
+                    {showDayDropdown && (
+                      <View style={styles.dropdownMenu}>
+                        <ScrollView style={styles.dropdownScrollView}>
+                          {availableDays.map((day) => (
+                            <TouchableOpacity
+                              key={day}
                               style={[
-                                styles.dropdownItemText,
-                                selectedDay === day && styles.dropdownItemTextSelected,
+                                styles.dropdownItem,
+                                selectedDay === day && styles.dropdownItemSelected,
                               ]}
+                              onPress={() => {
+                                setSelectedDay(day);
+                                setShowDayDropdown(false);
+                              }}
                             >
-                              {day}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </ScrollView>
-                    </View>
-                  )}
+                              <Text
+                                style={[
+                                  styles.dropdownItemText,
+                                  selectedDay === day && styles.dropdownItemTextSelected,
+                                ]}
+                              >
+                                {day}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </ScrollView>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Stage Dropdown */}
+                  <View style={styles.dropdownWrapper}>
+                    <Text style={styles.dropdownLabel}>STAGE</Text>
+                    <TouchableOpacity
+                      style={styles.dropdown}
+                      onPress={() => {
+                        setShowStageDropdown(!showStageDropdown);
+                        setShowDayDropdown(false);
+                      }}
+                    >
+                      <Text style={styles.dropdownText}>{selectedStage}</Text>
+                      <Text style={styles.dropdownArrow}>{showStageDropdown ? '▲' : '▼'}</Text>
+                    </TouchableOpacity>
+                    {showStageDropdown && (
+                      <View style={styles.dropdownMenu}>
+                        <ScrollView style={styles.dropdownScrollView}>
+                          {availableStages.map((stage) => (
+                            <TouchableOpacity
+                              key={stage}
+                              style={[
+                                styles.dropdownItem,
+                                selectedStage === stage && styles.dropdownItemSelected,
+                              ]}
+                              onPress={() => {
+                                setSelectedStage(stage);
+                                setShowStageDropdown(false);
+                              }}
+                            >
+                              <Text
+                                style={[
+                                  styles.dropdownItemText,
+                                  selectedStage === stage && styles.dropdownItemTextSelected,
+                                ]}
+                              >
+                                {stage}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </ScrollView>
+                      </View>
+                    )}
+                  </View>
                 </View>
 
-                {/* Stage Dropdown */}
-                <View style={styles.dropdownWrapper}>
-                  <Text style={styles.dropdownLabel}>STAGE</Text>
-                  <TouchableOpacity
-                    style={styles.dropdown}
-                    onPress={() => {
-                      setShowStageDropdown(!showStageDropdown);
-                      setShowDayDropdown(false);
-                    }}
-                  >
-                    <Text style={styles.dropdownText}>{selectedStage}</Text>
-                    <Text style={styles.dropdownArrow}>{showStageDropdown ? '▲' : '▼'}</Text>
-                  </TouchableOpacity>
-                  {showStageDropdown && (
-                    <View style={styles.dropdownMenu}>
-                      <ScrollView style={styles.dropdownScrollView}>
-                        {availableStages.map((stage) => (
-                          <TouchableOpacity
-                            key={stage}
-                            style={[
-                              styles.dropdownItem,
-                              selectedStage === stage && styles.dropdownItemSelected,
-                            ]}
-                            onPress={() => {
-                              setSelectedStage(stage);
-                              setShowStageDropdown(false);
-                            }}
-                          >
-                            <Text
-                              style={[
-                                styles.dropdownItemText,
-                                selectedStage === stage && styles.dropdownItemTextSelected,
-                              ]}
-                            >
-                              {stage}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </ScrollView>
-                    </View>
+                <ScrollView style={styles.artistList}>
+                  {filteredSets.map(set => (
+                    <TouchableOpacity
+                      key={set.id}
+                      style={[styles.artistItem, isSubmitting && styles.artistItemDisabled]}
+                      onPress={() => handleAddArtist(set.id)}
+                      disabled={isSubmitting}
+                    >
+                      <View style={styles.artistInfo}>
+                        <Text style={styles.artistName}>{set.artist}</Text>
+                        <Text style={styles.artistMeta}>
+                          {set.stage} • {new Date(set.start).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                        </Text>
+                      </View>
+                      <Text style={styles.addButton}>+</Text>
+                    </TouchableOpacity>
+                  ))}
+                  {filteredSets.length === 0 && (
+                    <Text style={styles.emptyText}>No artists found</Text>
                   )}
-                </View>
+                </ScrollView>
               </View>
-
-              <ScrollView style={styles.artistList}>
-                {filteredSets.map(set => (
-                  <TouchableOpacity
-                    key={set.id}
-                    style={[styles.artistItem, isSubmitting && styles.artistItemDisabled]}
-                    onPress={() => handleAddArtist(set.id)}
-                    disabled={isSubmitting}
-                  >
-                    <View style={styles.artistInfo}>
-                      <Text style={styles.artistName}>{set.artist}</Text>
-                      <Text style={styles.artistMeta}>
-                        {set.stage} • {new Date(set.start).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                      </Text>
-                    </View>
-                    <Text style={styles.addButton}>+</Text>
-                  </TouchableOpacity>
-                ))}
-                {filteredSets.length === 0 && (
-                  <Text style={styles.emptyText}>No artists found</Text>
-                )}
-              </ScrollView>
-            </View>
-          ) : null}
-        </SafeAreaView>
+            ) : null}
+          </SafeAreaView>
         </View>
       </TouchableWithoutFeedback>
     </Modal>
