@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, Platform } from 'react-native';
+import { Modal, View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { seedSets } from '../data/seedLineup';
 import { supabase } from '../lib/supabase';
 import { useStore } from '../lib/store';
 import { Plan } from '../types';
 import { colors } from '../constants/colors';
+import TimePicker from './TimePicker';
 
 type AddModalProps = {
   visible: boolean;
@@ -20,7 +20,6 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
   const [showDayDropdown, setShowDayDropdown] = useState(false);
   const [showStageDropdown, setShowStageDropdown] = useState(false);
   const [meetupTime, setMeetupTime] = useState(new Date());
-  const [showTimePicker, setShowTimePicker] = useState(false);
   const [meetupLocation, setMeetupLocation] = useState('');
   const [meetupNote, setMeetupNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,16 +47,6 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       setMeetupNote(editingPlan.note || '');
     }
   }, [editingPlan]);
-
-  // Helper to format time as "9:00 PM"
-  const formatTime = (date: Date): string => {
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const displayHours = hours % 12 || 12;
-    const displayMinutes = minutes.toString().padStart(2, '0');
-    return `${displayHours}:${displayMinutes} ${ampm}`;
-  };
 
   // Get unique days and stages
   const uniqueDays = Array.from(new Set(seedSets.map(set => {
@@ -155,7 +144,12 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       return;
     }
 
-    const formattedTime = formatTime(meetupTime);
+    const hours = meetupTime.getHours();
+    const minutes = meetupTime.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    const displayMinutes = minutes.toString().padStart(2, '0');
+    const formattedTime = `${displayHours}:${displayMinutes} ${ampm}`;
 
     if (!profile) {
       Alert.alert('Error', 'Please sign in to add plans');
@@ -267,7 +261,6 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
     setShowDayDropdown(false);
     setShowStageDropdown(false);
     setMeetupTime(new Date());
-    setShowTimePicker(false);
     setMeetupLocation('');
     setMeetupNote('');
     setEditingPlan(null);
@@ -319,41 +312,12 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
           {editingPlan || activeTab === 'Meetup' ? (
             <View style={styles.tabContent}>
               <Text style={styles.label}>Time</Text>
-              <TouchableOpacity
-                style={styles.timePickerButton}
-                onPress={() => setShowTimePicker(!showTimePicker)}
-              >
-                <Text style={styles.timeDisplayText}>{formatTime(meetupTime)}</Text>
-                <Text style={styles.timePickerIcon}>🕐</Text>
-              </TouchableOpacity>
-
-              {showTimePicker && (
-                <View style={styles.timePickerContainer}>
-                  <DateTimePicker
-                    value={meetupTime}
-                    mode="time"
-                    is24Hour={false}
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={(event, selectedDate) => {
-                      if (Platform.OS === 'android') {
-                        setShowTimePicker(false);
-                      }
-                      if (selectedDate) {
-                        setMeetupTime(selectedDate);
-                      }
-                    }}
-                    textColor={colors.textPrimary}
-                  />
-                  {Platform.OS === 'ios' && (
-                    <TouchableOpacity
-                      style={styles.doneButton}
-                      onPress={() => setShowTimePicker(false)}
-                    >
-                      <Text style={styles.doneButtonText}>Done</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              )}
+              <View style={styles.timePickerContainer}>
+                <TimePicker
+                  value={meetupTime}
+                  onChange={setMeetupTime}
+                />
+              </View>
 
               <Text style={styles.label}>Location</Text>
               <TextInput
@@ -635,45 +599,8 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginBottom: 16,
   },
-  timePickerButton: {
-    backgroundColor: colors.bgCard,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 12,
-    marginBottom: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  timeDisplayText: {
-    color: colors.textPrimary,
-    fontSize: 16,
-    flex: 1,
-  },
-  timePickerIcon: {
-    fontSize: 20,
-    marginLeft: 8,
-  },
   timePickerContainer: {
-    backgroundColor: colors.bgCard,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
     marginBottom: 16,
-    overflow: 'hidden',
-  },
-  doneButton: {
-    backgroundColor: colors.accentBlue,
-    padding: 12,
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  doneButtonText: {
-    color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '600',
   },
   textArea: {
     minHeight: 80,
