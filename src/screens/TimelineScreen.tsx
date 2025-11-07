@@ -25,37 +25,8 @@ export default function TimelineScreen() {
 
   const activeSquad = squads.find(s => s.id === activeSquadId);
 
-  // Delete handler for artist plans
-  const handleDeleteSet = async (setId: string) => {
-    const plan = plans.find(p => p.set_id === setId);
-    if (!plan) return;
-
-    const opId = `delete-${Date.now()}`;
-
-    // Optimistic UI update - remove immediately
-    removePlan(plan.id);
-
-    // Queue operation for retry
-    addPendingOperation({
-      id: opId,
-      type: 'delete',
-      planId: plan.id,
-      planData: plan,
-      timestamp: Date.now(),
-      retryCount: 0,
-    });
-
-    try {
-      await supabase.from('plans').delete().eq('id', plan.id);
-      removePendingOperation(opId); // Success!
-    } catch (error) {
-      // Will retry in background sync
-      console.error('Delete queued for retry:', error);
-    }
-  };
-
-  // Delete handler for meetup plans
-  const handleDeleteMeetup = async (planId: string) => {
+  // Centralized delete handler for all plan types
+  const handleDeletePlan = async (planId: string) => {
     const plan = plans.find(p => p.id === planId);
     if (!plan) return;
 
@@ -81,6 +52,18 @@ export default function TimelineScreen() {
       // Will retry in background sync
       console.error('Delete queued for retry:', error);
     }
+  };
+
+  // Wrapper for artist plans (finds plan by set_id)
+  const handleDeleteSet = async (setId: string) => {
+    const plan = plans.find(p => p.set_id === setId);
+    if (!plan) return;
+    await handleDeletePlan(plan.id);
+  };
+
+  // Wrapper for meetup plans (already has plan id)
+  const handleDeleteMeetup = async (planId: string) => {
+    await handleDeletePlan(planId);
   };
 
   // Long-press handler for meetup cards
