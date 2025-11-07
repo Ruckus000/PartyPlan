@@ -13,7 +13,7 @@ export function useSyncManager() {
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
   const [isLowPowerMode, setIsLowPowerMode] = useState(false);
 
-  const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const syncTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
   const { activeSquadId, setPlans, pendingOperations, removePendingOperation, updatePendingOperation, addPlan, getPendingDeleteIds } = useStore();

@@ -1,19 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, StyleSheet, TouchableOpacity, SafeAreaView, TextInput, ScrollView, Alert } from 'react-native';
+import { Modal, View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { seedSets } from '../data/seedLineup';
 import { supabase } from '../lib/supabase';
 import { useStore } from '../lib/store';
 import { Plan } from '../types';
-
-const colors = {
-  bgSecondary: '#0a0a0a',
-  bgCard: '#141414',
-  border: 'rgba(255, 255, 255, 0.08)',
-  textPrimary: '#ffffff',
-  textSecondary: '#a0a0a0',
-  accentBlue: '#3b82f6',
-};
+import { colors } from '../constants/colors';
 
 type AddModalProps = {
   visible: boolean;

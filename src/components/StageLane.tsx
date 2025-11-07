@@ -1,11 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import ArtistPill from './ArtistPill';
-
-const colors = {
-  bgCard: '#141414',
-  textMuted: '#606060',
-};
+import { colors } from '../constants/colors';
 
 type StageLaneProps = {
   stage: string;
@@ -14,19 +10,23 @@ type StageLaneProps = {
 };
 
 export default function StageLane({ stage, sets, onDeleteSet }: StageLaneProps) {
+  const isEmpty = sets.length === 0;
+
   return (
-    <View style={styles.lane}>
-      <Text style={styles.stageLabel}>{stage}</Text>
+    <View style={[styles.lane, isEmpty && styles.emptyLane]}>
+      <Text style={[styles.stageLabel, isEmpty && styles.emptyStageLabel]}>{stage}</Text>
       {sets.length > 0 ? (
-        sets.map((set, index) => (
-          <ArtistPill
-            key={index}
-            artist={set.artist}
-            variant={set.variant}
-            setId={set.setId}
-            onDelete={onDeleteSet}
-          />
-        ))
+        <View style={styles.pillContainer}>
+          {sets.map((set, index) => (
+            <ArtistPill
+              key={index}
+              artist={set.artist}
+              variant={set.variant}
+              setId={set.setId}
+              onDelete={onDeleteSet}
+            />
+          ))}
+        </View>
       ) : (
         <Text style={styles.emptyText}>Empty</Text>
       )}
@@ -37,11 +37,16 @@ export default function StageLane({ stage, sets, onDeleteSet }: StageLaneProps) 
 const styles = StyleSheet.create({
   lane: {
     flex: 1,
-    minHeight: 60,
+    minHeight: 70,
     backgroundColor: colors.bgCard,
     borderRadius: 8,
     padding: 8,
-    marginHorizontal: 4,
+    justifyContent: 'flex-start',
+  },
+  emptyLane: {
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.3)',
   },
   stageLabel: {
     fontSize: 10,
@@ -50,9 +55,17 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     marginBottom: 6,
   },
+  emptyStageLabel: {
+    color: 'rgba(59, 130, 246, 0.7)',
+  },
+  pillContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+  },
   emptyText: {
-    color: colors.textMuted,
+    color: 'rgba(59, 130, 246, 0.6)',
     fontSize: 11,
-    padding: 8,
+    padding: 4,
   },
 });

@@ -1,11 +1,6 @@
-
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
-
-const colors = {
-  accentBlue: '#3b82f6',
-  white: '#ffffff',
-};
+import { TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
+import { colors } from '../constants/colors';
 
 type FabProps = {
   onPress: () => void;
@@ -23,25 +18,34 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     bottom: 20,
-    right: 20, // Changed from left to right for better placement
+    right: 20,
     width: 56,
     height: 56,
     borderRadius: 28,
     backgroundColor: colors.accentBlue,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: colors.accentBlue,
     shadowOffset: {
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
     elevation: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.accentBlue,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   fabText: {
     color: colors.white,
     fontSize: 24,
-    lineHeight: 28, // Adjust for vertical centering
+    fontWeight: '400',
+    includeFontPadding: false,
   },
 });

@@ -1,13 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-
-const colors = {
-  accentBlue: '#3b82f6',
-  accentGreen: '#10b981',
-  accentRed: '#ef4444',
-  accentYellow: '#f59e0b',
-  white: '#ffffff',
-};
+import { colors } from '../constants/colors';
 
 type ArtistPillProps = {
   artist: string;
@@ -71,7 +64,6 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 12,
-    margin: 2,
   },
   friend: {
     backgroundColor: colors.accentGreen,
@@ -85,7 +77,7 @@ const styles = StyleSheet.create({
   planned: {
     backgroundColor: colors.accentGreen,
     borderWidth: 2,
-    borderColor: '#ffffff',
+    borderColor: colors.white,
   },
   pillText: {
     color: colors.white,

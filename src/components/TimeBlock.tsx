@@ -1,11 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-
-const colors = {
-  bgSecondary: '#0a0a0a',
-  textPrimary: '#ffffff',
-  textMuted: '#606060',
-};
+import { colors } from '../constants/colors';
 
 type TimeBlockProps = {
   time: string;
@@ -18,7 +13,7 @@ export default function TimeBlock({ time, meta, children }: TimeBlockProps) {
     <View style={styles.block}>
       <View style={styles.header}>
         <Text style={styles.label}>{time}</Text>
-        <Text style={styles.meta}>{meta}</Text>
+        {meta ? <Text style={styles.meta}>{meta}</Text> : null}
       </View>
       <View style={styles.timeline}>
         {children}
@@ -30,6 +25,7 @@ export default function TimeBlock({ time, meta, children }: TimeBlockProps) {
 const styles = StyleSheet.create({
   block: {
     marginBottom: 24,
+    paddingHorizontal: 16,
   },
   header: {
     flexDirection: 'row',
@@ -42,14 +38,16 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     color: colors.textPrimary,
-    marginRight: 12,
-    minWidth: 80,
+    marginRight: 16,
+    width: 120,
   },
   meta: {
     fontSize: 12,
     color: colors.textMuted,
+    flex: 1,
   },
   timeline: {
     flexDirection: 'row',
+    gap: 4,
   },
 });

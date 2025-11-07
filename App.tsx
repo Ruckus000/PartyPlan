@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import TimelineScreen from './src/screens/TimelineScreen';
 import SquadScreen from './src/screens/SquadScreen';
 import MapScreen from './src/screens/MapScreen';
 import Fab from './src/components/Fab';
 import AddModal from './src/components/AddModal';
 import ErrorBoundary from './src/components/ErrorBoundary';
-import { View } from 'react-native';
+import CustomTabBar from './src/components/CustomTabBar';
+import { View, StyleSheet, StatusBar, Platform } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from './src/lib/supabase';
 import AuthScreen from './src/screens/AuthScreen';
 import ProfileSetupScreen from './src/screens/ProfileSetupScreen';
@@ -19,8 +19,9 @@ import { useDebouncedPersistence } from './src/hooks/useDebouncedPersistence';
 import { SyncProvider } from './src/contexts/SyncContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
+import { colors } from './src/constants/colors';
 
-const Tab = createBottomTabNavigator();
+type Tab = 'Timeline' | 'Squad' | 'Map';
 
 // Debounce delay for AsyncStorage writes (reduces disk I/O and battery usage)
 const PERSISTENCE_DEBOUNCE_MS = 500;
@@ -29,6 +30,7 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const { profile, setProfile, modalVisible, setModalVisible, pendingOperations, plans, setIsOffline } = useStore();
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<Tab>('Timeline');
 
   // Initialize sync manager (only active when logged in with squads)
   const syncManager = useSyncManager();
@@ -92,8 +94,8 @@ export default function App() {
         if (squadMemberships && squadMemberships.length > 0) {
           // Use type guard to filter out null squads safely
           const squads = squadMemberships
-            .map(m => m.squads)
-            .filter((s): s is Squad => Boolean(s));
+            .map((m: any) => m.squads as Squad | null)
+            .filter((s): s is Squad => s !== null);
 
           useStore.getState().setSquads(squads);
 
@@ -152,7 +154,7 @@ export default function App() {
   };
 
   if (loading) {
-    return <View style={{ flex: 1, backgroundColor: '#0a0a0a' }} />;
+    return <View style={{ flex: 1, backgroundColor: colors.bgSecondary }} />;
   }
 
   if (!session) {
@@ -163,21 +165,44 @@ export default function App() {
     return <ProfileSetupScreen onProfileSetupComplete={handleProfileSetupComplete} />;
   }
 
+  const renderScreen = () => {
+    switch (activeTab) {
+      case 'Timeline':
+        return <TimelineScreen />;
+      case 'Squad':
+        return <SquadScreen />;
+      case 'Map':
+        return <MapScreen />;
+      default:
+        return <TimelineScreen />;
+    }
+  };
+
   return (
-    <ErrorBoundary>
-      <SyncProvider value={syncManager}>
-        <View style={{ flex: 1 }}>
-          <NavigationContainer>
-            <Tab.Navigator screenOptions={{ headerShown: false }}>
-              <Tab.Screen name="Timeline" component={TimelineScreen} />
-              <Tab.Screen name="Squad" component={SquadScreen} />
-              <Tab.Screen name="Map" component={MapScreen} />
-            </Tab.Navigator>
-          </NavigationContainer>
-          <Fab onPress={() => setModalVisible(true)} />
-          <AddModal visible={modalVisible} onClose={() => setModalVisible(false)} />
-        </View>
-      </SyncProvider>
-    </ErrorBoundary>
+    <SafeAreaProvider>
+      <ErrorBoundary>
+        <SyncProvider value={syncManager}>
+          <SafeAreaView style={styles.container} edges={['top']}>
+            <StatusBar barStyle="light-content" backgroundColor={colors.bgPrimary} />
+            <CustomTabBar activeTab={activeTab} onTabChange={setActiveTab} />
+            <View style={styles.content}>
+              {renderScreen()}
+            </View>
+            <Fab onPress={() => setModalVisible(true)} />
+            <AddModal visible={modalVisible} onClose={() => setModalVisible(false)} />
+          </SafeAreaView>
+        </SyncProvider>
+      </ErrorBoundary>
+    </SafeAreaProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.bgSecondary,
+  },
+  content: {
+    flex: 1,
+  },
+});
