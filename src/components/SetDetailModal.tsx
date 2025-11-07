@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Alert, Image } from 'react-native';
 import { colors } from '../constants/colors';
 import { getArtistImagePath } from '../utils/artistImages';
@@ -18,6 +18,10 @@ type SetDetailModalProps = {
   onClose: () => void;
   onAddToSchedule?: (setId: string) => void;
   onRemoveFromSchedule?: (setId: string) => void;
+  availableDays?: string[]; // Array of day strings, e.g., ["Friday, Nov 7", "Saturday, Nov 8"]
+  availableStages?: string[]; // Array of stage IDs
+  onDayChange?: (day: string) => void;
+  onStageChange?: (stage: string) => void;
 };
 
 export default function SetDetailModal({
@@ -26,10 +30,39 @@ export default function SetDetailModal({
   onClose,
   onAddToSchedule,
   onRemoveFromSchedule,
+  availableDays = [],
+  availableStages = [],
+  onDayChange,
+  onStageChange,
 }: SetDetailModalProps) {
+  const [selectedDay, setSelectedDay] = useState<string>('');
+  const [selectedStage, setSelectedStage] = useState<string>('');
+  const [showDayDropdown, setShowDayDropdown] = useState(false);
+  const [showStageDropdown, setShowStageDropdown] = useState(false);
+
+  // Update selected values when setDetail changes
+  useEffect(() => {
+    if (setDetail) {
+      setSelectedDay(setDetail.day);
+      setSelectedStage(setDetail.stage);
+    }
+  }, [setDetail]);
+
   if (!setDetail) return null;
 
   const artistImage = getArtistImagePath(setDetail.artist);
+
+  const handleDaySelect = (day: string) => {
+    setSelectedDay(day);
+    setShowDayDropdown(false);
+    onDayChange?.(day);
+  };
+
+  const handleStageSelect = (stage: string) => {
+    setSelectedStage(stage);
+    setShowStageDropdown(false);
+    onStageChange?.(stage);
+  };
 
   const handleToggleSchedule = () => {
     if (setDetail.isPlanned) {
@@ -78,6 +111,85 @@ export default function SetDetailModal({
                 <Text style={styles.closeButtonText}>✕</Text>
               </TouchableOpacity>
             </View>
+
+            {/* Filter Dropdowns */}
+            {(availableDays.length > 0 || availableStages.length > 0) && (
+              <View style={styles.filtersContainer}>
+                {/* Day Dropdown */}
+                {availableDays.length > 0 && (
+                  <View style={styles.dropdownWrapper}>
+                    <Text style={styles.dropdownLabel}>DAY</Text>
+                    <TouchableOpacity
+                      style={styles.dropdown}
+                      onPress={() => setShowDayDropdown(!showDayDropdown)}
+                    >
+                      <Text style={styles.dropdownText}>{selectedDay}</Text>
+                      <Text style={styles.dropdownArrow}>{showDayDropdown ? '▲' : '▼'}</Text>
+                    </TouchableOpacity>
+                    {showDayDropdown && (
+                      <View style={styles.dropdownMenu}>
+                        {availableDays.map((day) => (
+                          <TouchableOpacity
+                            key={day}
+                            style={[
+                              styles.dropdownItem,
+                              selectedDay === day && styles.dropdownItemSelected,
+                            ]}
+                            onPress={() => handleDaySelect(day)}
+                          >
+                            <Text
+                              style={[
+                                styles.dropdownItemText,
+                                selectedDay === day && styles.dropdownItemTextSelected,
+                              ]}
+                            >
+                              {day}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                )}
+
+                {/* Stage Dropdown */}
+                {availableStages.length > 0 && (
+                  <View style={styles.dropdownWrapper}>
+                    <Text style={styles.dropdownLabel}>STAGE</Text>
+                    <TouchableOpacity
+                      style={styles.dropdown}
+                      onPress={() => setShowStageDropdown(!showStageDropdown)}
+                    >
+                      <Text style={styles.dropdownText}>{selectedStage}</Text>
+                      <Text style={styles.dropdownArrow}>{showStageDropdown ? '▲' : '▼'}</Text>
+                    </TouchableOpacity>
+                    {showStageDropdown && (
+                      <View style={styles.dropdownMenu}>
+                        {availableStages.map((stage) => (
+                          <TouchableOpacity
+                            key={stage}
+                            style={[
+                              styles.dropdownItem,
+                              selectedStage === stage && styles.dropdownItemSelected,
+                            ]}
+                            onPress={() => handleStageSelect(stage)}
+                          >
+                            <Text
+                              style={[
+                                styles.dropdownItemText,
+                                selectedStage === stage && styles.dropdownItemTextSelected,
+                              ]}
+                            >
+                              {stage}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                )}
+              </View>
+            )}
 
             {/* Artist Image */}
             {artistImage && (
@@ -238,5 +350,73 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
     fontStyle: 'italic',
+  },
+  filtersContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 20,
+  },
+  dropdownWrapper: {
+    flex: 1,
+  },
+  dropdownLabel: {
+    fontSize: 11,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    color: colors.textMuted,
+    marginBottom: 8,
+  },
+  dropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.bgCard,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: 12,
+  },
+  dropdownText: {
+    fontSize: 14,
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  dropdownArrow: {
+    fontSize: 10,
+    color: colors.textSecondary,
+    marginLeft: 8,
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 60,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.bgCard,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: 8,
+    maxHeight: 200,
+    zIndex: 1000,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  dropdownItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  dropdownItemSelected: {
+    backgroundColor: colors.bgHover,
+  },
+  dropdownItemText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  dropdownItemTextSelected: {
+    color: colors.accentBlue,
+    fontWeight: '600',
   },
 });
