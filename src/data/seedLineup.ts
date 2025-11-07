@@ -6,27 +6,28 @@ export const seedSets = [
 
   // kineticFIELD - Friday
   { id:'edgarv-fri-1300', day:'2025-11-07', start:'2025-11-07T13:00:00-05:00', end:'2025-11-07T13:30:00-05:00', stage:'kineticFIELD', artist:'Edgar V' },
-  { id:'jadenbojsen-fri-1330', day:'2025-11-07', start:'2025-11-07T13:30:00-05:00', end:'2025-11-07T14:26:00-05:00', stage:'kineticFIELD', artist:'Jaden Bojsen' },
-  { id:'lavern-fri-1426', day:'2025-11-07', start:'2025-11-07T14:26:00-05:00', end:'2025-11-07T15:26:00-05:00', stage:'kineticFIELD', artist:'Lavern' },
-  { id:'argy-fri-1526', day:'2025-11-07', start:'2025-11-07T15:26:00-05:00', end:'2025-11-07T16:26:00-05:00', stage:'kineticFIELD', artist:'Argy' },
-  { id:'porterrobinson-fri-1626', day:'2025-11-07', start:'2025-11-07T16:26:00-05:00', end:'2025-11-07T17:41:00-05:00', stage:'kineticFIELD', artist:'Porter Robinson (Sunset DJ Set)' },
-  { id:'intermezzo-metropolis-fri-1741', day:'2025-11-07', start:'2025-11-07T17:41:00-05:00', end:'2025-11-07T17:44:00-05:00', stage:'kineticFIELD', artist:'Intermezzo: Metropolis Bass City' },
-  { id:'gryffin-fri-1744', day:'2025-11-07', start:'2025-11-07T17:44:00-05:00', end:'2025-11-07T18:54:00-05:00', stage:'kineticFIELD', artist:'Gryffin' },
-  { id:'intermezzo-technopolis-fri-1854', day:'2025-11-07', start:'2025-11-07T18:54:00-05:00', end:'2025-11-07T18:57:00-05:00', stage:'kineticFIELD', artist:'Intermezzo: Technopolis' },
-  { id:'saralandry-fri-1857', day:'2025-11-07', start:'2025-11-07T18:57:00-05:00', end:'2025-11-07T20:02:00-05:00', stage:'kineticFIELD', artist:'Sara Landry' },
-  { id:'intermezzo-housemusic-fri-2002', day:'2025-11-07', start:'2025-11-07T20:02:00-05:00', end:'2025-11-07T20:05:00-05:00', stage:'kineticFIELD', artist:'Intermezzo: This Is House Music' },
-  { id:'chrislake-fri-2005', day:'2025-11-07', start:'2025-11-07T20:05:00-05:00', end:'2025-11-07T21:20:00-05:00', stage:'kineticFIELD', artist:'Chris Lake' },
-  { id:'intermezzo-tranceformation-fri-2120', day:'2025-11-07', start:'2025-11-07T21:20:00-05:00', end:'2025-11-07T21:23:00-05:00', stage:'kineticFIELD', artist:'Intermezzo: Tranceformation' },
-  { id:'arminvanbuuren-fri-2123', day:'2025-11-07', start:'2025-11-07T21:23:00-05:00', end:'2025-11-07T22:48:00-05:00', stage:'kineticFIELD', artist:'Armin van Buuren' },
-  { id:'kineticcelebration-fri-2248', day:'2025-11-07', start:'2025-11-07T22:48:00-05:00', end:'2025-11-08T00:00:00-05:00', stage:'kineticFIELD', artist:'Kinetic Celebration: City of Sound & Fireworks' },
+  { id:'jev-fri-1330', day:'2025-11-07', start:'2025-11-07T13:30:00-05:00', end:'2025-11-07T14:26:00-05:00', stage:'kineticFIELD', artist:'JEV' },
+  { id:'jadenbojsen-fri-1426', day:'2025-11-07', start:'2025-11-07T14:26:00-05:00', end:'2025-11-07T15:26:00-05:00', stage:'kineticFIELD', artist:'Jaden Bojsen' },
+  { id:'lavern-fri-1526', day:'2025-11-07', start:'2025-11-07T15:26:00-05:00', end:'2025-11-07T16:26:00-05:00', stage:'kineticFIELD', artist:'Lavern' },
+  { id:'argy-fri-1626', day:'2025-11-07', start:'2025-11-07T16:26:00-05:00', end:'2025-11-07T17:26:00-05:00', stage:'kineticFIELD', artist:'Argy' },
+  { id:'porterrobinson-fri-1726', day:'2025-11-07', start:'2025-11-07T17:26:00-05:00', end:'2025-11-07T18:41:00-05:00', stage:'kineticFIELD', artist:'Porter Robinson (Sunset DJ Set)' },
+  { id:'intermezzo-metropolis-fri-1841', day:'2025-11-07', start:'2025-11-07T18:41:00-05:00', end:'2025-11-07T18:44:00-05:00', stage:'kineticFIELD', artist:'Intermezzo: Metropolis Bass City' },
+  { id:'gryffin-fri-1844', day:'2025-11-07', start:'2025-11-07T18:44:00-05:00', end:'2025-11-07T19:54:00-05:00', stage:'kineticFIELD', artist:'Gryffin' },
+  { id:'intermezzo-technopolis-fri-1954', day:'2025-11-07', start:'2025-11-07T19:54:00-05:00', end:'2025-11-07T19:57:00-05:00', stage:'kineticFIELD', artist:'Intermezzo: Technopolis' },
+  { id:'saralandry-fri-1957', day:'2025-11-07', start:'2025-11-07T19:57:00-05:00', end:'2025-11-07T21:02:00-05:00', stage:'kineticFIELD', artist:'Sara Landry' },
+  { id:'intermezzo-housemusic-fri-2102', day:'2025-11-07', start:'2025-11-07T21:02:00-05:00', end:'2025-11-07T21:05:00-05:00', stage:'kineticFIELD', artist:'Intermezzo: This Is House Music' },
+  { id:'chrislake-fri-2105', day:'2025-11-07', start:'2025-11-07T21:05:00-05:00', end:'2025-11-07T22:20:00-05:00', stage:'kineticFIELD', artist:'Chris Lake' },
+  { id:'intermezzo-tranceformation-fri-2220', day:'2025-11-07', start:'2025-11-07T22:20:00-05:00', end:'2025-11-07T22:23:00-05:00', stage:'kineticFIELD', artist:'Intermezzo: Tranceformation' },
+  { id:'arminvanbuuren-fri-2223', day:'2025-11-07', start:'2025-11-07T22:23:00-05:00', end:'2025-11-07T23:48:00-05:00', stage:'kineticFIELD', artist:'Armin van Buuren' },
+  { id:'kineticcelebration-fri-2348', day:'2025-11-07', start:'2025-11-07T23:48:00-05:00', end:'2025-11-08T00:00:00-05:00', stage:'kineticFIELD', artist:'Kinetic Celebration: City of Sound & Fireworks' },
 
   // circuitGROUNDS - Friday
   { id:'djcirclek-fri-1300', day:'2025-11-07', start:'2025-11-07T13:00:00-05:00', end:'2025-11-07T14:30:00-05:00', stage:'circuitGROUNDS', artist:'DJ Circle K' },
   { id:'canabliss-fri-1430', day:'2025-11-07', start:'2025-11-07T14:30:00-05:00', end:'2025-11-07T15:30:00-05:00', stage:'circuitGROUNDS', artist:'Canabliss' },
-  { id:'sota-fri-1530', day:'2025-11-07', start:'2025-11-07T15:30:00-05:00', end:'2025-11-07T16:30:00-05:00', stage:'circuitGROUNDS', artist:'Sola' },
+  { id:'sota-fri-1530', day:'2025-11-07', start:'2025-11-07T15:30:00-05:00', end:'2025-11-07T16:30:00-05:00', stage:'circuitGROUNDS', artist:'SOTA' },
   { id:'gorillat-fri-1630', day:'2025-11-07', start:'2025-11-07T16:30:00-05:00', end:'2025-11-07T17:30:00-05:00', stage:'circuitGROUNDS', artist:'Gorillat' },
   { id:'subfocus-fri-1730', day:'2025-11-07', start:'2025-11-07T17:30:00-05:00', end:'2025-11-07T18:30:00-05:00', stage:'circuitGROUNDS', artist:'Sub Focus (Sunset Set)' },
-  { id:'rudimental-fri-1830', day:'2025-11-07', start:'2025-11-07T18:30:00-05:00', end:'2025-11-07T19:30:00-05:00', stage:'circuitGROUNDS', artist:'Rudimental' },
+  { id:'rudimental-fri-1830', day:'2025-11-07', start:'2025-11-07T18:30:00-05:00', end:'2025-11-07T19:30:00-05:00', stage:'circuitGROUNDS', artist:'Rudim3ntal' },
   { id:'virtualriot-fri-1930', day:'2025-11-07', start:'2025-11-07T19:30:00-05:00', end:'2025-11-07T20:30:00-05:00', stage:'circuitGROUNDS', artist:'Virtual Riot' },
   { id:'tapeb-fri-2030', day:'2025-11-07', start:'2025-11-07T20:30:00-05:00', end:'2025-11-07T21:35:00-05:00', stage:'circuitGROUNDS', artist:'Tape B' },
   { id:'wooli-fri-2135', day:'2025-11-07', start:'2025-11-07T21:35:00-05:00', end:'2025-11-07T22:45:00-05:00', stage:'circuitGROUNDS', artist:'Wooli' },
@@ -53,7 +54,7 @@ export const seedSets = [
   { id:'gorgoncity-fri-2230', day:'2025-11-07', start:'2025-11-07T22:30:00-05:00', end:'2025-11-08T00:00:00-05:00', stage:'stereoBLOOM', artist:'Gorgon City' },
 
   // casaBACARDÍ - Friday
-  { id:'lyon808-fri-1300', day:'2025-11-07', start:'2025-11-07T13:00:00-05:00', end:'2025-11-07T15:00:00-05:00', stage:'casaBACARDÍ', artist:'Lyon808' },
+  { id:'lyon808-fri-1300', day:'2025-11-07', start:'2025-11-07T13:00:00-05:00', end:'2025-11-07T15:00:00-05:00', stage:'casaBACARDÍ', artist:'LYON808' },
   { id:'monoky-fri-1500', day:'2025-11-07', start:'2025-11-07T15:00:00-05:00', end:'2025-11-07T17:00:00-05:00', stage:'casaBACARDÍ', artist:'Monoky' },
   { id:'crespo-fri-1700', day:'2025-11-07', start:'2025-11-07T17:00:00-05:00', end:'2025-11-07T18:30:00-05:00', stage:'casaBACARDÍ', artist:'Crespo' },
   { id:'jev-casa-fri-1830', day:'2025-11-07', start:'2025-11-07T18:30:00-05:00', end:'2025-11-07T20:00:00-05:00', stage:'casaBACARDÍ', artist:'JEV' },
@@ -66,7 +67,7 @@ export const seedSets = [
 
   // kineticFIELD - Saturday
   { id:'2ar-sat-1300', day:'2025-11-08', start:'2025-11-08T13:00:00-05:00', end:'2025-11-08T13:30:00-05:00', stage:'kineticFIELD', artist:'2AR' },
-  { id:'okayval-sat-1330', day:'2025-11-08', start:'2025-11-08T13:30:00-05:00', end:'2025-11-08T14:26:00-05:00', stage:'kineticFIELD', artist:'Okayval' },
+  { id:'okayval-sat-1330', day:'2025-11-08', start:'2025-11-08T13:30:00-05:00', end:'2025-11-08T14:26:00-05:00', stage:'kineticFIELD', artist:'OKAYVAL' },
   { id:'elyoaks-sat-1426', day:'2025-11-08', start:'2025-11-08T14:26:00-05:00', end:'2025-11-08T15:26:00-05:00', stage:'kineticFIELD', artist:'Ely Oaks' },
   { id:'benhemsley-sat-1526', day:'2025-11-08', start:'2025-11-08T15:26:00-05:00', end:'2025-11-08T16:26:00-05:00', stage:'kineticFIELD', artist:'Ben Hemsley' },
   { id:'cassian-sat-1626', day:'2025-11-08', start:'2025-11-08T16:26:00-05:00', end:'2025-11-08T17:26:00-05:00', stage:'kineticFIELD', artist:'Cassian' },
@@ -82,12 +83,12 @@ export const seedSets = [
   { id:'kineticcelebration-sat-2348', day:'2025-11-08', start:'2025-11-08T23:48:00-05:00', end:'2025-11-09T00:00:00-05:00', stage:'kineticFIELD', artist:'Kinetic Celebration: City of Sound & Fireworks' },
 
   // circuitGROUNDS - Saturday
-  { id:'fury-sat-1300', day:'2025-11-08', start:'2025-11-08T13:00:00-05:00', end:'2025-11-08T14:00:00-05:00', stage:'circuitGROUNDS', artist:'Fury + MC Dino' },
+  { id:'fury-sat-1300', day:'2025-11-08', start:'2025-11-08T13:00:00-05:00', end:'2025-11-08T14:00:00-05:00', stage:'circuitGROUNDS', artist:'FURY + MC DINO' },
   { id:'ahundreddrums-sat-1400', day:'2025-11-08', start:'2025-11-08T14:00:00-05:00', end:'2025-11-08T15:00:00-05:00', stage:'circuitGROUNDS', artist:'A Hundred Drums' },
   { id:'maddyoneal-sat-1500', day:'2025-11-08', start:'2025-11-08T15:00:00-05:00', end:'2025-11-08T16:00:00-05:00', stage:'circuitGROUNDS', artist:"Maddy O'Neal" },
   { id:'andromedik-sat-1600', day:'2025-11-08', start:'2025-11-08T16:00:00-05:00', end:'2025-11-08T17:00:00-05:00', stage:'circuitGROUNDS', artist:'Andromedik' },
   { id:'barelyalive-sat-1700', day:'2025-11-08', start:'2025-11-08T17:00:00-05:00', end:'2025-11-08T18:00:00-05:00', stage:'circuitGROUNDS', artist:'Barely Alive' },
-  { id:'infekt-sat-1800', day:'2025-11-08', start:'2025-11-08T18:00:00-05:00', end:'2025-11-08T19:00:00-05:00', stage:'circuitGROUNDS', artist:'Infekt' },
+  { id:'infekt-sat-1800', day:'2025-11-08', start:'2025-11-08T18:00:00-05:00', end:'2025-11-08T19:00:00-05:00', stage:'circuitGROUNDS', artist:'INFEKT' },
   { id:'hol-sat-1900', day:'2025-11-08', start:'2025-11-08T19:00:00-05:00', end:'2025-11-08T20:00:00-05:00', stage:'circuitGROUNDS', artist:'HOL!' },
   { id:'apashe-sat-2000', day:'2025-11-08', start:'2025-11-08T20:00:00-05:00', end:'2025-11-08T21:00:00-05:00', stage:'circuitGROUNDS', artist:'Apashe' },
   { id:'kaiwachi-sat-2100', day:'2025-11-08', start:'2025-11-08T21:00:00-05:00', end:'2025-11-08T22:00:00-05:00', stage:'circuitGROUNDS', artist:'Kai Wachi' },
@@ -99,7 +100,7 @@ export const seedSets = [
   { id:'malone-sat-1500', day:'2025-11-08', start:'2025-11-08T15:00:00-05:00', end:'2025-11-08T16:15:00-05:00', stage:'neonGarden', artist:'Maløne' },
   { id:'wakyin-sat-1615', day:'2025-11-08', start:'2025-11-08T16:15:00-05:00', end:'2025-11-08T17:30:00-05:00', stage:'neonGarden', artist:'Wakyin' },
   { id:'chasewest-sat-1730', day:'2025-11-08', start:'2025-11-08T17:30:00-05:00', end:'2025-11-08T18:45:00-05:00', stage:'neonGarden', artist:'Chasewest' },
-  { id:'sosa-sat-1845', day:'2025-11-08', start:'2025-11-08T18:45:00-05:00', end:'2025-11-08T20:00:00-05:00', stage:'neonGarden', artist:'Sosa' },
+  { id:'sosa-sat-1845', day:'2025-11-08', start:'2025-11-08T18:45:00-05:00', end:'2025-11-08T20:00:00-05:00', stage:'neonGarden', artist:'SOSA' },
   { id:'bensterling-sat-2000', day:'2025-11-08', start:'2025-11-08T20:00:00-05:00', end:'2025-11-08T21:15:00-05:00', stage:'neonGarden', artist:'Ben Sterling' },
   { id:'beltran-sat-2115', day:'2025-11-08', start:'2025-11-08T21:15:00-05:00', end:'2025-11-08T22:30:00-05:00', stage:'neonGarden', artist:'Beltran' },
   { id:'cloonee-sat-2230', day:'2025-11-08', start:'2025-11-08T22:30:00-05:00', end:'2025-11-09T00:00:00-05:00', stage:'neonGarden', artist:'Cloonee' },
@@ -111,7 +112,7 @@ export const seedSets = [
   { id:'cocobreezy-sat-1630', day:'2025-11-08', start:'2025-11-08T16:30:00-05:00', end:'2025-11-08T17:30:00-05:00', stage:'stereoBLOOM', artist:'Coco & Breezy' },
   { id:'sanpacho-sat-1730', day:'2025-11-08', start:'2025-11-08T17:30:00-05:00', end:'2025-11-08T18:45:00-05:00', stage:'stereoBLOOM', artist:'San Pacho (Sunset Set)' },
   { id:'westend-sat-1845', day:'2025-11-08', start:'2025-11-08T18:45:00-05:00', end:'2025-11-08T20:00:00-05:00', stage:'stereoBLOOM', artist:'Westend' },
-  { id:'omnom-sat-2000', day:'2025-11-08', start:'2025-11-08T20:00:00-05:00', end:'2025-11-08T21:15:00-05:00', stage:'stereoBLOOM', artist:'Omnom' },
+  { id:'omnom-sat-2000', day:'2025-11-08', start:'2025-11-08T20:00:00-05:00', end:'2025-11-08T21:15:00-05:00', stage:'stereoBLOOM', artist:'OMNOM' },
   { id:'walkerroyce-sat-2115', day:'2025-11-08', start:'2025-11-08T21:15:00-05:00', end:'2025-11-08T22:30:00-05:00', stage:'stereoBLOOM', artist:'Walker & Royce' },
   { id:'dombresky-sat-2230', day:'2025-11-08', start:'2025-11-08T22:30:00-05:00', end:'2025-11-09T00:00:00-05:00', stage:'stereoBLOOM', artist:'Dombresky' },
 
@@ -120,7 +121,7 @@ export const seedSets = [
   { id:'alves-sat-1500', day:'2025-11-08', start:'2025-11-08T15:00:00-05:00', end:'2025-11-08T17:00:00-05:00', stage:'casaBACARDÍ', artist:'Alves' },
   { id:'jpatron-sat-1700', day:'2025-11-08', start:'2025-11-08T17:00:00-05:00', end:'2025-11-08T18:30:00-05:00', stage:'casaBACARDÍ', artist:'J Patron' },
   { id:'edgarv-sat-1830', day:'2025-11-08', start:'2025-11-08T18:30:00-05:00', end:'2025-11-08T20:00:00-05:00', stage:'casaBACARDÍ', artist:'Edgar V' },
-  { id:'juos-sat-2000', day:'2025-11-08', start:'2025-11-08T20:00:00-05:00', end:'2025-11-08T21:30:00-05:00', stage:'casaBACARDÍ', artist:'Juos' },
+  { id:'juos-sat-2000', day:'2025-11-08', start:'2025-11-08T20:00:00-05:00', end:'2025-11-08T21:30:00-05:00', stage:'casaBACARDÍ', artist:'JUOS' },
   { id:'elyoaks-casa-sat-2130', day:'2025-11-08', start:'2025-11-08T21:30:00-05:00', end:'2025-11-08T23:00:00-05:00', stage:'casaBACARDÍ', artist:'Ely Oaks' },
 
   // ============================================
@@ -128,7 +129,7 @@ export const seedSets = [
   // ============================================
 
   // kineticFIELD - Sunday
-  { id:'inanila-sun-1300', day:'2025-11-09', start:'2025-11-09T13:00:00-05:00', end:'2025-11-09T13:30:00-05:00', stage:'kineticFIELD', artist:'Ina Nila' },
+  { id:'inanila-sun-1300', day:'2025-11-09', start:'2025-11-09T13:00:00-05:00', end:'2025-11-09T13:30:00-05:00', stage:'kineticFIELD', artist:'Ina Nia' },
   { id:'baggi-sun-1330', day:'2025-11-09', start:'2025-11-09T13:30:00-05:00', end:'2025-11-09T14:26:00-05:00', stage:'kineticFIELD', artist:'Baggi' },
   { id:'nothanks-sun-1426', day:'2025-11-09', start:'2025-11-09T14:26:00-05:00', end:'2025-11-09T15:26:00-05:00', stage:'kineticFIELD', artist:'No Thanks' },
   { id:'korolova-sun-1526', day:'2025-11-09', start:'2025-11-09T15:26:00-05:00', end:'2025-11-09T16:26:00-05:00', stage:'kineticFIELD', artist:'Korolova' },
@@ -136,11 +137,11 @@ export const seedSets = [
   { id:'greenvelvet-sun-1726', day:'2025-11-09', start:'2025-11-09T17:26:00-05:00', end:'2025-11-09T18:41:00-05:00', stage:'kineticFIELD', artist:'Green Velvet B2B Alok (Sunset Set)' },
   { id:'intermezzo-tranceformation-sun-1841', day:'2025-11-09', start:'2025-11-09T18:41:00-05:00', end:'2025-11-09T18:44:00-05:00', stage:'kineticFIELD', artist:'Intermezzo: Tranceformation' },
   { id:'jameshype-sun-1844', day:'2025-11-09', start:'2025-11-09T18:44:00-05:00', end:'2025-11-09T19:54:00-05:00', stage:'kineticFIELD', artist:'James Hype' },
-  { id:'intermezzo-technopolis-sun-1954', day:'2025-11-09', start:'2025-11-09T19:54:00-05:00', end:'2025-11-09T19:57:00-05:00', stage:'kineticFIELD', artist:'Intermezzo: Technopolis' },
+  { id:'intermezzo-housemusic-sun-1954', day:'2025-11-09', start:'2025-11-09T19:54:00-05:00', end:'2025-11-09T19:57:00-05:00', stage:'kineticFIELD', artist:'Intermezzo: This Is House Music' },
   { id:'sofitukker-sun-1957', day:'2025-11-09', start:'2025-11-09T19:57:00-05:00', end:'2025-11-09T21:02:00-05:00', stage:'kineticFIELD', artist:'Sofi Tukker' },
-  { id:'intermezzo-metropolis-sun-2102', day:'2025-11-09', start:'2025-11-09T21:02:00-05:00', end:'2025-11-09T21:05:00-05:00', stage:'kineticFIELD', artist:'Intermezzo: Metropolis Bass City' },
+  { id:'intermezzo-technopolis-sun-2102', day:'2025-11-09', start:'2025-11-09T21:02:00-05:00', end:'2025-11-09T21:05:00-05:00', stage:'kineticFIELD', artist:'Intermezzo: Technopolis' },
   { id:'subtronics-sun-2105', day:'2025-11-09', start:'2025-11-09T21:05:00-05:00', end:'2025-11-09T22:20:00-05:00', stage:'kineticFIELD', artist:'Subtronics' },
-  { id:'intermezzo-housemusic-sun-2220', day:'2025-11-09', start:'2025-11-09T22:20:00-05:00', end:'2025-11-09T22:23:00-05:00', stage:'kineticFIELD', artist:'Intermezzo: This Is House Music' },
+  { id:'intermezzo-metropolis-sun-2220', day:'2025-11-09', start:'2025-11-09T22:20:00-05:00', end:'2025-11-09T22:23:00-05:00', stage:'kineticFIELD', artist:'Intermezzo: Metropolis Bass City' },
   { id:'domdolla-sun-2223', day:'2025-11-09', start:'2025-11-09T22:23:00-05:00', end:'2025-11-09T23:48:00-05:00', stage:'kineticFIELD', artist:'Dom Dolla' },
   { id:'kineticcelebration-sun-2348', day:'2025-11-09', start:'2025-11-09T23:48:00-05:00', end:'2025-11-10T00:00:00-05:00', stage:'kineticFIELD', artist:'Kinetic Celebration: City of Sound & Fireworks' },
 
@@ -159,7 +160,7 @@ export const seedSets = [
   // neonGarden - Sunday
   { id:'drgreco-sun-1300', day:'2025-11-09', start:'2025-11-09T13:00:00-05:00', end:'2025-11-09T15:00:00-05:00', stage:'neonGarden', artist:'Dr. Greco' },
   { id:'noisemafia-sun-1500', day:'2025-11-09', start:'2025-11-09T15:00:00-05:00', end:'2025-11-09T16:30:00-05:00', stage:'neonGarden', artist:'Noise Mafia' },
-  { id:'otta-sun-1630', day:'2025-11-09', start:'2025-11-09T16:30:00-05:00', end:'2025-11-09T18:00:00-05:00', stage:'neonGarden', artist:'Øtta' },
+  { id:'otta-sun-1630', day:'2025-11-09', start:'2025-11-09T16:30:00-05:00', end:'2025-11-09T18:00:00-05:00', stage:'neonGarden', artist:'ØTTA' },
   { id:'999999999-sun-1800', day:'2025-11-09', start:'2025-11-09T18:00:00-05:00', end:'2025-11-09T19:30:00-05:00', stage:'neonGarden', artist:'999999999 (Acid Set)' },
   { id:'indirapaganotto-sun-1930', day:'2025-11-09', start:'2025-11-09T19:30:00-05:00', end:'2025-11-09T21:00:00-05:00', stage:'neonGarden', artist:'Indira Paganotto' },
   { id:'deborahdeluca-sun-2100', day:'2025-11-09', start:'2025-11-09T21:00:00-05:00', end:'2025-11-09T22:30:00-05:00', stage:'neonGarden', artist:'Deborah De Luca' },
@@ -172,7 +173,7 @@ export const seedSets = [
   { id:'mph-sun-1615', day:'2025-11-09', start:'2025-11-09T16:15:00-05:00', end:'2025-11-09T17:30:00-05:00', stage:'stereoBLOOM', artist:'MPH' },
   { id:'caspa-sun-1730', day:'2025-11-09', start:'2025-11-09T17:30:00-05:00', end:'2025-11-09T18:45:00-05:00', stage:'stereoBLOOM', artist:'Caspa (Sunset Set)' },
   { id:'ydg-sun-1845', day:'2025-11-09', start:'2025-11-09T18:45:00-05:00', end:'2025-11-09T20:00:00-05:00', stage:'stereoBLOOM', artist:'YDG' },
-  { id:'alleycvt-sun-2000', day:'2025-11-09', start:'2025-11-09T20:00:00-05:00', end:'2025-11-09T21:15:00-05:00', stage:'stereoBLOOM', artist:'Alleycvt' },
+  { id:'alleycvt-sun-2000', day:'2025-11-09', start:'2025-11-09T20:00:00-05:00', end:'2025-11-09T21:15:00-05:00', stage:'stereoBLOOM', artist:'ALLEYCVT' },
   { id:'wilkinson-sun-2115', day:'2025-11-09', start:'2025-11-09T21:15:00-05:00', end:'2025-11-09T22:45:00-05:00', stage:'stereoBLOOM', artist:'Wilkinson' },
   { id:'leveltronics-sun-2245', day:'2025-11-09', start:'2025-11-09T22:45:00-05:00', end:'2025-11-10T00:00:00-05:00', stage:'stereoBLOOM', artist:'Leveltronics' },
 
