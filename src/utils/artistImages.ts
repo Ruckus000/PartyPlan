@@ -1,8 +1,8 @@
 /**
  * Utility functions for mapping artist names to image paths
  *
- * Image files are stored in assets/images/artist-profiles/
- * and are named in UPPERCASE with spaces (e.g., "CHRIS LAKE.jpg")
+ * React Native requires static require() paths at build time.
+ * All images are imported statically so the bundler can include them.
  */
 
 /**
@@ -19,67 +19,56 @@ function normalizeArtistName(artistName: string): string {
 }
 
 /**
- * Get the require path for an artist's profile image
+ * Static map of artist names to their imported images
+ * All require() calls must be static for React Native bundler
+ */
+const artistImages: Record<string, any> = {
+  'EDGAR V': require('../../assets/images/artist-profiles/EDGAR V.jpg'),
+  'JADEN BOJSEN': require('../../assets/images/artist-profiles/JADEN BOJSEN.jpg'),
+  'LAVERN': require('../../assets/images/artist-profiles/LAVERN.jpg'),
+  'ARGY': require('../../assets/images/artist-profiles/ARGY.jpeg'),
+  'PORTER ROBINSON': require('../../assets/images/artist-profiles/PORTER ROBINSON.jpg'),
+  'GRYFFIN': require('../../assets/images/artist-profiles/GRYFFIN.jpg'),
+  'SARA LANDRY': require('../../assets/images/artist-profiles/SARA LANDRY.jpg'),
+  'CHRIS LAKE': require('../../assets/images/artist-profiles/CHRIS LAKE.jpg'),
+  'ARMIN VAN BUUREN': require('../../assets/images/artist-profiles/ARMIN VAN BUUREN.jpg'),
+  'CIRCLE K': require('../../assets/images/artist-profiles/CIRCLE K.jpg'),
+  'CANABLISS': require('../../assets/images/artist-profiles/CANABLISS.jpg'),
+  'SOLA': require('../../assets/images/artist-profiles/SOLA.jpg'),
+  'GORILLAT': require('../../assets/images/artist-profiles/GORILLAT.jpg'),
+  'SUB FOCUS': require('../../assets/images/artist-profiles/SUB FOCUS.jpg'),
+  'RUDIMENTAL': require('../../assets/images/artist-profiles/RUDIMENTAL.jpg'),
+  'VIRTUAL RIOT': require('../../assets/images/artist-profiles/VIRTUAL RIOT.jpg'),
+  'TAPE B': require('../../assets/images/artist-profiles/TAPE B.jpg'),
+  'WOOLI': require('../../assets/images/artist-profiles/WOOLI.jpg'),
+  'VOYD': require('../../assets/images/artist-profiles/VOYD.jpg'),
+  'CARLOS MENDOZA': require('../../assets/images/artist-profiles/CARLOS MENDOZA.jpeg'),
+  'KASIA': require('../../assets/images/artist-profiles/KASIA.jpg'),
+  'BART SKILS': require('../../assets/images/artist-profiles/BART SKILS.jpeg'),
+  'MISS MONIQUE': require('../../assets/images/artist-profiles/MISS MONIQUE.jpg'),
+  'KEVIN DE VRIES': require('../../assets/images/artist-profiles/KEVIN DE VRIES.jpg'),
+  'ADAM BEYER': require('../../assets/images/artist-profiles/ADAM BEYER.webp'),
+  'LAYTON GIORDANI': require('../../assets/images/artist-profiles/LAYTON GIORDANI.jpg'),
+  'TIFFY VERA': require('../../assets/images/artist-profiles/TIFFY VERA.jpg'),
+  'SLUGG': require('../../assets/images/artist-profiles/SLUGG.jpg'),
+  'MORGAN SEATREE': require('../../assets/images/artist-profiles/MORGAN SEATREE.jpg'),
+  'LUUK VAN DIJK': require('../../assets/images/artist-profiles/LUUK VAN DIJK.jpg'),
+  'LUKE DEAN': require('../../assets/images/artist-profiles/LUKE DEAN.jpg'),
+  'RANGER TRUCCO': require('../../assets/images/artist-profiles/RANGER TRUCCO.jpg'),
+  'RIORDAN': require('../../assets/images/artist-profiles/RIORDAN.jpg'),
+  'AYYBO': require('../../assets/images/artist-profiles/AYYBO.jpg'),
+  'PROSPA': require('../../assets/images/artist-profiles/PROSPA.jpg'),
+  'KETTAMA': require('../../assets/images/artist-profiles/KETTAMA.jpg'),
+  'GORGON CITY': require('../../assets/images/artist-profiles/GORGON CITY.jpg'),
+};
+
+/**
+ * Get the image source for an artist's profile image
  * Returns null if no image mapping exists
  */
 export function getArtistImagePath(artistName: string): any | null {
   const normalized = normalizeArtistName(artistName);
-
-  // Map of artist names to their image file extensions
-  // This could be dynamically generated, but for React Native we need static requires
-  const artistImageMap: Record<string, string> = {
-    'EDGAR V': 'jpg',
-    'JADEN BOJSEN': 'jpg',
-    'LAVERN': 'jpg',
-    'ARGY': 'jpeg',
-    'PORTER ROBINSON': 'jpg',
-    'GRYFFIN': 'jpg',
-    'SARA LANDRY': 'jpg',
-    'CHRIS LAKE': 'jpg',
-    'ARMIN VAN BUUREN': 'jpg',
-    'DJ CIRCLE K': 'jpg',
-    'CANABLISS': 'jpg',
-    'SOLA': 'jpg',
-    'GORILLAT': 'jpg',
-    'SUB FOCUS': 'jpg',
-    'RUDIMENTAL': 'jpg',
-    'VIRTUAL RIOT': 'jpg',
-    'TAPE B': 'jpg',
-    'WOOLI': 'jpg',
-    'VOYD': 'jpg',
-    'CARLOS MENDOZA': 'jpeg',
-    'KASIA': 'jpg',
-    'BART SKILS': 'jpeg',
-    'MISS MONIQUE': 'jpg',
-    'KEVIN DE VRIES': 'jpg',
-    'ADAM BEYER': 'webp',
-    'LAYTON GIORDANI': 'jpg',
-    'TIFFY VERA': 'jpg',
-    'SLUGG': 'jpg',
-    'MORGAN SEATREE': 'jpg',
-    'LUUK VAN DIJK': 'jpg',
-    'LUKE DEAN': 'jpg',
-    'RANGER TRUCCO': 'jpg',
-    'RIORDAN': 'jpg',
-    'AYYBO': 'jpg',
-    'PROSPA': 'jpg',
-    'KETTAMA': 'jpg',
-    'GORGON CITY': 'jpg',
-  };
-
-  const extension = artistImageMap[normalized];
-  if (!extension) {
-    return null;
-  }
-
-  // Return the require path for the image
-  // React Native requires static paths at build time
-  try {
-    return require(`../../assets/images/artist-profiles/${normalized}.${extension}`);
-  } catch (error) {
-    console.warn(`Image not found for artist: ${normalized}`);
-    return null;
-  }
+  return artistImages[normalized] || null;
 }
 
 /**
