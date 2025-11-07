@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
+import { Modal, View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { seedSets } from '../data/seedLineup';
 import { supabase } from '../lib/supabase';
@@ -156,11 +156,7 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       return;
     }
 
-    if (!activeSquadId) {
-      Alert.alert('Error', 'No active squad. Please create or join a squad first.');
-      return;
-    }
-
+    // Meeting points don't require a squad - they can be personal plans
     // Check if we're in edit mode
     if (editingPlan) {
       // UPDATE existing plan - optimistic update
@@ -209,7 +205,7 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
 
       const tempPlan: Plan = {
         id: `temp-${Date.now()}`,
-        squad_id: activeSquadId,
+        squad_id: activeSquadId || null,
         created_by: profile.id,
         type: 'meetup',
         set_id: null,
@@ -229,7 +225,7 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
         const { data: plan, error } = await supabase
           .from('plans')
           .insert({
-            squad_id: activeSquadId,
+            squad_id: activeSquadId || null,
             created_by: profile.id,
             type: 'meetup',
             meet_time: formattedTime,
@@ -279,8 +275,9 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       visible={visible}
       onRequestClose={handleClose}
     >
-      <View style={styles.modalOverlay}>
-        <SafeAreaView style={styles.modalContent}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.modalOverlay}>
+          <SafeAreaView style={styles.modalContent}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>
               {editingPlan ? 'Edit Meeting Point' : 'Add to Schedule'}
@@ -466,7 +463,8 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
             </View>
           ) : null}
         </SafeAreaView>
-      </View>
+        </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 }
