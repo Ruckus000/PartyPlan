@@ -15,6 +15,7 @@ import { Session } from '@supabase/supabase-js';
 import { useStore } from './src/lib/store';
 import { Squad } from './src/types';
 import { useSyncManager } from './src/hooks/useSyncManager';
+import { useDebouncedPersistence } from './src/hooks/useDebouncedPersistence';
 import { SyncProvider } from './src/contexts/SyncContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
@@ -43,23 +44,9 @@ export default function App() {
     };
   }, [setIsOffline]);
 
-  // Debounced persistence for pending operations (reduces disk I/O)
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      AsyncStorage.setItem('pendingOps', JSON.stringify(pendingOperations));
-    }, PERSISTENCE_DEBOUNCE_MS);
-
-    return () => clearTimeout(timeoutId);
-  }, [pendingOperations]);
-
-  // Debounced persistence for plans (reduces disk I/O and battery usage)
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      AsyncStorage.setItem('plans', JSON.stringify(plans));
-    }, PERSISTENCE_DEBOUNCE_MS);
-
-    return () => clearTimeout(timeoutId);
-  }, [plans]);
+  // Debounced persistence for pending operations and plans (reduces disk I/O and battery usage)
+  useDebouncedPersistence('pendingOps', pendingOperations, PERSISTENCE_DEBOUNCE_MS);
+  useDebouncedPersistence('plans', plans, PERSISTENCE_DEBOUNCE_MS);
 
   useEffect(() => {
     const fetchSessionAndProfile = async () => {
