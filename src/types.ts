@@ -39,7 +39,7 @@ export type PendingOperation = {
   id: string;
   type: 'delete' | 'add' | 'update';
   planId: string;
-  planData?: Partial<Plan>;
+  planData?: Plan; // Full Plan object for safe rollbacks (especially for delete operations)
   timestamp: number;
   retryCount: number;
 };

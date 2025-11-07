@@ -21,6 +21,9 @@ import NetInfo from '@react-native-community/netinfo';
 
 const Tab = createBottomTabNavigator();
 
+// Debounce delay for AsyncStorage writes (reduces disk I/O and battery usage)
+const PERSISTENCE_DEBOUNCE_MS = 500;
+
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const { profile, setProfile, modalVisible, setModalVisible, pendingOperations, plans, setIsOffline } = useStore();
@@ -44,7 +47,7 @@ export default function App() {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       AsyncStorage.setItem('pendingOps', JSON.stringify(pendingOperations));
-    }, 500); // 500ms debounce
+    }, PERSISTENCE_DEBOUNCE_MS);
 
     return () => clearTimeout(timeoutId);
   }, [pendingOperations]);
@@ -53,7 +56,7 @@ export default function App() {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       AsyncStorage.setItem('plans', JSON.stringify(plans));
-    }, 500); // 500ms debounce
+    }, PERSISTENCE_DEBOUNCE_MS);
 
     return () => clearTimeout(timeoutId);
   }, [plans]);
