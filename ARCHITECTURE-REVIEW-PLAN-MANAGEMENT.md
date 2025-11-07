@@ -171,7 +171,7 @@ const processPendingOperations = async () => {
       // ... handle add/update
     } catch (error) {
       // Exponential backoff
-      if (op.retryCount > 5) {
+      if (op.retryCount >= 5) {
         // Give up, restore plan
         if (op.planData) {
           useStore.getState().addPlan(op.planData as Plan);
