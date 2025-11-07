@@ -25,10 +25,17 @@ const ganttStages = [
 export default function TimelineScreen() {
   const { plans, squads, activeSquadId, removePlan, addPendingOperation, removePendingOperation, setEditingPlan, setModalVisible, isOffline, addPlan } = useStore();
   const { isSyncing, lastSyncedAt, syncNow } = useSyncContext();
-  const [useGanttView, setUseGanttView] = useState(true);
   const [selectedSetId, setSelectedSetId] = useState<string | null>(null);
 
   const activeSquad = squads.find(s => s.id === activeSquadId);
+
+  // Check if a set has already passed (end time is in the past)
+  const isSetPassed = (setId: string): boolean => {
+    const set = seedSets.find(s => s.id === setId);
+    if (!set) return false;
+    const endTime = new Date(set.end);
+    return endTime < new Date();
+  };
 
   // Centralized delete handler for all plan types
   const handleDeletePlan = async (planId: string) => {
@@ -185,6 +192,16 @@ export default function TimelineScreen() {
 
   // Handle set long press in Gantt view (for delete)
   const handleGanttSetLongPress = (setId: string) => {
+    // Don't allow changes to sets that have already passed
+    if (isSetPassed(setId)) {
+      Alert.alert(
+        'Cannot Modify',
+        'This set has already ended. You cannot modify past events.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     const plan = plans.find(p => p.set_id === setId);
     if (plan) {
       Alert.alert(
@@ -219,6 +236,16 @@ export default function TimelineScreen() {
 
   // Handle adding set to schedule from modal
   const handleAddSetToSchedule = async (setId: string) => {
+    // Don't allow adding sets that have already passed
+    if (isSetPassed(setId)) {
+      Alert.alert(
+        'Cannot Add',
+        'This set has already ended. You cannot add past events to your schedule.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     const set = seedSets.find(s => s.id === setId);
     if (!set || !activeSquad) return;
 
@@ -254,88 +281,25 @@ export default function TimelineScreen() {
 
   // Handle removing set from schedule from modal
   const handleRemoveSetFromSchedule = async (setId: string) => {
+    // Don't allow removing sets that have already passed
+    if (isSetPassed(setId)) {
+      Alert.alert(
+        'Cannot Remove',
+        'This set has already ended. You cannot modify past events.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     const plan = plans.find(p => p.set_id === setId);
     if (plan) {
       await handleDeletePlan(plan.id);
     }
   };
 
-  // Render Gantt view
-  if (useGanttView) {
-    return (
-      <View style={styles.container}>
-        {/* View Toggle */}
-        <View style={styles.viewToggle}>
-          <TouchableOpacity
-            style={styles.toggleButton}
-            onPress={() => setUseGanttView(false)}
-          >
-            <Text style={styles.toggleText}>Switch to Classic View</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Offline Banner */}
-        {isOffline && (
-          <View style={styles.offlineBanner}>
-            <Text style={styles.offlineText}>
-              📵 Offline - Changes will sync when connected
-            </Text>
-          </View>
-        )}
-
-        {/* Gantt Chart */}
-        <TimelineGantt
-          stages={ganttStages}
-          sets={ganttSets}
-          meetups={ganttMeetups}
-          plannedSetIds={plannedSetIds}
-          onSetPress={handleGanttSetPress}
-          onSetLongPress={handleGanttSetLongPress}
-          onMeetupPress={(meetupId) => {
-            const meetup = plans.find(p => p.id === meetupId);
-            if (meetup) {
-              console.log('Pressed meetup:', meetup.meet_location);
-              // TODO: Open meetup detail modal
-            }
-          }}
-          onMeetupLongPress={(meetupId) => handleMeetupLongPress(plans.find(p => p.id === meetupId)!)}
-        />
-
-        {/* Set Detail Modal */}
-        <SetDetailModal
-          visible={selectedSetId !== null}
-          setDetail={selectedSetDetail}
-          onClose={() => setSelectedSetId(null)}
-          onAddToSchedule={handleAddSetToSchedule}
-          onRemoveFromSchedule={handleRemoveSetFromSchedule}
-        />
-      </View>
-    );
-  }
-
-  // Original horizontal scrolling view
+  // Render Gantt view (always enabled)
   return (
-    <ScrollView
-      style={styles.container}
-      refreshControl={
-        <RefreshControl
-          refreshing={isSyncing}
-          onRefresh={syncNow}
-          tintColor={colors.textSecondary}
-          colors={[colors.accentBlue]}
-        />
-      }
-    >
-      {/* View Toggle */}
-      <View style={styles.viewToggle}>
-        <TouchableOpacity
-          style={styles.toggleButton}
-          onPress={() => setUseGanttView(true)}
-        >
-          <Text style={styles.toggleText}>Switch to Gantt View</Text>
-        </TouchableOpacity>
-      </View>
-
+    <View style={styles.container}>
       {/* Offline Banner */}
       {isOffline && (
         <View style={styles.offlineBanner}>
@@ -345,84 +309,33 @@ export default function TimelineScreen() {
         </View>
       )}
 
-      {/* Staleness Warning */}
-      {!isOffline && isDataStale() && (
-        <View style={styles.staleWarning}>
-          <Text style={styles.staleWarningText}>
-            ⚠️ Data may be outdated. Pull to refresh.
-          </Text>
-        </View>
-      )}
+      {/* Gantt Chart */}
+      <TimelineGantt
+        stages={ganttStages}
+        sets={ganttSets}
+        meetups={ganttMeetups}
+        plannedSetIds={plannedSetIds}
+        onSetPress={handleGanttSetPress}
+        onSetLongPress={handleGanttSetLongPress}
+        onMeetupPress={(meetupId) => {
+          const meetup = plans.find(p => p.id === meetupId);
+          if (meetup) {
+            console.log('Pressed meetup:', meetup.meet_location);
+            // TODO: Open meetup detail modal
+          }
+        }}
+        onMeetupLongPress={(meetupId) => handleMeetupLongPress(plans.find(p => p.id === meetupId)!)}
+      />
 
-      {/* Active Squad Indicator with Last Synced */}
-      {activeSquad && (
-        <View style={styles.squadIndicator}>
-          <View style={styles.squadInfo}>
-            <Text style={styles.squadLabel}>Squad:</Text>
-            <Text style={styles.squadName}>{activeSquad.name}</Text>
-          </View>
-          {lastSyncedAt && (
-            <Text style={styles.lastSynced}>{getLastSyncedText()}</Text>
-          )}
-        </View>
-      )}
-
-      {plans.length === 0 && (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>No plans yet</Text>
-          <Text style={styles.emptyStateSubtext}>Tap + to add artists or meetups</Text>
-        </View>
-      )}
-
-      {Object.entries(setsByTime).map(([time, sets]) => {
-        // Get meetups for this time slot (pre-grouped for performance)
-        const meetupsAtThisTime = meetupsByTime[time] || [];
-
-        const setsByStage = stages.map(stage => ({
-          stage,
-          sets: sets
-            .filter(set => set.stage === stage)
-            .map(s => ({
-              artist: s.artist,
-              variant: plannedSetIds.has(s.id) ? ('planned' as const) : undefined,
-              setId: s.id,
-            })),
-        }));
-
-        return (
-          <View key={time}>
-            <TimeBlock time={time} meta="">
-              {setsByStage.map(stageData => (
-                <StageLane
-                  key={stageData.stage}
-                  stage={stageData.stage}
-                  sets={stageData.sets}
-                  onDeleteSet={handleDeleteSet}
-                />
-              ))}
-            </TimeBlock>
-
-            {/* Display meetup plans */}
-            {meetupsAtThisTime.map(meetup => (
-              <TouchableOpacity
-                key={meetup.id}
-                onLongPress={() => handleMeetupLongPress(meetup)}
-                delayLongPress={500}
-                activeOpacity={0.7}
-              >
-                <View style={styles.meetupCard}>
-                  <View style={styles.meetupInfo}>
-                    <Text style={styles.meetupIcon}>📍</Text>
-                    <Text style={styles.meetupLocation}>{meetup.meet_location}</Text>
-                    {meetup.note && <Text style={styles.meetupNote}>{meetup.note}</Text>}
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        );
-      })}
-    </ScrollView>
+      {/* Set Detail Modal */}
+      <SetDetailModal
+        visible={selectedSetId !== null}
+        setDetail={selectedSetDetail}
+        onClose={() => setSelectedSetId(null)}
+        onAddToSchedule={handleAddSetToSchedule}
+        onRemoveFromSchedule={handleRemoveSetFromSchedule}
+      />
+    </View>
   );
 }
 
@@ -430,26 +343,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.bgSecondary,
-  },
-  viewToggle: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: colors.bgPrimary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  toggleButton: {
-    backgroundColor: colors.bgCard,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 10,
-    alignItems: 'center',
-  },
-  toggleText: {
-    color: colors.accentBlue,
-    fontSize: 13,
-    fontWeight: '500',
   },
   offlineBanner: {
     backgroundColor: '#d97706',
