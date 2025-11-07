@@ -82,17 +82,13 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       return;
     }
 
-    if (!activeSquadId) {
-      Alert.alert('Error', 'No active squad. Please create or join a squad first.');
-      return;
-    }
-
+    // Plans don't require a squad - they can be personal/individual plans
     setIsSubmitting(true);
 
     // Create temporary plan for optimistic update
     const tempPlan: Plan = {
       id: `temp-${Date.now()}`,
-      squad_id: activeSquadId,
+      squad_id: activeSquadId || null,
       created_by: profile.id,
       type: 'set',
       set_id: setId,
@@ -112,7 +108,7 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       const { data: plan, error } = await supabase
         .from('plans')
         .insert({
-          squad_id: activeSquadId,
+          squad_id: activeSquadId || null,
           created_by: profile.id,
           type: 'set',
           set_id: setId,
