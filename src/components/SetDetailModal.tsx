@@ -7,6 +7,7 @@ type SetDetail = {
   artist: string;
   stage: string;
   timeRange: string;
+  day: string;
   setId: string;
   isPlanned: boolean;
 };
@@ -93,12 +94,16 @@ export default function SetDetailModal({
             <View style={styles.header}>
               <Text style={styles.artistName}>{setDetail.artist.toUpperCase()}</Text>
               <View style={styles.detailRow}>
-                <Text style={styles.detailIcon}>📍</Text>
-                <Text style={styles.detailText}>{setDetail.stage}</Text>
+                <Text style={styles.detailIcon}>📅</Text>
+                <Text style={styles.detailText}>{setDetail.day}</Text>
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailIcon}>🕐</Text>
                 <Text style={styles.detailText}>{setDetail.timeRange}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailIcon}>📍</Text>
+                <Text style={styles.detailText}>{setDetail.stage}</Text>
               </View>
             </View>
 

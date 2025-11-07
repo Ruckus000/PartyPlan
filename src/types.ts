@@ -25,8 +25,8 @@ export type SquadMember = {
 
 export type Plan = {
   id: string;
-  squad_id: string;
-  created_by: string;
+  squad_id: string | null; // Nullable for individual plans
+  created_by: string | null; // Nullable for individual plans
   type: 'set' | 'meetup';
   set_id?: string | null;
   meet_time?: string | null;

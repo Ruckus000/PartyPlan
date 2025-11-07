@@ -219,6 +219,19 @@ export default function TimelineScreen() {
     }
   };
 
+  // Format day from ISO timestamp
+  const formatDay = (isoTimestamp: string): string => {
+    const date = new Date(isoTimestamp);
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    const dayName = dayNames[date.getDay()];
+    const monthName = monthNames[date.getMonth()];
+    const dayNum = date.getDate();
+
+    return `${dayName}, ${monthName} ${dayNum}`;
+  };
+
   // Prepare set detail for modal
   const selectedSetDetail = useMemo(() => {
     if (!selectedSetId) return null;
@@ -229,6 +242,7 @@ export default function TimelineScreen() {
       artist: set.artist,
       stage: set.stage,
       timeRange: formatTimeRange(set.start, set.end),
+      day: formatDay(set.start),
       setId: set.id,
       isPlanned: plannedSetIds.has(set.id),
     };
@@ -247,12 +261,13 @@ export default function TimelineScreen() {
     }
 
     const set = seedSets.find(s => s.id === setId);
-    if (!set || !activeSquad) return;
+    if (!set) return;
 
+    // Use active squad if available, otherwise use null values (individual plan)
     const newPlan: Plan = {
       id: `plan-${Date.now()}`,
-      squad_id: activeSquad.id,
-      created_by: activeSquad.created_by,
+      squad_id: activeSquad?.id || null,
+      created_by: activeSquad?.created_by || null,
       type: 'set',
       set_id: setId,
       meet_time: null,
