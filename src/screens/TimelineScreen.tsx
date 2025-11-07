@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { seedSets } from '../data/seedLineup';
 import TimeBlock from '../components/TimeBlock';
 import StageLane from '../components/StageLane';
+import TimelineGantt from '../components/gantt/TimelineGantt';
 import { useStore } from '../lib/store';
 import { useSyncContext } from '../contexts/SyncContext';
 import { supabase } from '../lib/supabase';
@@ -11,9 +12,18 @@ import { colors } from '../constants/colors';
 
 const stages = ['Kinetic Field', 'Circuit Grounds', 'Neon Garden', 'Quantum Valley'];
 
+// Stages for Gantt view
+const ganttStages = [
+  { id: 'Kinetic Field', name: 'kineticFIELD', host: 'Main Stage' },
+  { id: 'Circuit Grounds', name: 'circuitGROUNDS', host: 'Bassrush' },
+  { id: 'Neon Garden', name: 'neonGARDEN', host: 'Factory 93' },
+  { id: 'Quantum Valley', name: 'stereoBLOOM', host: 'Insomniac' },
+];
+
 export default function TimelineScreen() {
   const { plans, squads, activeSquadId, removePlan, addPendingOperation, removePendingOperation, setEditingPlan, setModalVisible, isOffline } = useStore();
   const { isSyncing, lastSyncedAt, syncNow } = useSyncContext();
+  const [useGanttView, setUseGanttView] = useState(true);
 
   const activeSquad = squads.find(s => s.id === activeSquadId);
 
@@ -144,6 +154,81 @@ export default function TimelineScreen() {
     return hoursSinceSync > 2;
   };
 
+  // Prepare sets for Gantt view
+  const ganttSets = useMemo(() => {
+    return seedSets.map(set => ({
+      id: set.id,
+      artist: set.artist,
+      start: set.start,
+      end: set.end,
+      stage: set.stage,
+    }));
+  }, []);
+
+  // Handle set press in Gantt view
+  const handleGanttSetPress = (setId: string) => {
+    const set = seedSets.find(s => s.id === setId);
+    if (set) {
+      console.log('Pressed set:', set.artist);
+      // TODO: Open set detail modal (future phase)
+    }
+  };
+
+  // Handle set long press in Gantt view (for delete)
+  const handleGanttSetLongPress = (setId: string) => {
+    const plan = plans.find(p => p.set_id === setId);
+    if (plan) {
+      Alert.alert(
+        'Remove from Schedule',
+        `Remove ${seedSets.find(s => s.id === setId)?.artist}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Remove',
+            style: 'destructive',
+            onPress: () => handleDeletePlan(plan.id),
+          },
+        ]
+      );
+    }
+  };
+
+  // Render Gantt view
+  if (useGanttView) {
+    return (
+      <View style={styles.container}>
+        {/* View Toggle */}
+        <View style={styles.viewToggle}>
+          <TouchableOpacity
+            style={styles.toggleButton}
+            onPress={() => setUseGanttView(false)}
+          >
+            <Text style={styles.toggleText}>Switch to Classic View</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Offline Banner */}
+        {isOffline && (
+          <View style={styles.offlineBanner}>
+            <Text style={styles.offlineText}>
+              📵 Offline - Changes will sync when connected
+            </Text>
+          </View>
+        )}
+
+        {/* Gantt Chart */}
+        <TimelineGantt
+          stages={ganttStages}
+          sets={ganttSets}
+          plannedSetIds={plannedSetIds}
+          onSetPress={handleGanttSetPress}
+          onSetLongPress={handleGanttSetLongPress}
+        />
+      </View>
+    );
+  }
+
+  // Original horizontal scrolling view
   return (
     <ScrollView
       style={styles.container}
@@ -156,6 +241,16 @@ export default function TimelineScreen() {
         />
       }
     >
+      {/* View Toggle */}
+      <View style={styles.viewToggle}>
+        <TouchableOpacity
+          style={styles.toggleButton}
+          onPress={() => setUseGanttView(true)}
+        >
+          <Text style={styles.toggleText}>Switch to Gantt View</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Offline Banner */}
       {isOffline && (
         <View style={styles.offlineBanner}>
@@ -250,6 +345,26 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.bgSecondary,
+  },
+  viewToggle: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: colors.bgPrimary,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  toggleButton: {
+    backgroundColor: colors.bgCard,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 10,
+    alignItems: 'center',
+  },
+  toggleText: {
+    color: colors.accentBlue,
+    fontSize: 13,
+    fontWeight: '500',
   },
   offlineBanner: {
     backgroundColor: '#d97706',
