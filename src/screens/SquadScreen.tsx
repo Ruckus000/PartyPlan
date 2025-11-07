@@ -4,16 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useStore } from '../lib/store';
 import { Squad, SquadMember, Profile } from '../types';
 import { generateInviteCode, isValidInviteCode } from '../utils/inviteCode';
-
-const colors = {
-  bgSecondary: '#0a0a0a',
-  bgCard: '#141414',
-  border: 'rgba(255, 255, 255, 0.08)',
-  textPrimary: '#ffffff',
-  textSecondary: '#a0a0a0',
-  accentBlue: '#3b82f6',
-  accentGreen: '#10b981',
-};
+import { colors } from '../constants/colors';
 
 export default function SquadScreen() {
   const { profile, squads, activeSquadId, setActiveSquadId, addSquad } = useStore();

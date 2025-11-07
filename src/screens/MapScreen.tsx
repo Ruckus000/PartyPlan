@@ -1,16 +1,12 @@
 import React from 'react';
-import { View, StyleSheet, Image, Dimensions, useWindowDimensions } from 'react-native';
-import { GestureDetector, Gesture } from 'react-native-gesture-handler';
+import { View, StyleSheet, Image, useWindowDimensions } from 'react-native';
+import { GestureDetector, Gesture, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  withTiming,
 } from 'react-native-reanimated';
-
-const colors = {
-  bgSecondary: '#0a0a0a',
-};
+import { colors } from '../constants/colors';
 
 export default function MapScreen() {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
@@ -86,7 +82,7 @@ export default function MapScreen() {
   });
 
   return (
-    <View style={styles.container}>
+    <GestureHandlerRootView style={styles.container}>
       <GestureDetector gesture={composedGesture}>
         <Animated.View style={[styles.imageContainer, animatedStyle]}>
           <Image
@@ -99,7 +95,7 @@ export default function MapScreen() {
           />
         </Animated.View>
       </GestureDetector>
-    </View>
+    </GestureHandlerRootView>
   );
 }
 

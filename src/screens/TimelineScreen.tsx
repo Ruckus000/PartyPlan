@@ -7,15 +7,7 @@ import { useStore } from '../lib/store';
 import { useSyncContext } from '../contexts/SyncContext';
 import { supabase } from '../lib/supabase';
 import { Plan } from '../types';
-
-const colors = {
-  bgSecondary: '#0a0a0a',
-  bgCard: '#141414',
-  border: 'rgba(255, 255, 255, 0.08)',
-  textPrimary: '#ffffff',
-  textSecondary: '#a0a0a0',
-  accentBlue: '#3b82f6',
-};
+import { colors } from '../constants/colors';
 
 const stages = ['Kinetic Field', 'Circuit Grounds', 'Neon Garden', 'Quantum Valley'];
 
@@ -239,8 +231,8 @@ export default function TimelineScreen() {
                 activeOpacity={0.7}
               >
                 <View style={styles.meetupCard}>
-                  <Text style={styles.meetupIcon}>📍</Text>
                   <View style={styles.meetupInfo}>
+                    <Text style={styles.meetupIcon}>📍</Text>
                     <Text style={styles.meetupLocation}>{meetup.meet_location}</Text>
                     {meetup.note && <Text style={styles.meetupNote}>{meetup.note}</Text>}
                   </View>
@@ -258,13 +250,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.bgSecondary,
-    padding: 16,
   },
   offlineBanner: {
     backgroundColor: '#d97706',
     borderRadius: 8,
     padding: 12,
+    marginHorizontal: 16,
     marginBottom: 12,
+    marginTop: 8,
     alignItems: 'center',
   },
   offlineText: {
@@ -276,6 +269,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#854d0e',
     borderRadius: 8,
     padding: 12,
+    marginHorizontal: 16,
     marginBottom: 12,
     alignItems: 'center',
   },
@@ -293,6 +287,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     padding: 12,
+    marginHorizontal: 16,
     marginBottom: 16,
   },
   squadInfo: {
@@ -316,6 +311,7 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     paddingVertical: 60,
+    paddingHorizontal: 16,
   },
   emptyStateText: {
     color: colors.textPrimary,
@@ -328,30 +324,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   meetupCard: {
-    backgroundColor: colors.bgCard,
-    borderRadius: 8,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.border,
-    padding: 12,
+    borderColor: 'rgba(59, 130, 246, 0.3)',
+    padding: 16,
     marginTop: 8,
-    flexDirection: 'row',
+    marginHorizontal: 16,
     alignItems: 'center',
   },
   meetupIcon: {
-    fontSize: 24,
-    marginRight: 12,
+    fontSize: 18,
+    marginBottom: 8,
   },
   meetupInfo: {
-    flex: 1,
+    alignItems: 'center',
   },
   meetupLocation: {
-    color: colors.textPrimary,
-    fontSize: 16,
+    color: colors.accentBlue,
+    fontSize: 18,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 8,
+    textAlign: 'center',
   },
   meetupNote: {
     color: colors.textSecondary,
     fontSize: 14,
+    textAlign: 'center',
   },
 });

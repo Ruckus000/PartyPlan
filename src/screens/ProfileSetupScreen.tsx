@@ -55,7 +55,7 @@ export default function ProfileSetupScreen({ onProfileSetupComplete }: { onProfi
         placeholderTextColor="#888"
         value={emoji}
         onChangeText={setEmoji}
-        maxLength={2} // Emojis can be 2 chars
+        maxLength={20} // Supports complex emoji sequences (e.g., ❤️‍🔥) which can be 4-10+ UTF-16 code units
       />
 
       <TouchableOpacity style={styles.button} onPress={handleProfileSetup} disabled={loading}>
