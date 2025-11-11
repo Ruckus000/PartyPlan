@@ -33,6 +33,10 @@ export type Plan = {
   meet_location?: string | null;
   note?: string | null;
   created_at: string;
+  profile?: {
+    emoji: string;
+    display_name: string;
+  }; // Optional, populated via join with profiles table
 };
 
 export type PendingOperation = {

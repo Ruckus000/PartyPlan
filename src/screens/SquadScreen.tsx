@@ -1,20 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert, Share } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { useStore } from '../lib/store';
-import { Squad, SquadMember, Profile } from '../types';
+import { Squad, SquadMember, Profile, Plan } from '../types';
 import { generateInviteCode, isValidInviteCode } from '../utils/inviteCode';
 import { colors } from '../constants/colors';
+import EditProfileModal from '../components/EditProfileModal';
+import { seedSets } from '../data/seedLineup';
 
 export default function SquadScreen() {
-  const { profile, squads, activeSquadId, setActiveSquadId, addSquad } = useStore();
+  const { profile, squads, activeSquadId, setActiveSquadId, addSquad, setProfile, plans } = useStore();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
   const [newSquadName, setNewSquadName] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [expandedSquadId, setExpandedSquadId] = useState<string | null>(null);
   const [squadMembers, setSquadMembers] = useState<Record<string, SquadMember[]>>({});
+  const [activeSquadMemberCount, setActiveSquadMemberCount] = useState<number>(0);
 
   // Load members for a squad
   const loadSquadMembers = async (squadId: string) => {
@@ -225,25 +229,279 @@ export default function SquadScreen() {
     }
   };
 
+  const handleLogout = async () => {
+    Alert.alert(
+      'Log Out',
+      'Are you sure you want to log out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Log Out',
+          style: 'destructive',
+          onPress: async () => {
+            await supabase.auth.signOut();
+            setProfile(null);
+          },
+        },
+      ]
+    );
+  };
+
+  // Load active squad members count
+  useEffect(() => {
+    if (activeSquadId) {
+      loadSquadMembers(activeSquadId);
+    } else {
+      setActiveSquadMemberCount(0);
+    }
+  }, [activeSquadId]);
+
+  // Update member count when squadMembers changes
+  useEffect(() => {
+    if (activeSquadId && squadMembers[activeSquadId]) {
+      setActiveSquadMemberCount(squadMembers[activeSquadId].length);
+    }
+  }, [activeSquadId, squadMembers]);
+
+  // Calculate next meetup
+  const nextMeetup = useMemo(() => {
+    if (!profile) return null;
+    
+    const now = new Date();
+    // Show squad meetups if in a squad, otherwise show individual meetups
+    const meetups = plans.filter((plan): plan is Plan => 
+      plan.type === 'meetup' && 
+      plan.meet_time !== null && 
+      plan.meet_time !== undefined &&
+      (activeSquadId ? plan.squad_id === activeSquadId : plan.squad_id === null)
+    );
+
+    if (meetups.length === 0) return null;
+
+    // Parse meetup times and find the next one
+    const parsedMeetups = meetups
+      .map(meetup => {
+        const timeStr = meetup.meet_time!;
+        const timeParts = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+        if (!timeParts) return null;
+
+        const hours = parseInt(timeParts[1]);
+        const minutes = parseInt(timeParts[2]);
+        const isPM = timeParts[3].toUpperCase() === 'PM';
+        
+        // Create a date for today with the parsed time
+        const meetupDate = new Date();
+        meetupDate.setHours(isPM && hours !== 12 ? hours + 12 : !isPM && hours === 12 ? 0 : hours);
+        meetupDate.setMinutes(minutes);
+        meetupDate.setSeconds(0);
+        meetupDate.setMilliseconds(0);
+
+        // If the time has passed today, assume it's for tomorrow
+        if (meetupDate < now) {
+          meetupDate.setDate(meetupDate.getDate() + 1);
+        }
+
+        return {
+          plan: meetup,
+          date: meetupDate,
+        };
+      })
+      .filter((item): item is { plan: Plan; date: Date } => item !== null)
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
+
+    return parsedMeetups.length > 0 ? parsedMeetups[0].plan : null;
+  }, [plans, activeSquadId, profile]);
+
+  // Calculate individual status and next activity
+  const individualStatus = useMemo(() => {
+    if (!profile) return null;
+
+    // Default status to "online"
+    const status: 'online' | 'busy' | 'offline' | 'lost' = 'online';
+
+    // Find next planned set or meetup
+    const userPlans = plans.filter(p => p.created_by === profile.id);
+    const nextSetPlan = userPlans
+      .filter(p => p.type === 'set' && p.set_id)
+      .map(p => {
+        const set = seedSets.find(s => s.id === p.set_id);
+        return set ? { plan: p, set, startTime: new Date(set.start) } : null;
+      })
+      .filter((item): item is { plan: Plan; set: typeof seedSets[0]; startTime: Date } => item !== null)
+      .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())[0];
+
+    const nextMeetupPlan = userPlans
+      .filter(p => p.type === 'meetup' && p.meet_time)
+      .map(p => {
+        const timeStr = p.meet_time!;
+        const timeParts = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+        if (!timeParts) return null;
+
+        const hours = parseInt(timeParts[1]);
+        const minutes = parseInt(timeParts[2]);
+        const isPM = timeParts[3].toUpperCase() === 'PM';
+        
+        const meetupDate = new Date();
+        meetupDate.setHours(isPM && hours !== 12 ? hours + 12 : !isPM && hours === 12 ? 0 : hours);
+        meetupDate.setMinutes(minutes);
+        meetupDate.setSeconds(0);
+        meetupDate.setMilliseconds(0);
+
+        if (meetupDate < new Date()) {
+          meetupDate.setDate(meetupDate.getDate() + 1);
+        }
+
+        return { plan: p, date: meetupDate };
+      })
+      .filter((item): item is { plan: Plan; date: Date } => item !== null)
+      .sort((a, b) => a.date.getTime() - b.date.getTime())[0];
+
+    let nextActivity: string | null = null;
+    if (nextSetPlan && nextMeetupPlan) {
+      nextActivity = nextSetPlan.startTime < nextMeetupPlan.date
+        ? `${nextSetPlan.set.artist} at ${new Date(nextSetPlan.set.start).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
+        : `Meetup at ${nextMeetupPlan.plan.meet_time} - ${nextMeetupPlan.plan.meet_location}`;
+    } else if (nextSetPlan) {
+      nextActivity = `${nextSetPlan.set.artist} at ${new Date(nextSetPlan.set.start).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+    } else if (nextMeetupPlan) {
+      nextActivity = `Meetup at ${nextMeetupPlan.plan.meet_time} - ${nextMeetupPlan.plan.meet_location}`;
+    }
+
+    return {
+      status,
+      nextActivity,
+    };
+  }, [profile, plans]);
+
+  // Calculate squad status
+  const squadStatus = useMemo(() => {
+    if (!activeSquadId) return null;
+
+    const activeSquad = squads.find(s => s.id === activeSquadId);
+    if (!activeSquad) return null;
+
+    const squadPlans = plans.filter(p => p.squad_id === activeSquadId);
+    const memberCount = activeSquadMemberCount || 0;
+
+    return {
+      name: activeSquad.name,
+      memberCount,
+      planCount: squadPlans.length,
+    };
+  }, [activeSquadId, squads, plans, activeSquadMemberCount]);
+
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>My Squads</Text>
+      {/* Header with Title and Profile Actions */}
+      <View style={styles.header}>
+        <Text style={styles.title}>Status</Text>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => setShowEditProfile(true)}
+          >
+            <Text style={styles.headerButtonText}>Edit Profile</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.headerButton, styles.logoutButton]}
+            onPress={handleLogout}
+          >
+            <Text style={[styles.headerButtonText, styles.logoutButtonText]}>Log Out</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
-      {/* Action Buttons */}
-      <View style={styles.actionButtons}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => setShowCreateModal(!showCreateModal)}
-        >
-          <Text style={styles.actionButtonText}>+ Create Squad</Text>
-        </TouchableOpacity>
+      {/* Individual Status Card */}
+      <View style={styles.statusCard}>
+        <Text style={styles.sectionTitle}>INDIVIDUAL STATUS</Text>
+        <View style={styles.statusContent}>
+          {profile ? (
+            <>
+              <View style={styles.statusHeader}>
+                <Text style={styles.profileEmoji}>{profile.emoji}</Text>
+                <View style={styles.statusInfo}>
+                  <Text style={styles.statusName}>{profile.display_name}</Text>
+                  <View style={styles.statusRow}>
+                    <View style={[
+                      styles.statusDot,
+                      individualStatus?.status === 'busy' ? styles.statusDotBusy :
+                      individualStatus?.status === 'offline' ? styles.statusDotOffline :
+                      individualStatus?.status === 'lost' ? styles.statusDotLost :
+                      styles.statusDotOnline
+                    ]} />
+                    <Text style={styles.statusText}>{individualStatus?.status || 'online'}</Text>
+                  </View>
+                </View>
+              </View>
+              {individualStatus?.nextActivity ? (
+                <Text style={styles.nextActivity}>Next: {individualStatus.nextActivity}</Text>
+              ) : (
+                <Text style={styles.emptyStateText}>No upcoming activities</Text>
+              )}
+            </>
+          ) : (
+            <Text style={styles.emptyStateText}>Not signed in</Text>
+          )}
+        </View>
+      </View>
 
-        <TouchableOpacity
-          style={[styles.actionButton, styles.actionButtonSecondary]}
-          onPress={() => setShowJoinModal(!showJoinModal)}
-        >
-          <Text style={styles.actionButtonText}>Join Squad</Text>
-        </TouchableOpacity>
+      {/* Squad Status Card */}
+      <View style={styles.statusCard}>
+        <Text style={styles.sectionTitle}>SQUAD STATUS</Text>
+        <View style={styles.statusContent}>
+          {squadStatus ? (
+            <>
+              <Text style={styles.squadStatusName}>{squadStatus.name}</Text>
+              <View style={styles.squadStats}>
+                <Text style={styles.squadStat}>{squadStatus.memberCount} {squadStatus.memberCount === 1 ? 'member' : 'members'}</Text>
+                <Text style={styles.squadStatSeparator}>•</Text>
+                <Text style={styles.squadStat}>{squadStatus.planCount} {squadStatus.planCount === 1 ? 'plan' : 'plans'}</Text>
+              </View>
+            </>
+          ) : (
+            <Text style={styles.emptyStateText}>No active squad</Text>
+          )}
+        </View>
+      </View>
+
+      {/* Next Meetup Card */}
+      <View style={styles.statusCard}>
+        <Text style={styles.sectionTitle}>NEXT MEETUP</Text>
+        <View style={styles.statusContent}>
+          {nextMeetup ? (
+            <>
+              <Text style={styles.meetupTime}>{nextMeetup.meet_time}</Text>
+              <Text style={styles.meetupLocation}>{nextMeetup.meet_location}</Text>
+              {nextMeetup.note && (
+                <Text style={styles.meetupNote}>{nextMeetup.note}</Text>
+              )}
+            </>
+          ) : (
+            <Text style={styles.emptyStateText}>No upcoming meetups</Text>
+          )}
+        </View>
+      </View>
+
+      {/* Squad Management Section */}
+      <View style={styles.managementSection}>
+        <Text style={styles.managementTitle}>Squad Management</Text>
+        
+        {/* Action Buttons */}
+        <View style={styles.actionButtons}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => setShowCreateModal(!showCreateModal)}
+          >
+            <Text style={styles.actionButtonText}>+ Create Squad</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, styles.actionButtonSecondary]}
+            onPress={() => setShowJoinModal(!showJoinModal)}
+          >
+            <Text style={styles.actionButtonText}>Join Squad</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Create Squad Form */}
@@ -385,6 +643,11 @@ export default function SquadScreen() {
           );
         })
       )}
+
+      <EditProfileModal
+        visible={showEditProfile}
+        onClose={() => setShowEditProfile(false)}
+      />
     </ScrollView>
   );
 }
@@ -395,11 +658,159 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgSecondary,
     padding: 16,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   title: {
     fontSize: 24,
     fontWeight: '600',
     color: colors.textPrimary,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  headerButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: colors.bgCard,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  headerButtonText: {
+    color: colors.textPrimary,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  statusCard: {
+    backgroundColor: colors.bgCard,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    marginBottom: 12,
+    letterSpacing: 0.5,
+  },
+  statusContent: {
+    gap: 8,
+  },
+  statusHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  profileEmoji: {
+    fontSize: 32,
+  },
+  statusInfo: {
+    flex: 1,
+  },
+  statusName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginBottom: 4,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  statusDotOnline: {
+    backgroundColor: colors.statusOnline,
+  },
+  statusDotBusy: {
+    backgroundColor: colors.statusBusy,
+  },
+  statusDotOffline: {
+    backgroundColor: colors.statusOffline,
+  },
+  statusDotLost: {
+    backgroundColor: colors.statusLost,
+  },
+  statusText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textTransform: 'capitalize',
+  },
+  nextActivity: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
+  squadStatusName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginBottom: 8,
+  },
+  squadStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  squadStat: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  squadStatSeparator: {
+    fontSize: 14,
+    color: colors.textMuted,
+  },
+  meetupTime: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginBottom: 4,
+  },
+  meetupLocation: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: 4,
+  },
+  meetupNote: {
+    fontSize: 14,
+    color: colors.textMuted,
+    fontStyle: 'italic',
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: colors.textMuted,
+    fontStyle: 'italic',
+  },
+  managementSection: {
+    marginTop: 8,
     marginBottom: 20,
+  },
+  managementTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginBottom: 12,
   },
   actionButtons: {
     flexDirection: 'row',
@@ -596,5 +1007,11 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 14,
     textAlign: 'center',
+  },
+  logoutButton: {
+    borderColor: colors.accentRed,
+  },
+  logoutButtonText: {
+    color: colors.accentRed,
   },
 });

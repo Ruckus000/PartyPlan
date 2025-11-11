@@ -64,21 +64,47 @@ export function useSyncManager() {
 
   // Sync plans from Supabase
   const syncPlans = useCallback(async (showLoading = true) => {
-    if (!activeSquadId) return;
-
     if (showLoading) setIsSyncing(true);
 
     try {
       // Process pending operations first
       await processPendingOperations();
 
-      // Fetch from server
-      const { data: plansData, error } = await supabase
-        .from('plans')
-        .select('*')
-        .eq('squad_id', activeSquadId);
+      let plansData;
+      
+      if (activeSquadId) {
+        // Fetch plans for active squad (ALL plans, not just user's)
+        const { data, error } = await supabase
+          .from('plans')
+          .select('*, profiles!created_by(emoji, display_name)')
+          .eq('squad_id', activeSquadId);
 
-      if (error) throw error;
+        if (error) throw error;
+        // Transform the data to match our Plan type
+        plansData = data?.map((plan: any) => ({
+          ...plan,
+          profile: plan.profiles ? {
+            emoji: plan.profiles.emoji,
+            display_name: plan.profiles.display_name,
+          } : undefined,
+        }));
+      } else {
+        // No active squad, fetch ALL individual plans (from all users)
+        const { data, error } = await supabase
+          .from('plans')
+          .select('*, profiles!created_by(emoji, display_name)')
+          .is('squad_id', null);
+
+        if (error) throw error;
+        // Transform the data to match our Plan type
+        plansData = data?.map((plan: any) => ({
+          ...plan,
+          profile: plan.profiles ? {
+            emoji: plan.profiles.emoji,
+            display_name: plan.profiles.display_name,
+          } : undefined,
+        }));
+      }
 
       if (plansData) {
         // Filter out plans that are pending deletion
@@ -153,10 +179,9 @@ export function useSyncManager() {
 
   // Initial sync on mount and when active squad changes
   useEffect(() => {
-    if (activeSquadId) {
-      syncPlans(false);
-      startSyncInterval();
-    }
+    // Sync regardless of whether there's an active squad (supports individual plans)
+    syncPlans(false);
+    startSyncInterval();
 
     return () => {
       stopSyncInterval();
@@ -165,9 +190,8 @@ export function useSyncManager() {
 
   // Restart interval when power mode changes (without syncing)
   useEffect(() => {
-    if (activeSquadId) {
-      startSyncInterval();
-    }
+    // Always start interval (supports individual plans)
+    startSyncInterval();
 
     return () => {
       stopSyncInterval();

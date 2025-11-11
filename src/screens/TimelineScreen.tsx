@@ -22,7 +22,7 @@ const ganttStages = [
 ];
 
 export default function TimelineScreen() {
-  const { plans, squads, activeSquadId, removePlan, addPendingOperation, removePendingOperation, setEditingPlan, setModalVisible, isOffline, addPlan } = useStore();
+  const { plans, squads, activeSquadId, removePlan, addPendingOperation, removePendingOperation, setEditingPlan, setModalVisible, isOffline, addPlan, profile } = useStore();
   const { isSyncing, lastSyncedAt, syncNow } = useSyncContext();
   const [selectedSetId, setSelectedSetId] = useState<string | null>(null);
 
@@ -101,13 +101,20 @@ export default function TimelineScreen() {
   };
 
   // Create a Set of planned set IDs for quick lookup
+  // Only include plans created by the current user
   const plannedSetIds = useMemo(() => {
+    if (!profile) return new Set(); // Empty when not logged in
+    
     return new Set(
       plans
-        .filter(plan => plan.type === 'set' && plan.set_id)
+        .filter(plan => 
+          plan.type === 'set' && 
+          plan.set_id && 
+          plan.created_by === profile.id // Only current user's plans
+        )
         .map(plan => plan.set_id!)
     );
-  }, [plans]);
+  }, [plans, profile]);
 
   // Get meetup plans with explicit type guard
   const meetupPlans = useMemo(() => {
@@ -163,6 +170,22 @@ export default function TimelineScreen() {
     return hoursSinceSync > 2;
   };
 
+  // Map set_id to array of attendee emojis for Gantt chart
+  const attendeesBySetId = useMemo(() => {
+    const map = new Map<string, string[]>();
+    plans.forEach(plan => {
+      if (plan.set_id && plan.profile?.emoji) {
+        const emojis = map.get(plan.set_id) || [];
+        // Only add unique emojis (in case same user has multiple plans for same set)
+        if (!emojis.includes(plan.profile.emoji)) {
+          emojis.push(plan.profile.emoji);
+        }
+        map.set(plan.set_id, emojis);
+      }
+    });
+    return map;
+  }, [plans]);
+
   // Prepare sets for Gantt view
   const ganttSets = useMemo(() => {
     return seedSets.map(set => ({
@@ -191,15 +214,15 @@ export default function TimelineScreen() {
 
   // Handle set long press in Gantt view (for delete)
   const handleGanttSetLongPress = (setId: string) => {
-    // Don't allow changes to sets that have already passed
-    if (isSetPassed(setId)) {
-      Alert.alert(
-        'Cannot Modify',
-        'This set has already ended. You cannot modify past events.',
-        [{ text: 'OK' }]
-      );
-      return;
-    }
+    // DISABLED: Don't allow changes to sets that have already passed (disabled for testing)
+    // if (isSetPassed(setId)) {
+    //   Alert.alert(
+    //     'Cannot Modify',
+    //     'This set has already ended. You cannot modify past events.',
+    //     [{ text: 'OK' }]
+    //   );
+    //   return;
+    // }
 
     const plan = plans.find(p => p.set_id === setId);
     if (plan) {
@@ -237,6 +260,18 @@ export default function TimelineScreen() {
     const set = seedSets.find(s => s.id === selectedSetId);
     if (!set) return null;
 
+    // Get all attendees for this set (all users who have this set planned)
+    const setPlans = plans.filter(p => p.set_id === selectedSetId && p.profile);
+    const attendees = setPlans
+      .map(plan => ({
+        emoji: plan.profile!.emoji,
+        display_name: plan.profile!.display_name,
+      }))
+      // Remove duplicates (in case same user has multiple plans)
+      .filter((attendee, index, self) =>
+        index === self.findIndex(a => a.display_name === attendee.display_name)
+      );
+
     return {
       artist: set.artist,
       stage: set.stage,
@@ -244,29 +279,37 @@ export default function TimelineScreen() {
       day: formatDay(set.start),
       setId: set.id,
       isPlanned: plannedSetIds.has(set.id),
+      attendees,
     };
-  }, [selectedSetId, plannedSetIds]);
+  }, [selectedSetId, plannedSetIds, plans]);
 
   // Handle adding set to schedule from modal
   const handleAddSetToSchedule = async (setId: string) => {
-    // Don't allow adding sets that have already passed
-    if (isSetPassed(setId)) {
-      Alert.alert(
-        'Cannot Add',
-        'This set has already ended. You cannot add past events to your schedule.',
-        [{ text: 'OK' }]
-      );
+    // Require authentication
+    if (!profile) {
+      Alert.alert('Error', 'Please sign in to add plans');
       return;
     }
+
+    // DISABLED: Don't allow adding sets that have already passed (disabled for testing)
+    // if (isSetPassed(setId)) {
+    //   Alert.alert(
+    //     'Cannot Add',
+    //     'This set has already ended. You cannot add past events to your schedule.',
+    //     [{ text: 'OK' }]
+    //   );
+    //   return;
+    // }
 
     const set = seedSets.find(s => s.id === setId);
     if (!set) return;
 
     // Use active squad if available, otherwise use null values (individual plan)
+    // Always set created_by to profile.id (never null)
     const newPlan: Plan = {
       id: `plan-${Date.now()}`,
       squad_id: activeSquad?.id || null,
-      created_by: activeSquad?.created_by || null,
+      created_by: profile.id,
       type: 'set',
       set_id: setId,
       meet_time: null,
@@ -295,15 +338,15 @@ export default function TimelineScreen() {
 
   // Handle removing set from schedule from modal
   const handleRemoveSetFromSchedule = async (setId: string) => {
-    // Don't allow removing sets that have already passed
-    if (isSetPassed(setId)) {
-      Alert.alert(
-        'Cannot Remove',
-        'This set has already ended. You cannot modify past events.',
-        [{ text: 'OK' }]
-      );
-      return;
-    }
+    // DISABLED: Don't allow removing sets that have already passed (disabled for testing)
+    // if (isSetPassed(setId)) {
+    //   Alert.alert(
+    //     'Cannot Remove',
+    //     'This set has already ended. You cannot modify past events.',
+    //     [{ text: 'OK' }]
+    //   );
+    //   return;
+    // }
 
     const plan = plans.find(p => p.set_id === setId);
     if (plan) {
@@ -329,6 +372,7 @@ export default function TimelineScreen() {
         sets={ganttSets}
         meetups={ganttMeetups}
         plannedSetIds={plannedSetIds}
+        attendeesBySetId={attendeesBySetId}
         onSetPress={handleGanttSetPress}
         onSetLongPress={handleGanttSetLongPress}
         onMeetupPress={(meetupId) => {

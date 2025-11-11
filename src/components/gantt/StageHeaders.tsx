@@ -10,21 +10,32 @@ type Stage = {
 
 type StageHeadersProps = {
   stages: Stage[];
+  timeColumnWidth: number;
 };
 
-export default function StageHeaders({ stages }: StageHeadersProps) {
+export default function StageHeaders({ stages, timeColumnWidth }: StageHeadersProps) {
   return (
     <View style={styles.container}>
-      <View style={styles.timeColumnHeader}>
-        <Text style={styles.timeColumnText}>TIME</Text>
+      <View style={[styles.timeColumnHeader, { width: timeColumnWidth }]}>
+        <Text style={styles.timeColumnText} allowFontScaling={true}>TIME</Text>
       </View>
       {stages.map((stage) => (
         <View key={stage.id} style={styles.stageHeader}>
-          <Text style={styles.stageName} numberOfLines={1}>
+          <Text 
+            style={styles.stageName} 
+            numberOfLines={1} 
+            ellipsizeMode="tail"
+            allowFontScaling={true}
+          >
             {stage.name}
           </Text>
           {stage.host && (
-            <Text style={styles.stageHost} numberOfLines={1}>
+            <Text 
+              style={styles.stageHost} 
+              numberOfLines={1} 
+              ellipsizeMode="tail"
+              allowFontScaling={true}
+            >
               {stage.host}
             </Text>
           )}
@@ -43,7 +54,6 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.borderStrong,
   },
   timeColumnHeader: {
-    width: 60,
     justifyContent: 'center',
     alignItems: 'center',
     borderRightWidth: 1,

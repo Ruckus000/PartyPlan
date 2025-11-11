@@ -157,94 +157,94 @@ export default function AuthScreen() {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>{isSignUp ? 'Create Account' : 'Welcome Back'}</Text>
-      <Text style={styles.subtitle}>Enter your details to get started.</Text>
+        <Text style={styles.subtitle}>Enter your details to get started.</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="your.email@example.com"
-        placeholderTextColor="#666"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        editable={!loading}
-      />
-
-      {/* Password Strength Indicator */}
-      {(isSignUp && password.length > 0) || passwordError ? (
-        <View style={[
-          styles.passwordIndicator,
-          passwordError && styles.passwordIndicatorError,
-          !passwordError && isPasswordValid && password.length > 0 && styles.passwordIndicatorValid
-        ]}>
-          {passwordError ? (
-            <Text style={styles.passwordIndicatorTextError}>{passwordError}</Text>
-          ) : isSignUp && password.length > 0 ? (
-            <View>
-              <Text style={styles.passwordIndicatorTitle}>Password requirements:</Text>
-              <Text style={[
-                styles.passwordRequirement,
-                passwordValidation.hasMinLength && passwordValidation.hasLetter && styles.passwordRequirementMet
-              ]}>
-                {passwordValidation.hasMinLength && passwordValidation.hasLetter ? '✓' : '○'} At least 6 letters
-              </Text>
-              <Text style={[
-                styles.passwordRequirement,
-                passwordValidation.hasNumber && styles.passwordRequirementMet
-              ]}>
-                {passwordValidation.hasNumber ? '✓' : '○'} Contains 1 number
-              </Text>
-              <Text style={[
-                styles.passwordRequirement,
-                passwordValidation.hasSymbol && styles.passwordRequirementMet
-              ]}>
-                {passwordValidation.hasSymbol ? '✓' : '○'} Contains 1 symbol
-              </Text>
-            </View>
-          ) : null}
-        </View>
-      ) : null}
-
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#666"
-        value={password}
-        onChangeText={(text) => {
-          setPassword(text);
-          setPasswordError(''); // Clear error when user types
-        }}
-        autoCapitalize="none"
-        secureTextEntry
-        editable={!loading}
-      />
-
-      {/* Confirm Password Field - Only for Sign Up */}
-      {isSignUp && (
         <TextInput
           style={styles.input}
-          placeholder="Confirm password"
+          placeholder="your.email@example.com"
           placeholderTextColor="#666"
-          value={confirmPassword}
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          editable={!loading}
+        />
+
+        {/* Password Strength Indicator */}
+        {(isSignUp && password.length > 0) || passwordError ? (
+          <View style={[
+            styles.passwordIndicator,
+            passwordError && styles.passwordIndicatorError,
+            !passwordError && isPasswordValid && password.length > 0 && styles.passwordIndicatorValid
+          ]}>
+            {passwordError ? (
+              <Text style={styles.passwordIndicatorTextError}>{passwordError}</Text>
+            ) : isSignUp && password.length > 0 ? (
+              <View>
+                <Text style={styles.passwordIndicatorTitle}>Password requirements:</Text>
+                <Text style={[
+                  styles.passwordRequirement,
+                  passwordValidation.hasMinLength && passwordValidation.hasLetter && styles.passwordRequirementMet
+                ]}>
+                  {passwordValidation.hasMinLength && passwordValidation.hasLetter ? '✓' : '○'} At least 6 letters
+                </Text>
+                <Text style={[
+                  styles.passwordRequirement,
+                  passwordValidation.hasNumber && styles.passwordRequirementMet
+                ]}>
+                  {passwordValidation.hasNumber ? '✓' : '○'} Contains 1 number
+                </Text>
+                <Text style={[
+                  styles.passwordRequirement,
+                  passwordValidation.hasSymbol && styles.passwordRequirementMet
+                ]}>
+                  {passwordValidation.hasSymbol ? '✓' : '○'} Contains 1 symbol
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          placeholderTextColor="#666"
+          value={password}
           onChangeText={(text) => {
-            setConfirmPassword(text);
+            setPassword(text);
             setPasswordError(''); // Clear error when user types
           }}
           autoCapitalize="none"
           secureTextEntry
           editable={!loading}
         />
-      )}
 
-      <TouchableOpacity style={styles.button} onPress={handleAuthAction} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Sign In')}</Text>
-      </TouchableOpacity>
+        {/* Confirm Password Field - Only for Sign Up */}
+        {isSignUp && (
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm password"
+            placeholderTextColor="#666"
+            value={confirmPassword}
+            onChangeText={(text) => {
+              setConfirmPassword(text);
+              setPasswordError(''); // Clear error when user types
+            }}
+            autoCapitalize="none"
+            secureTextEntry
+            editable={!loading}
+          />
+        )}
 
-      <TouchableOpacity onPress={() => setIsSignUp(!isSignUp)} style={styles.toggleButton}>
-        <Text style={styles.toggleText}>
-          {isSignUp ? 'Already have an account? Sign In' : 'Don\'t have an account? Sign Up'}
-        </Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleAuthAction} disabled={loading}>
+          <Text style={styles.buttonText}>{loading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Sign In')}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => setIsSignUp(!isSignUp)} style={styles.toggleButton}>
+          <Text style={styles.toggleText}>
+            {isSignUp ? 'Already have an account? Sign In' : 'Don\'t have an account? Sign Up'}
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </TouchableWithoutFeedback>
   );
