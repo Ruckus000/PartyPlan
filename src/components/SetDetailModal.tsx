@@ -3,6 +3,11 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Alert, Ima
 import { colors } from '../constants/colors';
 import { getArtistImagePath } from '../utils/artistImages';
 
+type Attendee = {
+  emoji: string;
+  display_name: string;
+};
+
 type SetDetail = {
   artist: string;
   stage: string;
@@ -10,6 +15,7 @@ type SetDetail = {
   day: string;
   setId: string;
   isPlanned: boolean;
+  attendees?: Attendee[];
 };
 
 type SetDetailModalProps = {
@@ -119,12 +125,23 @@ export default function SetDetailModal({
               </TouchableOpacity>
             </View>
 
-            {/* Placeholder sections for future enhancement */}
+            {/* Attendees section */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>SQUAD ATTENDANCE</Text>
-              <Text style={styles.placeholderText}>
-                Squad attendance will appear here
-              </Text>
+              <Text style={styles.sectionTitle}>ATTENDING</Text>
+              {setDetail.attendees && setDetail.attendees.length > 0 ? (
+                <View style={styles.attendeesList}>
+                  {setDetail.attendees.map((attendee, index) => (
+                    <View key={index} style={styles.attendeeRow}>
+                      <Text style={styles.attendeeEmoji}>{attendee.emoji}</Text>
+                      <Text style={styles.attendeeName}>{attendee.display_name}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <Text style={styles.placeholderText}>
+                  No one attending yet
+                </Text>
+              )}
             </View>
 
             <View style={styles.section}>
@@ -238,5 +255,22 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
     fontStyle: 'italic',
+  },
+  attendeesList: {
+    marginTop: 8,
+  },
+  attendeeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  attendeeEmoji: {
+    fontSize: 20,
+    marginRight: 10,
+  },
+  attendeeName: {
+    fontSize: 15,
+    color: colors.textPrimary,
+    fontWeight: '500',
   },
 });

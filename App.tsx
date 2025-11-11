@@ -54,28 +54,55 @@ export default function App() {
     const fetchSessionAndProfile = async () => {
       setLoading(true);
 
-      // Load cached data from AsyncStorage
-      try {
-        const [cachedPendingOps, cachedPlans] = await Promise.all([
-          AsyncStorage.getItem('pendingOps'),
-          AsyncStorage.getItem('plans'),
-        ]);
-
-        if (cachedPendingOps) {
-          const ops = JSON.parse(cachedPendingOps);
-          useStore.getState().setPendingOperations(ops);
-        }
-
-        if (cachedPlans) {
-          const parsedPlans = JSON.parse(cachedPlans);
-          useStore.getState().setPlans(parsedPlans);
-        }
-      } catch (error) {
-        console.error('Failed to load cached data:', error);
-      }
-
+      // Check session FIRST before loading cached data
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
+
+      if (session) {
+        // Logged in: Load from AsyncStorage first (for offline support)
+        try {
+          const [cachedPendingOps, cachedPlans] = await Promise.all([
+            AsyncStorage.getItem('pendingOps'),
+            AsyncStorage.getItem('plans'),
+          ]);
+
+          if (cachedPendingOps) {
+            const ops = JSON.parse(cachedPendingOps);
+            useStore.getState().setPendingOperations(ops);
+          }
+
+          if (cachedPlans) {
+            const parsedPlans = JSON.parse(cachedPlans);
+            useStore.getState().setPlans(parsedPlans);
+          }
+        } catch (error) {
+          console.error('Failed to load cached data:', error);
+        }
+      } else {
+        // Not logged in: Fetch plans from DB (for attendees), skip AsyncStorage
+        // This ensures we show attendees even when not logged in
+        // and avoids loading wrong user's cached data
+        try {
+          const { data: plansData } = await supabase
+            .from('plans')
+            .select('*, profiles!created_by(emoji, display_name)')
+            .is('squad_id', null);
+
+          if (plansData) {
+            // Transform the data to match our Plan type
+            const transformedPlans = plansData.map((plan: any) => ({
+              ...plan,
+              profile: plan.profiles ? {
+                emoji: plan.profiles.emoji,
+                display_name: plan.profiles.display_name,
+              } : undefined,
+            }));
+            useStore.getState().setPlans(transformedPlans);
+          }
+        } catch (error) {
+          console.error('Failed to fetch plans for unauthenticated state:', error);
+        }
+      }
 
       if (session) {
         const { data: profileData } = await supabase
@@ -109,27 +136,94 @@ export default function App() {
             // Fetch plans for active squad (ALL plans, not just user's)
             const { data: plansData } = await supabase
               .from('plans')
-              .select('*')
+              .select('*, profiles!created_by(emoji, display_name)')
               .eq('squad_id', activeSquad.id);
 
             if (plansData) {
-              useStore.getState().setPlans(plansData);
+              // Transform the data to match our Plan type (Supabase returns profiles as nested object)
+              const transformedPlans = plansData.map((plan: any) => ({
+                ...plan,
+                profile: plan.profiles ? {
+                  emoji: plan.profiles.emoji,
+                  display_name: plan.profiles.display_name,
+                } : undefined,
+              }));
+              useStore.getState().setPlans(transformedPlans);
             }
+          } else {
+            // No squads, fetch ALL individual plans (from all users)
+            const { data: plansData } = await supabase
+              .from('plans')
+              .select('*, profiles!created_by(emoji, display_name)')
+              .is('squad_id', null);
+
+            if (plansData) {
+              // Transform the data to match our Plan type
+              const transformedPlans = plansData.map((plan: any) => ({
+                ...plan,
+                profile: plan.profiles ? {
+                  emoji: plan.profiles.emoji,
+                  display_name: plan.profiles.display_name,
+                } : undefined,
+              }));
+              useStore.getState().setPlans(transformedPlans);
+            }
+          }
+        } else {
+          // No squad memberships, fetch ALL individual plans (from all users)
+          const { data: plansData } = await supabase
+            .from('plans')
+            .select('*, profiles!created_by(emoji, display_name)')
+            .is('squad_id', null);
+
+          if (plansData) {
+            // Transform the data to match our Plan type
+            const transformedPlans = plansData.map((plan: any) => ({
+              ...plan,
+              profile: plan.profiles ? {
+                emoji: plan.profiles.emoji,
+                display_name: plan.profiles.display_name,
+              } : undefined,
+            }));
+            useStore.getState().setPlans(transformedPlans);
           }
         }
       }
+      // Note: When not logged in, plans are already fetched above (before this if block)
       setLoading(false);
     };
 
     fetchSessionAndProfile();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       if (!session) {
         setProfile(null);
         useStore.getState().setSquads([]);
         useStore.getState().setActiveSquadId(null);
-        useStore.getState().setPlans([]);
+        // Fetch plans from DB for unauthenticated state (to show attendees)
+        try {
+          const { data: plansData } = await supabase
+            .from('plans')
+            .select('*, profiles!created_by(emoji, display_name)')
+            .is('squad_id', null);
+
+          if (plansData) {
+            const transformedPlans = plansData.map((plan: any) => ({
+              ...plan,
+              profile: plan.profiles ? {
+                emoji: plan.profiles.emoji,
+                display_name: plan.profiles.display_name,
+              } : undefined,
+            }));
+            useStore.getState().setPlans(transformedPlans);
+          } else {
+            useStore.getState().setPlans([]);
+          }
+        } catch (error) {
+          console.error('Failed to fetch plans for unauthenticated state:', error);
+          useStore.getState().setPlans([]);
+        }
       } else {
         fetchSessionAndProfile(); // Re-fetch profile on login
       }
@@ -157,13 +251,15 @@ export default function App() {
     return <View style={{ flex: 1, backgroundColor: colors.bgSecondary }} />;
   }
 
-  if (!session) {
-    return <AuthScreen />;
-  }
+  // Login screen disabled for now
+  // if (!session) {
+  //   return <AuthScreen />;
+  // }
 
-  if (!profile?.display_name) {
-    return <ProfileSetupScreen onProfileSetupComplete={handleProfileSetupComplete} />;
-  }
+  // Profile setup disabled for now
+  // if (!profile?.display_name) {
+  //   return <ProfileSetupScreen onProfileSetupComplete={handleProfileSetupComplete} />;
+  // }
 
   const renderScreen = () => {
     switch (activeTab) {

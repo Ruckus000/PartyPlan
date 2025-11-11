@@ -21,7 +21,7 @@ export default function CustomTabBar({ activeTab, onTabChange }: CustomTabBarPro
           onPress={() => onTabChange(tab)}
         >
           <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
-            {tab === 'Squad' ? 'Squad Status' : tab}
+            {tab === 'Squad' ? 'Status' : tab}
           </Text>
           {activeTab === tab && <View style={styles.activeIndicator} />}
         </TouchableOpacity>

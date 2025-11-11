@@ -3,11 +3,15 @@ import { View, StyleSheet } from 'react-native';
 import { colors } from '../../constants/colors';
 import { generateTimeMarkers } from '../../utils/timeCalculations';
 
-export default function GridLines() {
+type GridLinesProps = {
+  leftOffset: number;
+};
+
+export default function GridLines({ leftOffset }: GridLinesProps) {
   const timeMarkers = generateTimeMarkers();
 
   return (
-    <View style={styles.container} pointerEvents="none">
+    <View style={[styles.container, { left: leftOffset }]} pointerEvents="none">
       {timeMarkers.map((marker, index) => (
         <View
           key={index}
@@ -26,7 +30,6 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     top: 0,
-    left: 60, // Start after time column
     right: 0,
     bottom: 0,
   },

@@ -10,7 +10,7 @@ type SetData = {
   start: string;
   end: string;
   variant?: SetBlockVariant;
-  attendees?: string[];
+  attendees: string[];
 };
 
 type StageColumnProps = {

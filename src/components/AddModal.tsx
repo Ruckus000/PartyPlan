@@ -82,6 +82,17 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       return;
     }
 
+    // DISABLED: Check if the set is in the past (disabled for testing)
+    // const selectedSet = seedSets.find(set => set.id === setId);
+    // if (selectedSet) {
+    //   const setEndTime = new Date(selectedSet.end);
+    //   const now = new Date();
+    //   if (setEndTime < now) {
+    //     Alert.alert('Cannot Add Past Event', 'This set has already ended. You can only add upcoming sets to your schedule.');
+    //     return;
+    //   }
+    // }
+
     // Plans don't require a squad - they can be personal/individual plans
     setIsSubmitting(true);
 
@@ -105,27 +116,65 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
 
     // Background: sync to database
     try {
+      const insertPayload = {
+        squad_id: activeSquadId || null,
+        created_by: profile.id,
+        type: 'set' as const,
+        set_id: setId,
+      };
+
+      console.log('🔵 Adding artist plan:', {
+        payload: insertPayload,
+        profileId: profile.id,
+        activeSquadId,
+      });
+
       const { data: plan, error } = await supabase
         .from('plans')
-        .insert({
-          squad_id: activeSquadId || null,
-          created_by: profile.id,
-          type: 'set',
-          set_id: setId,
-        })
+        .insert(insertPayload)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase insert error:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+          fullError: JSON.stringify(error, null, 2),
+        });
+        throw error;
+      }
+
+      console.log('✅ Successfully added plan:', plan);
 
       // Replace temp with real plan
       removePlan(tempPlan.id);
       addPlan(plan);
-    } catch (error) {
+    } catch (error: any) {
       // Rollback on failure
       removePlan(tempPlan.id);
-      const message = error instanceof Error ? error.message : 'Failed to add artist';
-      Alert.alert('Failed to add', message);
+
+      // Extract detailed error information
+      const errorMessage = error?.message || 'Unknown error';
+      const errorCode = error?.code || 'NO_CODE';
+      const errorDetails = error?.details || '';
+      const errorHint = error?.hint || '';
+
+      console.error('❌ Failed to add artist:', {
+        errorMessage,
+        errorCode,
+        errorDetails,
+        errorHint,
+        fullError: error,
+      });
+
+      // Show detailed error to user
+      const userMessage = errorDetails
+        ? `${errorMessage}\n\nDetails: ${errorDetails}`
+        : errorMessage;
+
+      Alert.alert('Failed to add artist', userMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -139,6 +188,13 @@ export default function AddModal({ visible, onClose }: AddModalProps) {
       Alert.alert('Error', 'Please fill in time and location');
       return;
     }
+
+    // DISABLED: Check if the meetup time is in the past (disabled for testing)
+    // const now = new Date();
+    // if (meetupTime < now) {
+    //   Alert.alert('Cannot Add Past Meetup', 'This meetup time has already passed. You can only add upcoming meetups to your schedule.');
+    //   return;
+    // }
 
     const hours = meetupTime.getHours();
     const minutes = meetupTime.getMinutes();
