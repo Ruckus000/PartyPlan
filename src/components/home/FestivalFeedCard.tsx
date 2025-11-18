@@ -180,13 +180,14 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   friendsCount: {
-    fontSize: typography.size.sm,
+    fontSize: 12,
     fontWeight: typography.weight.semibold,
     color: '#fff',
     paddingRight: 2,
   },
   body: {
-    padding: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     paddingBottom: 16,
   },
   title: {

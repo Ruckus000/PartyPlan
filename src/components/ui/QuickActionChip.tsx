@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderSubtle,
     borderRadius: 18,
-    padding: 14,
+    padding: 16,
     position: 'relative',
   },
   containerFeatured: {
