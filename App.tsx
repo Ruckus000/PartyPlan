@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import HomeScreen from './src/screens/HomeScreen';
 import PlansScreen from './src/screens/PlansScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
@@ -269,7 +269,8 @@ export default function App() {
   //   return <ProfileSetupScreen onProfileSetupComplete={handleProfileSetupComplete} />;
   // }
 
-  const renderScreen = () => {
+  // Memoize active screen to prevent unnecessary re-renders
+  const ActiveScreen = useMemo(() => {
     switch (activeTab) {
       case 'Home':
         return <HomeScreen />;
@@ -280,36 +281,57 @@ export default function App() {
       default:
         return <HomeScreen />;
     }
-  };
+  }, [activeTab]);
 
-  // Configure bottom nav tabs
-  const tabs: TabConfig[] = [
-    {
-      key: 'Home',
-      label: 'Home',
-      iconOutline: <HomeIconOutline />,
-      iconFilled: <HomeIconFilled />,
-      isActive: activeTab === 'Home',
-      onPress: () => setActiveTab('Home'),
-    },
-    {
-      key: 'Plans',
-      label: 'Plans',
-      iconOutline: <PlansIconOutline />,
-      iconFilled: <PlansIconFilled />,
-      isActive: activeTab === 'Plans',
-      onPress: () => setActiveTab('Plans'),
-      showBadge: pendingOperations.length > 0, // Show badge if pending operations
-    },
-    {
-      key: 'Profile',
-      label: 'Profile',
-      iconOutline: <ProfileIconOutline />,
-      iconFilled: <ProfileIconFilled />,
-      isActive: activeTab === 'Profile',
-      onPress: () => setActiveTab('Profile'),
-    },
-  ];
+  // Memoize tab press handlers to prevent recreation on every render
+  const handleHomePress = useCallback(() => setActiveTab('Home'), []);
+  const handlePlansPress = useCallback(() => setActiveTab('Plans'), []);
+  const handleProfilePress = useCallback(() => setActiveTab('Profile'), []);
+
+  // Static tab configuration (icons and labels)
+  const tabData: {
+    key: Tab;
+    label: string;
+    iconOutline: React.ReactNode;
+    iconFilled: React.ReactNode;
+    onPress: () => void;
+  }[] = useMemo(
+    () => [
+      {
+        key: 'Home',
+        label: 'Home',
+        iconOutline: <HomeIconOutline />,
+        iconFilled: <HomeIconFilled />,
+        onPress: handleHomePress,
+      },
+      {
+        key: 'Plans',
+        label: 'Plans',
+        iconOutline: <PlansIconOutline />,
+        iconFilled: <PlansIconFilled />,
+        onPress: handlePlansPress,
+      },
+      {
+        key: 'Profile',
+        label: 'Profile',
+        iconOutline: <ProfileIconOutline />,
+        iconFilled: <ProfileIconFilled />,
+        onPress: handleProfilePress,
+      },
+    ],
+    [handleHomePress, handlePlansPress, handleProfilePress]
+  );
+
+  // Configure bottom nav tabs with dynamic state
+  const tabs: TabConfig[] = useMemo(
+    () =>
+      tabData.map((tab) => ({
+        ...tab,
+        isActive: activeTab === tab.key,
+        ...(tab.key === 'Plans' && { showBadge: pendingOperations.length > 0 }),
+      })),
+    [activeTab, pendingOperations.length, tabData]
+  );
 
   return (
     <SafeAreaProvider>
@@ -318,7 +340,7 @@ export default function App() {
           <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
             <View style={styles.content}>
-              {renderScreen()}
+              {ActiveScreen}
             </View>
             <BottomNav tabs={tabs} />
             <Fab onPress={() => setModalVisible(true)} />
