@@ -18,6 +18,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   process.exit(1);
 }
 
+// TypeScript now knows these are strings after the check above
 const adminClient = createClient(supabaseUrl, supabaseServiceKey || supabaseAnonKey, {
   auth: {
     autoRefreshToken: false,
@@ -29,7 +30,7 @@ async function diagnose() {
   // Get two test users
   const { data: usersData } = await adminClient.auth.admin.listUsers();
   const testUsers = usersData?.users?.filter(u => u.email?.startsWith('test-user-')) || [];
-  
+
   if (testUsers.length < 2) {
     console.error('❌ Need at least 2 test users');
     process.exit(1);
@@ -39,11 +40,11 @@ async function diagnose() {
   console.log(`User1: ${user1.email} (${user1.id})`);
   console.log(`User2: ${user2.email} (${user2.id})\n`);
 
-  // Create clients
-  const client1 = createClient(supabaseUrl, supabaseAnonKey, {
+  // Create clients - TypeScript knows supabaseUrl and supabaseAnonKey are strings here
+  const client1 = createClient(supabaseUrl!, supabaseAnonKey!, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
-  const client2 = createClient(supabaseUrl, supabaseAnonKey, {
+  const client2 = createClient(supabaseUrl!, supabaseAnonKey!, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
@@ -63,7 +64,7 @@ async function diagnose() {
   // Create a plan as user2
   const { seedSets } = await import('../src/data/seedLineup');
   const testSet = seedSets?.[0];
-  
+
   if (!testSet) {
     console.error('❌ No test set found');
     return;
