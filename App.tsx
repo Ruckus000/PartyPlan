@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import HomeScreen from './src/screens/HomeScreen';
 import PlansScreen from './src/screens/PlansScreen';
-import MapScreen from './src/screens/MapScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
 import Fab from './src/components/Fab';
 import AddModal from './src/components/AddModal';
 import ErrorBoundary from './src/components/ErrorBoundary';
@@ -276,7 +276,7 @@ export default function App() {
       case 'Plans':
         return <PlansScreen />;
       case 'Profile':
-        return <MapScreen />; // Will be replaced with ProfileScreen in Step 5
+        return <ProfileScreen />;
       default:
         return <HomeScreen />;
     }
