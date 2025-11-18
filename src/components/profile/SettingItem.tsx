@@ -26,7 +26,7 @@ interface SettingItemProps {
  * SettingItem - Individual settings row
  * Matches .setting-item from profile.html
  */
-export function SettingItem({
+export const SettingItem = React.memo(function SettingItem({
   icon,
   label,
   description,
@@ -92,7 +92,7 @@ export function SettingItem({
       {content}
     </Pressable>
   );
-}
+});
 
 function SettingIconSvg({ icon }: { icon: SettingIcon }) {
   const commonProps = {

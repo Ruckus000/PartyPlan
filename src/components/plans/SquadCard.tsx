@@ -59,7 +59,7 @@ interface SquadCardProps {
  * SquadCard - Expandable squad/plan card
  * Matches .squad-card from plan.html
  */
-export function SquadCard({
+export const SquadCard = React.memo(function SquadCard({
   squad,
   onAcceptInvite,
   onDeclineInvite,
@@ -231,7 +231,7 @@ export function SquadCard({
       )}
     </Card>
   );
-}
+});
 
 /**
  * ActivityRow - Individual activity item

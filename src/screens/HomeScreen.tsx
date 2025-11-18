@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -36,6 +36,14 @@ export default function HomeScreen() {
   const [viewMode, setViewMode] = useState<ViewMode>('discover');
   const [activeFilter, setActiveFilter] = useState<FilterType>('nearby');
 
+  const handleViewModeChange = useCallback((index: number) => {
+    setViewMode(index === 0 ? 'discover' : 'my');
+  }, []);
+
+  const handleFilterChange = useCallback((filter: FilterType) => {
+    setActiveFilter(filter);
+  }, []);
+
   return (
     <AppScreen scrollable={false}>
       {/* Sticky Header */}
@@ -51,7 +59,7 @@ export default function HomeScreen() {
           <SegmentedControl
             options={['Discover', 'My festivals']}
             selectedIndex={viewMode === 'discover' ? 0 : 1}
-            onChange={(index) => setViewMode(index === 0 ? 'discover' : 'my')}
+            onChange={handleViewModeChange}
           />
 
           <Pressable
@@ -70,7 +78,7 @@ export default function HomeScreen() {
         {viewMode === 'discover' ? (
           <DiscoverView
             activeFilter={activeFilter}
-            onFilterChange={setActiveFilter}
+            onFilterChange={handleFilterChange}
           />
         ) : (
           <MyFestivalsView />
@@ -90,6 +98,30 @@ function DiscoverView({
   activeFilter: FilterType;
   onFilterChange: (filter: FilterType) => void;
 }) {
+  const handleNearbyPress = useCallback(() => onFilterChange('nearby'), [onFilterChange]);
+  const handleFriendsPress = useCallback(() => onFilterChange('friends'), [onFilterChange]);
+  const handleMonthPress = useCallback(() => onFilterChange('month'), [onFilterChange]);
+  const handleEdmPress = useCallback(() => onFilterChange('edm'), [onFilterChange]);
+  const handleHousePress = useCallback(() => onFilterChange('house'), [onFilterChange]);
+  const handleTechnoPress = useCallback(() => onFilterChange('techno'), [onFilterChange]);
+  const handleCampingPress = useCallback(() => onFilterChange('camping'), [onFilterChange]);
+
+  const renderFestivalItem = useCallback(
+    ({ item }: { item: FestivalFeed }) => <FestivalFeedCard festival={item} />,
+    []
+  );
+
+  const keyExtractor = useCallback((item: FestivalFeed) => item.id, []);
+
+  const getItemLayout = useCallback(
+    (_data: unknown, index: number) => ({
+      length: 340, // Estimated height of FestivalFeedCard
+      offset: 340 * index,
+      index,
+    }),
+    []
+  );
+
   return (
     <>
       {/* Quick Actions Scroll */}
@@ -109,7 +141,7 @@ function DiscoverView({
             count="12 festivals"
             icon={<LocationIcon />}
             isActive={activeFilter === 'nearby'}
-            onPress={() => onFilterChange('nearby')}
+            onPress={handleNearbyPress}
           />
 
           <QuickActionChip
@@ -119,7 +151,7 @@ function DiscoverView({
             isActive={activeFilter === 'friends'}
             isFeatured
             badge="New"
-            onPress={() => onFilterChange('friends')}
+            onPress={handleFriendsPress}
           />
 
           <QuickActionChip
@@ -127,7 +159,7 @@ function DiscoverView({
             count="6 festivals"
             icon={<CalendarIcon />}
             isActive={activeFilter === 'month'}
-            onPress={() => onFilterChange('month')}
+            onPress={handleMonthPress}
           />
 
           <QuickActionChip
@@ -135,7 +167,7 @@ function DiscoverView({
             count="18 festivals"
             icon={<MusicIcon />}
             isActive={activeFilter === 'edm'}
-            onPress={() => onFilterChange('edm')}
+            onPress={handleEdmPress}
           />
 
           <QuickActionChip
@@ -143,7 +175,7 @@ function DiscoverView({
             count="14 festivals"
             icon={<SpeakerIcon />}
             isActive={activeFilter === 'house'}
-            onPress={() => onFilterChange('house')}
+            onPress={handleHousePress}
           />
 
           <QuickActionChip
@@ -151,7 +183,7 @@ function DiscoverView({
             count="9 festivals"
             icon={<TechnoIcon />}
             isActive={activeFilter === 'techno'}
-            onPress={() => onFilterChange('techno')}
+            onPress={handleTechnoPress}
           />
 
           <QuickActionChip
@@ -159,7 +191,7 @@ function DiscoverView({
             count="7 festivals"
             icon={<CampingIcon />}
             isActive={activeFilter === 'camping'}
-            onPress={() => onFilterChange('camping')}
+            onPress={handleCampingPress}
           />
         </ScrollView>
       </View>
@@ -178,8 +210,13 @@ function DiscoverView({
         {/* Feed List */}
         <FlatList
           data={STUB_FESTIVALS}
-          renderItem={({ item }) => <FestivalFeedCard festival={item} />}
-          keyExtractor={(item) => item.id}
+          renderItem={renderFestivalItem}
+          keyExtractor={keyExtractor}
+          getItemLayout={getItemLayout}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={5}
+          updateCellsBatchingPeriod={50}
+          windowSize={10}
           contentContainerStyle={styles.feedList}
           showsVerticalScrollIndicator={false}
         />
@@ -192,6 +229,22 @@ function DiscoverView({
  * My Festivals View - Compact list
  */
 function MyFestivalsView() {
+  const renderMyFestivalItem = useCallback(
+    ({ item }: { item: MyFestival }) => <MyFestivalCard festival={item} />,
+    []
+  );
+
+  const keyExtractor = useCallback((item: MyFestival) => item.id, []);
+
+  const getItemLayout = useCallback(
+    (_data: unknown, index: number) => ({
+      length: 100, // Estimated height of MyFestivalCard
+      offset: 100 * index,
+      index,
+    }),
+    []
+  );
+
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
@@ -203,8 +256,13 @@ function MyFestivalsView() {
 
       <FlatList
         data={STUB_MY_FESTIVALS}
-        renderItem={({ item }) => <MyFestivalCard festival={item} />}
-        keyExtractor={(item) => item.id}
+        renderItem={renderMyFestivalItem}
+        keyExtractor={keyExtractor}
+        getItemLayout={getItemLayout}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={10}
+        updateCellsBatchingPeriod={50}
+        windowSize={10}
         contentContainerStyle={styles.myList}
         showsVerticalScrollIndicator={false}
       />

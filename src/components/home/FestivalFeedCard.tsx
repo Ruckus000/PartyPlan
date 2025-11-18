@@ -27,7 +27,7 @@ interface FestivalFeedCardProps {
  * FestivalFeedCard - Large flyer-focused card
  * Matches .feed-card from home.html
  */
-export function FestivalFeedCard({ festival, onPress }: FestivalFeedCardProps) {
+export const FestivalFeedCard = React.memo(function FestivalFeedCard({ festival, onPress }: FestivalFeedCardProps) {
   const { title, location, genre, dateRange, imageUrl, friendsGoing, totalFriends } = festival;
   const displayedFriends = friendsGoing.slice(0, 3);
   const remainingCount = Math.max(0, totalFriends - 3);
@@ -92,7 +92,7 @@ export function FestivalFeedCard({ festival, onPress }: FestivalFeedCardProps) {
       </View>
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

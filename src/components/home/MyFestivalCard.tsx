@@ -21,7 +21,7 @@ interface MyFestivalCardProps {
  * MyFestivalCard - Compact list card
  * Matches .my-card from home.html
  */
-export function MyFestivalCard({ festival, onPress }: MyFestivalCardProps) {
+export const MyFestivalCard = React.memo(function MyFestivalCard({ festival, onPress }: MyFestivalCardProps) {
   const { name, dateRange, location, friendsCount, imageUrl, status } = festival;
 
   const getStatusLabel = () => {
@@ -78,7 +78,7 @@ export function MyFestivalCard({ festival, onPress }: MyFestivalCardProps) {
       </View>
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { AppScreen } from '../components/ui/AppScreen';
 import { ProfileHeader } from '../components/profile/ProfileHeader';
@@ -20,30 +20,40 @@ export default function ProfileScreen() {
     username: 'alexchen',
   };
 
-  const handlePersonalInfo = () => {
+  const handlePersonalInfo = useCallback(() => {
     console.log('Navigate to personal information');
     // TODO: Navigate to profile edit screen
-  };
+  }, []);
 
-  const handleHelp = () => {
+  const handleHelp = useCallback(() => {
     console.log('Navigate to help & FAQ');
     // TODO: Navigate to help screen or open web view
-  };
+  }, []);
 
-  const handleContactSupport = () => {
+  const handleContactSupport = useCallback(() => {
     console.log('Navigate to contact support');
     // TODO: Open email or support form
-  };
+  }, []);
 
-  const handleSignOut = () => {
+  const handleSignOut = useCallback(() => {
     console.log('Sign out');
     // TODO: Implement sign out logic
-  };
+  }, []);
 
-  const handleLinkPress = (link: 'privacy' | 'terms' | 'about') => {
-    console.log(`Open ${link}`);
+  const handlePrivacyPress = useCallback(() => {
+    console.log('Open privacy');
     // TODO: Open web view or external browser
-  };
+  }, []);
+
+  const handleTermsPress = useCallback(() => {
+    console.log('Open terms');
+    // TODO: Open web view or external browser
+  }, []);
+
+  const handleAboutPress = useCallback(() => {
+    console.log('Open about');
+    // TODO: Open web view or external browser
+  }, []);
 
   return (
     <AppScreen scrollable={true}>
@@ -115,21 +125,21 @@ export default function ProfileScreen() {
           <Text style={styles.appVersion}>EDC Squad Sync v1.0.0</Text>
           <View style={styles.appLinks}>
             <Pressable
-              onPress={() => handleLinkPress('privacy')}
+              onPress={handlePrivacyPress}
               accessibilityLabel="Privacy policy"
               accessibilityRole="link"
             >
               <Text style={styles.appLink}>Privacy</Text>
             </Pressable>
             <Pressable
-              onPress={() => handleLinkPress('terms')}
+              onPress={handleTermsPress}
               accessibilityLabel="Terms of service"
               accessibilityRole="link"
             >
               <Text style={styles.appLink}>Terms</Text>
             </Pressable>
             <Pressable
-              onPress={() => handleLinkPress('about')}
+              onPress={handleAboutPress}
               accessibilityLabel="About this app"
               accessibilityRole="link"
             >

@@ -17,7 +17,7 @@ interface QuickActionChipProps {
  * QuickActionChip - Filter/action chips
  * Matches .action-card from home.html
  */
-export function QuickActionChip({
+export const QuickActionChip = React.memo(function QuickActionChip({
   label,
   count,
   icon,
@@ -71,7 +71,7 @@ export function QuickActionChip({
       </View>
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

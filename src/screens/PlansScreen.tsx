@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, FlatList, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppScreen } from '../components/ui/AppScreen';
@@ -29,6 +29,33 @@ export default function PlansScreen() {
     return true;
   });
 
+  const handleTabChange = useCallback((key: string) => {
+    setActiveFilter(key as FilterType);
+  }, []);
+
+  const renderSquadItem = useCallback(
+    ({ item }: { item: Squad }) => (
+      <SquadCard
+        squad={item}
+        onAcceptInvite={() => console.log('Accept invite', item.id)}
+        onDeclineInvite={() => console.log('Decline invite', item.id)}
+        onQuickAction={(action) => console.log('Quick action', action, item.id)}
+      />
+    ),
+    []
+  );
+
+  const keyExtractor = useCallback((item: Squad) => item.id, []);
+
+  const getItemLayout = useCallback(
+    (_data: unknown, index: number) => ({
+      length: 160, // Estimated height of SquadCard (collapsed state)
+      offset: (160 + 12) * index, // Include gap
+      index,
+    }),
+    []
+  );
+
   return (
     <AppScreen scrollable={false}>
       {/* Sticky Header */}
@@ -44,7 +71,7 @@ export default function PlansScreen() {
           <FilterTabs
             tabs={filterTabs}
             activeTab={activeFilter}
-            onTabChange={(key) => setActiveFilter(key as FilterType)}
+            onTabChange={handleTabChange}
           />
 
           <Pressable
@@ -61,15 +88,13 @@ export default function PlansScreen() {
       {/* Squad List */}
       <FlatList
         data={filteredSquads}
-        renderItem={({ item }) => (
-          <SquadCard
-            squad={item}
-            onAcceptInvite={() => console.log('Accept invite', item.id)}
-            onDeclineInvite={() => console.log('Decline invite', item.id)}
-            onQuickAction={(action) => console.log('Quick action', action, item.id)}
-          />
-        )}
-        keyExtractor={(item) => item.id}
+        renderItem={renderSquadItem}
+        keyExtractor={keyExtractor}
+        getItemLayout={getItemLayout}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={5}
+        updateCellsBatchingPeriod={50}
+        windowSize={10}
         contentContainerStyle={styles.squadList}
         showsVerticalScrollIndicator={false}
       />
