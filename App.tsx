@@ -5,7 +5,15 @@ import MapScreen from './src/screens/MapScreen';
 import Fab from './src/components/Fab';
 import AddModal from './src/components/AddModal';
 import ErrorBoundary from './src/components/ErrorBoundary';
-import CustomTabBar from './src/components/CustomTabBar';
+import { BottomNav, TabConfig } from './src/components/navigation/BottomNav';
+import {
+  HomeIconOutline,
+  HomeIconFilled,
+  PlansIconOutline,
+  PlansIconFilled,
+  ProfileIconOutline,
+  ProfileIconFilled,
+} from './src/components/icons/TabIcons';
 import { View, StyleSheet, StatusBar, Platform } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from './src/lib/supabase';
@@ -19,9 +27,10 @@ import { useDebouncedPersistence } from './src/hooks/useDebouncedPersistence';
 import { SyncProvider } from './src/contexts/SyncContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
-import { colors } from './src/constants/colors';
+import { colors as oldColors } from './src/constants/colors';
+import { colors } from './src/theme/tokens';
 
-type Tab = 'Timeline' | 'Squad' | 'Map';
+type Tab = 'Home' | 'Plans' | 'Profile';
 
 // Debounce delay for AsyncStorage writes (reduces disk I/O and battery usage)
 const PERSISTENCE_DEBOUNCE_MS = 500;
@@ -30,7 +39,7 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const { profile, setProfile, modalVisible, setModalVisible, pendingOperations, plans, setIsOffline } = useStore();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<Tab>('Timeline');
+  const [activeTab, setActiveTab] = useState<Tab>('Home');
 
   // Initialize sync manager (only active when logged in with squads)
   const syncManager = useSyncManager();
@@ -248,7 +257,7 @@ export default function App() {
   };
 
   if (loading) {
-    return <View style={{ flex: 1, backgroundColor: colors.bgSecondary }} />;
+    return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
   }
 
   // Login screen disabled for now
@@ -263,27 +272,56 @@ export default function App() {
 
   const renderScreen = () => {
     switch (activeTab) {
-      case 'Timeline':
-        return <TimelineScreen />;
-      case 'Squad':
-        return <SquadScreen />;
-      case 'Map':
-        return <MapScreen />;
+      case 'Home':
+        return <TimelineScreen />; // Will be replaced with HomeScreen in Step 3
+      case 'Plans':
+        return <SquadScreen />; // Will be replaced with PlansScreen in Step 4
+      case 'Profile':
+        return <MapScreen />; // Will be replaced with ProfileScreen in Step 5
       default:
         return <TimelineScreen />;
     }
   };
+
+  // Configure bottom nav tabs
+  const tabs: TabConfig[] = [
+    {
+      key: 'Home',
+      label: 'Home',
+      iconOutline: <HomeIconOutline />,
+      iconFilled: <HomeIconFilled />,
+      isActive: activeTab === 'Home',
+      onPress: () => setActiveTab('Home'),
+    },
+    {
+      key: 'Plans',
+      label: 'Plans',
+      iconOutline: <PlansIconOutline />,
+      iconFilled: <PlansIconFilled />,
+      isActive: activeTab === 'Plans',
+      onPress: () => setActiveTab('Plans'),
+      showBadge: pendingOperations.length > 0, // Show badge if pending operations
+    },
+    {
+      key: 'Profile',
+      label: 'Profile',
+      iconOutline: <ProfileIconOutline />,
+      iconFilled: <ProfileIconFilled />,
+      isActive: activeTab === 'Profile',
+      onPress: () => setActiveTab('Profile'),
+    },
+  ];
 
   return (
     <SafeAreaProvider>
       <ErrorBoundary>
         <SyncProvider value={syncManager}>
           <SafeAreaView style={styles.container} edges={['top']}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.bgPrimary} />
-            <CustomTabBar activeTab={activeTab} onTabChange={setActiveTab} />
+            <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
             <View style={styles.content}>
               {renderScreen()}
             </View>
+            <BottomNav tabs={tabs} />
             <Fab onPress={() => setModalVisible(true)} />
             <AddModal visible={modalVisible} onClose={() => setModalVisible(false)} />
           </SafeAreaView>
@@ -296,7 +334,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bgSecondary,
+    backgroundColor: colors.bg,
   },
   content: {
     flex: 1,
