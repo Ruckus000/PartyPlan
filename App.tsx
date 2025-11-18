@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import TimelineScreen from './src/screens/TimelineScreen';
+import HomeScreen from './src/screens/HomeScreen';
 import SquadScreen from './src/screens/SquadScreen';
 import MapScreen from './src/screens/MapScreen';
 import Fab from './src/components/Fab';
@@ -272,13 +272,13 @@ export default function App() {
   const renderScreen = () => {
     switch (activeTab) {
       case 'Home':
-        return <TimelineScreen />; // Will be replaced with HomeScreen in Step 3
+        return <HomeScreen />;
       case 'Plans':
         return <SquadScreen />; // Will be replaced with PlansScreen in Step 4
       case 'Profile':
         return <MapScreen />; // Will be replaced with ProfileScreen in Step 5
       default:
-        return <TimelineScreen />;
+        return <HomeScreen />;
     }
   };
 
