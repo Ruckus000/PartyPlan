@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EDC Squad Sync – Plans</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg: #050306;
+        --bg-elevated: #0e090f;
+        --bg-card: #151019;
+        --bg-card-soft: #1a131f;
+
+        --text-primary: #f8f5ff;
+        --text-secondary: #a191aa;
+        --text-muted: #746978;
+
+        --accent: #e5404f;
+        --accent-soft: #f3956a;
+        --accent-green: #43e97b;
+        --accent-blue: #4facfe;
+        --accent-yellow: #ffc966;
+        --accent-purple: #b794f6;
+
+        --border-subtle: rgba(255, 255, 255, 0.08);
+        --radius-lg: 24px;
+        --radius-md: 18px;
+        --radius-sm: 12px;
+        --radius-pill: 999px;
+
+        --transition: 0.24s ease-out;
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+          system-ui, sans-serif;
+        background: radial-gradient(
+          circle at top,
+          #1a1016 0,
+          #050306 55%,
+          #000000 100%
+        );
+        color: var(--text-primary);
+        min-height: 100vh;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .app-container {
+        max-width: 430px;
+        margin: 0 auto;
+        min-height: 100vh;
+        padding-bottom: 110px;
+        background: radial-gradient(
+            circle at 0 0,
+            rgba(229, 64, 79, 0.25) 0,
+            transparent 55%
+          ),
+          linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.85),
+            #050306 40%,
+            #050306 100%
+          );
+        position: relative;
+      }
+
+      /* HEADER */
+      .header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        padding: 16px 20px 12px;
+        background: linear-gradient(
+          to bottom,
+          rgba(5, 3, 6, 0.98),
+          rgba(5, 3, 6, 0.92),
+          transparent
+        );
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+      }
+
+      .header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 8px;
+        margin-left: auto;
+      }
+
+      .header-action {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        cursor: pointer;
+        transition: all var(--transition);
+      }
+
+      .header-action:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .header-action svg {
+        width: 18px;
+        height: 18px;
+        color: var(--text-primary);
+      }
+
+      /* FILTER TABS */
+      .filter-tabs {
+        display: flex;
+        gap: 8px;
+        padding: 0;
+      }
+
+      .filter-tab {
+        padding: 8px 14px;
+        border-radius: var(--radius-pill);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.02);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all var(--transition);
+        white-space: nowrap;
+      }
+
+      .filter-tab:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .filter-tab.active {
+        background: rgba(229, 64, 79, 0.15);
+        border-color: rgba(229, 64, 79, 0.3);
+        color: var(--accent-soft);
+      }
+
+      .filter-tab .tab-count {
+        display: inline-block;
+        margin-left: 4px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.08);
+        font-size: 10px;
+      }
+
+      .filter-tab.active .tab-count {
+        background: rgba(229, 64, 79, 0.2);
+      }
+
+      /* CONTENT */
+      .content {
+        padding: 16px 20px 20px;
+      }
+
+      /* SQUAD LIST */
+      .squad-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      /* SQUAD CARD */
+      .squad-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        transition: all var(--transition);
+        position: relative;
+      }
+
+      .squad-card:hover {
+        border-color: rgba(255, 255, 255, 0.12);
+        transform: translateY(-1px);
+      }
+
+      .squad-card.has-invite {
+        border-color: rgba(229, 64, 79, 0.2);
+      }
+
+      /* Inline Notification Bar */
+      .squad-notification {
+        background: linear-gradient(
+          135deg,
+          rgba(229, 64, 79, 0.12),
+          rgba(243, 150, 106, 0.08)
+        );
+        border-bottom: 1px solid rgba(229, 64, 79, 0.15);
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+      }
+
+      .squad-notification:hover {
+        background: linear-gradient(
+          135deg,
+          rgba(229, 64, 79, 0.18),
+          rgba(243, 150, 106, 0.12)
+        );
+      }
+
+      .notification-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      .notification-text {
+        flex: 1;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .notification-action {
+        display: flex;
+        gap: 6px;
+      }
+
+      .notification-btn {
+        padding: 5px 10px;
+        border-radius: var(--radius-pill);
+        border: 1px solid;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition);
+        background: transparent;
+      }
+
+      .notification-btn.accept {
+        border-color: rgba(67, 233, 123, 0.3);
+        color: var(--accent-green);
+      }
+
+      .notification-btn.accept:hover {
+        background: rgba(67, 233, 123, 0.1);
+      }
+
+      .notification-btn.decline {
+        border-color: rgba(255, 255, 255, 0.08);
+        color: var(--text-secondary);
+      }
+
+      .notification-btn.decline:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      /* Squad Header */
+      .squad-header {
+        padding: 14px 16px;
+        cursor: pointer;
+      }
+
+      .squad-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+
+      .squad-image {
+        width: 44px;
+        height: 44px;
+        border-radius: var(--radius-sm);
+        background-size: cover;
+        background-position: center;
+        flex-shrink: 0;
+      }
+
+      .squad-info {
+        flex: 1;
+      }
+
+      .squad-name {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 3px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .squad-date {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+
+      /* Status Indicators */
+      .status-indicators {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .status-badge {
+        padding: 4px 8px;
+        border-radius: var(--radius-pill);
+        font-size: 10px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .status-badge.urgent {
+        background: rgba(229, 64, 79, 0.15);
+        color: var(--accent);
+        border: 1px solid rgba(229, 64, 79, 0.3);
+      }
+
+      .status-badge.needs-input {
+        background: rgba(243, 150, 106, 0.15);
+        color: var(--accent-yellow);
+        border: 1px solid rgba(243, 150, 106, 0.3);
+      }
+
+      .status-badge.active {
+        background: rgba(67, 233, 123, 0.1);
+        color: var(--accent-green);
+        border: 1px solid rgba(67, 233, 123, 0.2);
+      }
+
+      .status-badge .badge-icon {
+        width: 10px;
+        height: 10px;
+      }
+
+      /* Squad Members */
+      .squad-members {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .member-avatars {
+        display: flex;
+      }
+
+      .member-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 2px solid var(--bg-card);
+        margin-left: -10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+        position: relative;
+        background: var(--bg-card-soft);
+      }
+
+      .member-avatar:first-child {
+        margin-left: 0;
+      }
+
+      .member-avatar img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+
+      .member-avatar.confirmed::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 10px;
+        height: 10px;
+        background: var(--accent-green);
+        border: 2px solid var(--bg-card);
+        border-radius: 50%;
+      }
+
+      .member-count {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-left: 4px;
+      }
+
+      /* Squad Body - Expandable Content */
+      .squad-body {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+        border-top: 1px solid var(--border-subtle);
+      }
+
+      .squad-card.expanded .squad-body {
+        max-height: 400px;
+      }
+
+      .squad-content {
+        padding: 14px 16px;
+      }
+
+      /* Activity Items */
+      .activity-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      }
+
+      .activity-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+
+      .activity-item:first-child {
+        padding-top: 0;
+      }
+
+      .activity-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--bg-card-soft);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .activity-icon svg {
+        width: 14px;
+        height: 14px;
+        color: var(--text-secondary);
+      }
+
+      .activity-icon.conflict svg {
+        color: var(--accent);
+      }
+
+      .activity-icon.vote svg {
+        color: var(--accent-yellow);
+      }
+
+      .activity-icon.update svg {
+        color: var(--accent-blue);
+      }
+
+      .activity-content {
+        flex: 1;
+      }
+
+      .activity-text {
+        font-size: 13px;
+        line-height: 1.4;
+        margin-bottom: 3px;
+      }
+
+      .activity-text strong {
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .activity-meta {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      /* Quick Actions */
+      .quick-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .quick-action {
+        padding: 6px 12px;
+        border-radius: var(--radius-pill);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.02);
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all var(--transition);
+      }
+
+      .quick-action:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+
+      .quick-action.primary {
+        background: rgba(67, 233, 123, 0.1);
+        border-color: rgba(67, 233, 123, 0.2);
+        color: var(--accent-green);
+      }
+
+      .quick-action.primary:hover {
+        background: rgba(67, 233, 123, 0.15);
+      }
+
+      /* Empty State */
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+      }
+
+      .empty-icon {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 16px;
+        color: var(--text-muted);
+        opacity: 0.5;
+      }
+
+      .empty-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--text-secondary);
+      }
+
+      .empty-text {
+        font-size: 13px;
+        color: var(--text-muted);
+        line-height: 1.5;
+      }
+
+      /* BOTTOM NAV */
+      .bottom-nav {
+        position: fixed;
+        bottom: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 320px;
+        background: rgba(10, 6, 12, 0.96);
+        backdrop-filter: blur(22px);
+        -webkit-backdrop-filter: blur(22px);
+        border-radius: 26px;
+        padding: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        justify-content: space-around;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95);
+        z-index: 60;
+      }
+
+      .nav-item {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        aspect-ratio: 1;
+        max-width: 48px;
+        border-radius: 16px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: background var(--transition), color var(--transition);
+        position: relative;
+      }
+
+      .nav-item.active {
+        background: rgba(229, 64, 79, 0.16);
+        color: var(--accent-soft);
+      }
+
+      .nav-icon {
+        width: 24px;
+        height: 24px;
+      }
+
+      .nav-item .icon-outline {
+        display: block;
+      }
+      .nav-item .icon-filled {
+        display: none;
+      }
+      .nav-item.active .icon-outline {
+        display: none;
+      }
+      .nav-item.active .icon-filled {
+        display: block;
+      }
+
+      .nav-notification {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 8px;
+        height: 8px;
+        background: var(--accent);
+        border: 2px solid rgba(10, 6, 12, 0.96);
+        border-radius: 50%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- HEADER -->
+      <header class="header">
+        <div class="header-row">
+          <div class="filter-tabs">
+            <div class="filter-tab active">
+              All<span class="tab-count">5</span>
+            </div>
+            <div class="filter-tab">To-do<span class="tab-count">3</span></div>
+            <div class="filter-tab">Groups<span class="tab-count">4</span></div>
+            <div class="filter-tab">Solo<span class="tab-count">1</span></div>
+          </div>
+          <div class="header-actions">
+            <button class="header-action" aria-label="Add plan">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- CONTENT -->
+      <main class="content">
+        <div class="squad-list">
+          <!-- Squad with Invite -->
+          <article class="squad-card has-invite">
+            <div class="squad-notification">
+              <div class="notification-dot"></div>
+              <div class="notification-text">
+                Mike invited you to join Coachella Weekend 2 Squad
+              </div>
+              <div class="notification-action">
+                <button class="notification-btn accept">Join</button>
+                <button class="notification-btn decline">Decline</button>
+              </div>
+            </div>
+            <div class="squad-header">
+              <div class="squad-row">
+                <div
+                  class="squad-image"
+                  style="
+                    background-image: url('https://placehold.co/200x200/00A0FF/111?text=Coachella');
+                  "
+                ></div>
+                <div class="squad-info">
+                  <div class="squad-name">Coachella Weekend 2</div>
+                  <div class="squad-date">April 18 – 20, 2025</div>
+                </div>
+                <div class="status-indicators">
+                  <div class="status-badge needs-input">Invite pending</div>
+                </div>
+              </div>
+              <div class="squad-members">
+                <div class="member-avatars">
+                  <div class="member-avatar">
+                    <img
+                      src="https://placehold.co/40x40/e5404f/333?text=M"
+                      alt=""
+                    />
+                  </div>
+                  <div class="member-avatar">
+                    <img
+                      src="https://placehold.co/40x40/43E97B/333?text=L"
+                      alt=""
+                    />
+                  </div>
+                  <div class="member-avatar">
+                    <img
+                      src="https://placehold.co/40x40/FFD700/333?text=J"
+                      alt=""
+                    />
+                  </div>
+                </div>
+                <span class="member-count">6 members</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- EDC Vegas Squad with multiple urgencies -->
+          <article class="squad-card expanded">
+            <div class="squad-header">
+              <div class="squad-row">
+                <div
+                  class="squad-image"
+                  style="
+                    background-image: url('https://placehold.co/200x200/FF3B4F/111?text=EDC');
+                  "
+                ></div>
+                <div class="squad-info">
+                  <div class="squad-name">EDC Las Vegas</div>
+                  <div class="squad-date">May 16 – 18, 2025</div>
+                </div>
+                <div class="status-indicators">
+                  <div class="status-badge urgent">
+                    <svg
+                      class="badge-icon"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    3 conflicts
+                  </div>
+                  <div class="status-badge needs-input">2 votes</div>
+                </div>
+              </div>
+              <div class="squad-members">
+                <div class="member-avatars">
+                  <div class="member-avatar confirmed">
+                    <img
+                      src="https://placehold.co/40x40/43E97B/333?text=J"
+                      alt=""
+                    />
+                  </div>
+                  <div class="member-avatar confirmed">
+                    <img
+                      src="https://placehold.co/40x40/E5404F/333?text=S"
+                      alt=""
+                    />
+                  </div>
+                  <div class="member-avatar">
+                    <img
+                      src="https://placehold.co/40x40/FFC966/333?text=A"
+                      alt=""
+                    />
+                  </div>
+                  <div class="member-avatar confirmed">
+                    <img
+                      src="https://placehold.co/40x40/4FACFE/333?text=R"
+                      alt=""
+                    />
+                  </div>
+                </div>
+                <span class="member-count">8 members • 5 confirmed</span>
+              </div>
+            </div>
+            <div class="squad-body">
+              <div class="squad-content">
+                <div class="activity-item">
+                  <div class="activity-icon conflict">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                      ></path>
+                      <line x1="12" y1="9" x2="12" y2="13"></line>
+                    </svg>
+                  </div>
+                  <div class="activity-content">
+                    <div class="activity-text">
+                      <strong>Set conflict:</strong> 3 want Tiësto, 4 want
+                      Martin Garrix
+                    </div>
+                    <div class="activity-meta">
+                      Friday 11:00 PM • Main Stage vs Circuit Grounds
+                    </div>
+                  </div>
+                </div>
+                <div class="activity-item">
+                  <div class="activity-icon vote">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                  </div>
+                  <div class="activity-content">
+                    <div class="activity-text">
+                      <strong>Vote needed:</strong> Friday meetup spot
+                    </div>
+                    <div class="activity-meta">
+                      3 voted • Waiting for your input
+                    </div>
+                  </div>
+                </div>
+                <div class="activity-item">
+                  <div class="activity-icon update">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <circle cx="12" cy="12" r="3"></circle>
+                      <path
+                        d="M12 1v6m0 6v6m4.22-13.22l4.24 4.24M1.54 9.54l4.24 4.24M12 1v6m0 6v6"
+                      ></path>
+                    </svg>
+                  </div>
+                  <div class="activity-content">
+                    <div class="activity-text">
+                      <strong>Jake</strong> marked interested in Illenium
+                    </div>
+                    <div class="activity-meta">2 hours ago</div>
+                  </div>
+                </div>
+                <div class="quick-actions">
+                  <button class="quick-action primary">
+                    Resolve conflicts
+                  </button>
+                  <button class="quick-action">Vote now</button>
+                  <button class="quick-action">View timeline</button>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Coachella Squad -->
+          <article class="squad-card">
+            <div class="squad-header">
+              <div class="squad-row">
+                <div
+                  class="squad-image"
+                  style="
+                    background-image: url('https://placehold.co/200x200/00A0FF/111?text=Coachella');
+                  "
+                ></div>
+                <div class="squad-info">
+                  <div class="squad-name">Coachella Weekend 1</div>
+                  <div class="squad-date">April 11 – 13, 2025</div>
+                </div>
+                <div class="status-indicators">
+                  <div class="status-badge needs-input">Vote open</div>
+                </div>
+              </div>
+              <div class="squad-members">
+                <div class="member-avatars">
+                  <div class="member-avatar confirmed">
+                    <img
+                      src="https://placehold.co/40x40/FF51D7/333?text=K"
+                      alt=""
+                    />
+                  </div>
+                  <div class="member-avatar">
+                    <img
+                      src="https://placehold.co/40x40/43E97B/333?text=D"
+                      alt=""
+                    />
+                  </div>
+                  <div class="member-avatar">
+                    <img
+                      src="https://placehold.co/40x40/FFD700/333?text=L"
+                      alt=""
+                    />
+                  </div>
+                </div>
+                <span class="member-count">5 members • 2 confirmed</span>
+              </div>
+            </div>
+            <div class="squad-body">
+              <div class="squad-content">
+                <div class="activity-item">
+                  <div class="activity-icon vote">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                  </div>
+                  <div class="activity-content">
+                    <div class="activity-text">
+                      <strong>Vote:</strong> Camping or hotel?
+                    </div>
+                    <div class="activity-meta">
+                      2 voted camping, 1 voted hotel
+                    </div>
+                  </div>
+                </div>
+                <div class="activity-item">
+                  <div class="activity-icon update">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
+                      ></path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                    </svg>
+                  </div>
+                  <div class="activity-content">
+                    <div class="activity-text">
+                      <strong>Kate</strong> invited Dan and Lisa
+                    </div>
+                    <div class="activity-meta">4 hours ago</div>
+                  </div>
+                </div>
+                <div class="quick-actions">
+                  <button class="quick-action primary">Cast vote</button>
+                  <button class="quick-action">View details</button>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Electric Forest Squad -->
+          <article class="squad-card">
+            <div class="squad-header">
+              <div class="squad-row">
+                <div
+                  class="squad-image"
+                  style="
+                    background-image: url('https://placehold.co/200x200/43e97b/111?text=EF');
+                  "
+                ></div>
+                <div class="squad-info">
+                  <div class="squad-name">Electric Forest</div>
+                  <div class="squad-date">June 19 – 22, 2025</div>
+                </div>
+                <div class="status-indicators">
+                  <div class="status-badge active">All confirmed</div>
+                </div>
+              </div>
+              <div class="squad-members">
+                <div class="member-avatars">
+                  <div class="member-avatar confirmed">
+                    <img
+                      src="https://placehold.co/40x40/FF1493/333?text=T"
+                      alt=""
+                    />
+                  </div>
+                  <div class="member-avatar confirmed">
+                    <img
+                      src="https://placehold.co/40x40/FFD700/333?text=B"
+                      alt=""
+                    />
+                  </div>
+                  <div class="member-avatar confirmed">
+                    <img
+                      src="https://placehold.co/40x40/8B4513/333?text=N"
+                      alt=""
+                    />
+                  </div>
+                </div>
+                <span class="member-count">4 members • All confirmed</span>
+              </div>
+            </div>
+            <div class="squad-body">
+              <div class="squad-content">
+                <div class="activity-item">
+                  <div class="activity-icon update">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                      ></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                  </div>
+                  <div class="activity-content">
+                    <div class="activity-text">
+                      <strong>Ben</strong> shared camping gear checklist
+                    </div>
+                    <div class="activity-meta">1 day ago</div>
+                  </div>
+                </div>
+                <div class="quick-actions">
+                  <button class="quick-action">View checklist</button>
+                  <button class="quick-action">Squad chat</button>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Solo Plan -->
+          <article class="squad-card">
+            <div class="squad-header">
+              <div class="squad-row">
+                <div
+                  class="squad-image"
+                  style="
+                    background-image: url('https://placehold.co/200x200/b794f6/111?text=Ultra');
+                  "
+                ></div>
+                <div class="squad-info">
+                  <div class="squad-name">Ultra Miami • Solo</div>
+                  <div class="squad-date">March 28 – 30, 2025</div>
+                </div>
+                <div class="status-indicators">
+                  <div
+                    class="status-badge"
+                    style="
+                      background: rgba(183, 148, 246, 0.1);
+                      border-color: rgba(183, 148, 246, 0.3);
+                      color: var(--accent-purple);
+                    "
+                  >
+                    Personal plan
+                  </div>
+                </div>
+              </div>
+              <div class="squad-members">
+                <div class="member-avatars">
+                  <div class="member-avatar confirmed">
+                    <img
+                      src="https://placehold.co/40x40/b794f6/333?text=ME"
+                      alt=""
+                    />
+                  </div>
+                </div>
+                <span class="member-count">Going solo • 12 sets marked</span>
+              </div>
+            </div>
+            <div class="squad-body">
+              <div class="squad-content">
+                <div class="activity-item">
+                  <div class="activity-icon update">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polygon
+                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                      ></polygon>
+                    </svg>
+                  </div>
+                  <div class="activity-content">
+                    <div class="activity-text">
+                      <strong>You</strong> marked Carl Cox as must-see
+                    </div>
+                    <div class="activity-meta">This morning</div>
+                  </div>
+                </div>
+                <div class="activity-item">
+                  <div class="activity-icon vote">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"
+                      ></path>
+                      <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                  </div>
+                  <div class="activity-content">
+                    <div class="activity-text">
+                      Meeting spot set: Main Stage VIP entrance
+                    </div>
+                    <div class="activity-meta">
+                      For connecting with festival friends
+                    </div>
+                  </div>
+                </div>
+                <div class="quick-actions">
+                  <button class="quick-action primary">View timeline</button>
+                  <button class="quick-action">Add notes</button>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </main>
+
+      <!-- BOTTOM NAV -->
+      <nav class="bottom-nav">
+        <div class="nav-item" role="button" tabindex="0" aria-label="Home">
+          <svg
+            class="nav-icon icon-outline"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <svg
+            class="nav-icon icon-filled"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path
+              d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"
+            />
+          </svg>
+        </div>
+        <div
+          class="nav-item active"
+          role="button"
+          tabindex="0"
+          aria-label="Plans"
+        >
+          <div class="nav-notification"></div>
+          <svg
+            class="nav-icon icon-outline"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+            <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"></path>
+          </svg>
+          <svg
+            class="nav-icon icon-filled"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path
+              d="M8 2v2H5v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3V2h-2v2h-4V2H8zm0 12h2v2H8v-2zm4 0h2v2h-2v-2zm-4 4h2v2H8v-2zm4 0h2v2h-2v-2z"
+            />
+            <rect x="3" y="4" width="18" height="6" rx="1" />
+          </svg>
+        </div>
+        <div class="nav-item" role="button" tabindex="0" aria-label="Profile">
+          <svg
+            class="nav-icon icon-outline"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <svg
+            class="nav-icon icon-filled"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <circle cx="12" cy="7" r="4" />
+            <path d="M12 13c-4 0-7 2-7 5v1h14v-1c0-3-3-5-7-5z" />
+          </svg>
+        </div>
+      </nav>
+    </div>
+
+    <script>
+      // Bottom nav interaction
+      const navItems = document.querySelectorAll('.nav-item')
+      navItems.forEach((item) => {
+        item.addEventListener('click', () => {
+          navItems.forEach((i) => i.classList.remove('active'))
+          item.classList.add('active')
+        })
+      })
+
+      // Filter tabs
+      const filterTabs = document.querySelectorAll('.filter-tab')
+      filterTabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          filterTabs.forEach((t) => t.classList.remove('active'))
+          tab.classList.add('active')
+        })
+      })
+
+      // Squad card expansion
+      const squadHeaders = document.querySelectorAll('.squad-header')
+      squadHeaders.forEach((header) => {
+        header.addEventListener('click', () => {
+          const card = header.closest('.squad-card')
+          card.classList.toggle('expanded')
+        })
+      })
+
+      // Invite actions
+      const notificationBtns = document.querySelectorAll('.notification-btn')
+      notificationBtns.forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation()
+          const notification = btn.closest('.squad-notification')
+          if (btn.classList.contains('accept')) {
+            btn.textContent = 'Joined!'
+            btn.style.background = 'rgba(67, 233, 123, 0.15)'
+            setTimeout(() => {
+              notification.style.display = 'none'
+              btn.closest('.squad-card').classList.remove('has-invite')
+            }, 1000)
+          } else {
+            notification.style.display = 'none'
+            btn.closest('.squad-card').classList.remove('has-invite')
+          }
+        })
+      })
+
+      // Quick actions
+      const quickActions = document.querySelectorAll('.quick-action')
+      quickActions.forEach((action) => {
+        action.addEventListener('click', (e) => {
+          e.stopPropagation()
+          // Handle quick actions
+        })
+      })
+    </script>
+  </body>
+</html>

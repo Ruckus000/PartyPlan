@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EDC Squad Sync – Profile</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg: #050306;
+        --bg-elevated: #0e090f;
+        --bg-card: #151019;
+        --bg-card-soft: #1a131f;
+
+        --text-primary: #f8f5ff;
+        --text-secondary: #a191aa;
+        --text-muted: #746978;
+
+        --accent: #e5404f;
+        --accent-soft: #f3956a;
+        --accent-green: #43e97b;
+        --accent-blue: #4facfe;
+        --accent-yellow: #ffc966;
+        --accent-purple: #b794f6;
+
+        --border-subtle: rgba(255, 255, 255, 0.08);
+        --radius-lg: 24px;
+        --radius-md: 18px;
+        --radius-sm: 12px;
+        --radius-pill: 999px;
+
+        --transition: 0.24s ease-out;
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+          system-ui, sans-serif;
+        background: radial-gradient(
+          circle at top,
+          #1a1016 0,
+          #050306 55%,
+          #000000 100%
+        );
+        color: var(--text-primary);
+        min-height: 100vh;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .app-container {
+        max-width: 430px;
+        margin: 0 auto;
+        min-height: 100vh;
+        padding-bottom: 110px;
+        background: radial-gradient(
+            circle at 0 0,
+            rgba(229, 64, 79, 0.25) 0,
+            transparent 55%
+          ),
+          linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.85),
+            #050306 40%,
+            #050306 100%
+          );
+        position: relative;
+      }
+
+      /* HEADER */
+      .profile-header {
+        padding: 24px 20px;
+        text-align: center;
+      }
+
+      .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 24px;
+        background: var(--bg-card);
+        border: 2px solid var(--border-subtle);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        margin: 0 auto 16px;
+      }
+
+      .profile-name {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        letter-spacing: -0.02em;
+      }
+
+      .profile-username {
+        font-size: 14px;
+        color: var(--text-secondary);
+      }
+
+      /* CONTENT */
+      .content {
+        padding: 0 20px 20px;
+      }
+
+      /* SECTION */
+      .section {
+        margin-bottom: 24px;
+      }
+
+      .section-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 12px;
+      }
+
+      /* SETTINGS CARD */
+      .settings-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+      }
+
+      .setting-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        cursor: pointer;
+        transition: background var(--transition);
+      }
+
+      .setting-item:last-child {
+        border-bottom: none;
+      }
+
+      .setting-item:hover {
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .setting-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+      }
+
+      .setting-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.04);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .setting-icon svg {
+        width: 20px;
+        height: 20px;
+        color: var(--text-secondary);
+      }
+
+      .setting-content {
+        flex: 1;
+      }
+
+      .setting-label {
+        font-size: 15px;
+        font-weight: 500;
+        margin-bottom: 3px;
+      }
+
+      .setting-description {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      .setting-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .setting-chevron {
+        width: 20px;
+        height: 20px;
+        color: var(--text-muted);
+      }
+
+      /* Toggle Switch */
+      .toggle-switch {
+        position: relative;
+        width: 48px;
+        height: 28px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
+        cursor: pointer;
+        transition: background var(--transition);
+      }
+
+      .toggle-switch.active {
+        background: var(--accent);
+      }
+
+      .toggle-knob {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 22px;
+        height: 22px;
+        background: white;
+        border-radius: 50%;
+        transition: transform var(--transition);
+      }
+
+      .toggle-switch.active .toggle-knob {
+        transform: translateX(20px);
+      }
+
+      /* DANGER ZONE */
+      .danger-card {
+        background: rgba(229, 64, 79, 0.06);
+        border: 1px solid rgba(229, 64, 79, 0.15);
+        border-radius: var(--radius-lg);
+        padding: 16px;
+        text-align: center;
+      }
+
+      .danger-btn {
+        padding: 10px 24px;
+        border-radius: var(--radius-pill);
+        border: 1px solid rgba(229, 64, 79, 0.3);
+        background: transparent;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--accent);
+        cursor: pointer;
+        transition: all var(--transition);
+      }
+
+      .danger-btn:hover {
+        background: rgba(229, 64, 79, 0.1);
+        border-color: rgba(229, 64, 79, 0.4);
+      }
+
+      /* APP INFO */
+      .app-info {
+        text-align: center;
+        padding: 24px 20px;
+        color: var(--text-muted);
+        font-size: 12px;
+      }
+
+      .app-version {
+        margin-bottom: 10px;
+        font-weight: 500;
+      }
+
+      .app-links {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+      }
+
+      .app-link {
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: color var(--transition);
+      }
+
+      .app-link:hover {
+        color: var(--text-primary);
+      }
+
+      /* BOTTOM NAV */
+      .bottom-nav {
+        position: fixed;
+        bottom: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 320px;
+        background: rgba(10, 6, 12, 0.96);
+        backdrop-filter: blur(22px);
+        -webkit-backdrop-filter: blur(22px);
+        border-radius: 26px;
+        padding: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        justify-content: space-around;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95);
+        z-index: 60;
+      }
+
+      .nav-item {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        aspect-ratio: 1;
+        max-width: 48px;
+        border-radius: 16px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: background var(--transition), color var(--transition);
+        position: relative;
+      }
+
+      .nav-item.active {
+        background: rgba(229, 64, 79, 0.16);
+        color: var(--accent-soft);
+      }
+
+      .nav-icon {
+        width: 24px;
+        height: 24px;
+      }
+
+      .nav-item .icon-outline {
+        display: block;
+      }
+      .nav-item .icon-filled {
+        display: none;
+      }
+      .nav-item.active .icon-outline {
+        display: none;
+      }
+      .nav-item.active .icon-filled {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- PROFILE HEADER -->
+      <header class="profile-header">
+        <div class="profile-avatar">🎧</div>
+        <div class="profile-name">Alex Chen</div>
+        <div class="profile-username">@alexchen</div>
+      </header>
+
+      <!-- CONTENT -->
+      <main class="content">
+        <!-- Account -->
+        <section class="section">
+          <h2 class="section-title">Account</h2>
+          <div class="settings-card">
+            <div class="setting-item">
+              <div class="setting-left">
+                <div class="setting-icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                </div>
+                <div class="setting-content">
+                  <div class="setting-label">Personal information</div>
+                  <div class="setting-description">Name, emoji, username</div>
+                </div>
+              </div>
+              <div class="setting-right">
+                <svg
+                  class="setting-chevron"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Notifications -->
+        <section class="section">
+          <h2 class="section-title">Notifications</h2>
+          <div class="settings-card">
+            <div class="setting-item">
+              <div class="setting-left">
+                <div class="setting-icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
+                    ></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                  </svg>
+                </div>
+                <div class="setting-content">
+                  <div class="setting-label">Push notifications</div>
+                  <div class="setting-description">
+                    Conflicts, votes, updates
+                  </div>
+                </div>
+              </div>
+              <div class="setting-right">
+                <div class="toggle-switch active">
+                  <div class="toggle-knob"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Support -->
+        <section class="section">
+          <h2 class="section-title">Support</h2>
+          <div class="settings-card">
+            <div class="setting-item">
+              <div class="setting-left">
+                <div class="setting-icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                </div>
+                <div class="setting-content">
+                  <div class="setting-label">Help & FAQ</div>
+                </div>
+              </div>
+              <div class="setting-right">
+                <svg
+                  class="setting-chevron"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </div>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-left">
+                <div class="setting-icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                    ></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                  </svg>
+                </div>
+                <div class="setting-content">
+                  <div class="setting-label">Contact support</div>
+                </div>
+              </div>
+              <div class="setting-right">
+                <svg
+                  class="setting-chevron"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Sign Out -->
+        <section class="section">
+          <div class="danger-card">
+            <button class="danger-btn">Sign out</button>
+          </div>
+        </section>
+
+        <!-- App Info -->
+        <div class="app-info">
+          <div class="app-version">EDC Squad Sync v1.0.0</div>
+          <div class="app-links">
+            <a href="#" class="app-link">Privacy</a>
+            <a href="#" class="app-link">Terms</a>
+            <a href="#" class="app-link">About</a>
+          </div>
+        </div>
+      </main>
+
+      <!-- BOTTOM NAV -->
+      <nav class="bottom-nav">
+        <div class="nav-item" role="button" tabindex="0" aria-label="Home">
+          <svg
+            class="nav-icon icon-outline"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <svg
+            class="nav-icon icon-filled"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path
+              d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"
+            />
+          </svg>
+        </div>
+        <div class="nav-item" role="button" tabindex="0" aria-label="Plans">
+          <svg
+            class="nav-icon icon-outline"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+            <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"></path>
+          </svg>
+          <svg
+            class="nav-icon icon-filled"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path
+              d="M8 2v2H5v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3V2h-2v2h-4V2H8zm0 12h2v2H8v-2zm4 0h2v2h-2v-2zm-4 4h2v2H8v-2zm4 0h2v2h-2v-2z"
+            />
+            <rect x="3" y="4" width="18" height="6" rx="1" />
+          </svg>
+        </div>
+        <div
+          class="nav-item active"
+          role="button"
+          tabindex="0"
+          aria-label="Profile"
+        >
+          <svg
+            class="nav-icon icon-outline"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <svg
+            class="nav-icon icon-filled"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <circle cx="12" cy="7" r="4" />
+            <path d="M12 13c-4 0-7 2-7 5v1h14v-1c0-3-3-5-7-5z" />
+          </svg>
+        </div>
+      </nav>
+    </div>
+
+    <script>
+      // Bottom nav interaction
+      const navItems = document.querySelectorAll('.nav-item')
+      navItems.forEach((item) => {
+        item.addEventListener('click', () => {
+          navItems.forEach((i) => i.classList.remove('active'))
+          item.classList.add('active')
+        })
+      })
+
+      // Toggle switches
+      const toggles = document.querySelectorAll('.toggle-switch')
+      toggles.forEach((toggle) => {
+        toggle.addEventListener('click', () => {
+          toggle.classList.toggle('active')
+        })
+      })
+    </script>
+  </body>
+</html>

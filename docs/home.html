@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Squad – Home (Improved Flyer Focus)</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg: #050306;
+        --bg-elevated: #0e090f;
+        --bg-card: #151019;
+        --bg-card-soft: #1a131f;
+
+        --text-primary: #f8f5ff;
+        --text-secondary: #a191aa;
+        --text-muted: #746978;
+
+        --accent: #e5404f;
+        --accent-soft: #f3956a;
+
+        --border-subtle: rgba(255, 255, 255, 0.08);
+        --radius-lg: 24px;
+        --radius-md: 18px;
+        --radius-pill: 999px;
+
+        --transition: 0.24s ease-out;
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+          system-ui, sans-serif;
+        background: radial-gradient(
+          circle at top,
+          #1a1016 0,
+          #050306 55%,
+          #000000 100%
+        );
+        color: var(--text-primary);
+        min-height: 100vh;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .app-container {
+        max-width: 430px;
+        margin: 0 auto;
+        min-height: 100vh;
+        padding-bottom: 110px;
+        background: radial-gradient(
+            circle at 0 0,
+            rgba(229, 64, 79, 0.25) 0,
+            transparent 55%
+          ),
+          linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.85),
+            #050306 40%,
+            #050306 100%
+          );
+        position: relative;
+      }
+
+      /* HEADER */
+
+      .header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        padding: 18px 20px 12px;
+        background: linear-gradient(
+          to bottom,
+          rgba(5, 3, 6, 0.96),
+          rgba(5, 3, 6, 0.9),
+          transparent
+        );
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+      }
+
+      .header-row {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding-right: 52px;
+      }
+
+      .search-btn {
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        border: none;
+        background: transparent;
+        color: #fff;
+        cursor: pointer;
+        transition: background var(--transition);
+      }
+
+      .search-btn:hover {
+        background: transparent;
+      }
+
+      .view-toggle {
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: var(--radius-pill);
+        padding: 3px;
+        display: inline-flex;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .toggle-btn {
+        border: none;
+        border-radius: var(--radius-pill);
+        padding: 9px 18px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        background: transparent;
+        cursor: pointer;
+        transition: background var(--transition), color var(--transition),
+          box-shadow var(--transition);
+      }
+
+      .toggle-btn.active {
+        background: #e5404f;
+        color: #fff;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+      }
+
+      /* CONTENT */
+
+      .content {
+        padding: 16px 0 20px;
+      }
+
+      /* QUICK ACTIONS SCROLL */
+
+      .quick-actions-wrapper {
+        position: relative;
+        margin-bottom: 20px;
+      }
+
+      .quick-actions-wrapper::before,
+      .quick-actions-wrapper::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 60px; /* wider for smoother fade */
+        z-index: 2;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+
+      .quick-actions-wrapper::before {
+        left: 0;
+        background: linear-gradient(
+          to right,
+          rgba(5, 3, 6, 1) 0%,
+          rgba(5, 3, 6, 0.95) 15%,
+          rgba(5, 3, 6, 0.8) 35%,
+          rgba(5, 3, 6, 0.5) 60%,
+          rgba(5, 3, 6, 0) 100%
+        );
+      }
+
+      .quick-actions-wrapper::after {
+        right: 0;
+        background: linear-gradient(
+          to left,
+          rgba(5, 3, 6, 1) 0%,
+          rgba(5, 3, 6, 0.95) 15%,
+          rgba(5, 3, 6, 0.8) 35%,
+          rgba(5, 3, 6, 0.5) 60%,
+          rgba(5, 3, 6, 0) 100%
+        );
+      }
+
+      .quick-actions {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        padding: 0 20px 8px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .quick-actions::-webkit-scrollbar {
+        display: none;
+      }
+
+      .action-card {
+        flex: 0 0 auto;
+        scroll-snap-align: center;
+        background: rgba(21, 16, 25, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 18px;
+        padding: 14px 16px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        transform-origin: center;
+        backdrop-filter: blur(10px);
+      }
+
+      .action-card {
+        width: 140px;
+      }
+
+      .action-card.featured {
+        width: 200px;
+      }
+
+      .action-card:hover {
+        border-color: rgba(255, 255, 255, 0.15);
+        background: rgba(21, 16, 25, 0.8);
+      }
+
+      .action-card.active {
+        background: rgba(229, 64, 79, 0.08);
+        border-color: rgba(229, 64, 79, 0.3);
+        box-shadow: 0 8px 24px rgba(229, 64, 79, 0.15);
+      }
+
+      .action-card.centered {
+        transform: scale(1.05);
+      }
+
+      .action-icon-wrapper {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+        transition: all var(--transition);
+      }
+
+      .action-card.active .action-icon-wrapper {
+        background: rgba(229, 64, 79, 0.15);
+      }
+
+      .action-card.featured .action-icon-wrapper {
+        width: 40px;
+        height: 40px;
+      }
+
+      .action-icon {
+        width: 18px;
+        height: 18px;
+        color: var(--text-primary);
+      }
+
+      .action-card.featured .action-icon {
+        width: 20px;
+        height: 20px;
+      }
+
+      .action-card.active .action-icon {
+        color: var(--accent-soft);
+      }
+
+      .action-content {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .action-label {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: var(--text-primary);
+        line-height: 1.3;
+      }
+
+      .action-card.featured .action-label {
+        font-size: 14px;
+      }
+
+      .action-count {
+        font-size: 11px;
+        color: var(--text-muted);
+        line-height: 1.3;
+      }
+
+      .action-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(229, 64, 79, 0.2);
+        border: 1px solid rgba(229, 64, 79, 0.3);
+        border-radius: var(--radius-pill);
+        padding: 2px 7px;
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--accent-soft);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      /* SECTION */
+
+      .section {
+        margin-top: 24px;
+        padding: 0 20px;
+      }
+
+      .section:first-child {
+        margin-top: 0;
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 14px;
+      }
+
+      .section-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+        transition: color 0.3s ease;
+      }
+
+      .section-title {
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+
+      /* FEED - Prioritizing the flyer/image */
+
+      .feed-list {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .feed-card {
+        border-radius: 24px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform var(--transition), box-shadow var(--transition),
+          border-color var(--transition);
+      }
+
+      .feed-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.9);
+        border-color: rgba(255, 255, 255, 0.18);
+      }
+
+      /* FLYER FOCUS - Taller, cleaner, minimal overlay */
+      .feed-header {
+        height: 240px;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+      }
+
+      /* Minimal vignette - just enough to prevent edge bleed */
+      .feed-header::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(
+          ellipse at center,
+          rgba(0, 0, 0, 0) 50%,
+          rgba(5, 3, 6, 0.25) 100%
+        );
+      }
+
+      .feed-date-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 1;
+        padding: 6px 12px;
+        border-radius: var(--radius-pill);
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        font-size: 11px;
+        font-weight: 600;
+        color: #fff;
+      }
+
+      /* Friend avatars in top right corner */
+      .feed-friends-overlay {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px 6px 6px;
+        border-radius: var(--radius-pill);
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+
+      .feed-friends-overlay .friends-avatars {
+        display: flex;
+      }
+
+      .feed-friends-overlay .friend-avatar {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(0, 0, 0, 0.4);
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #30202a;
+        margin-left: -8px;
+      }
+
+      .feed-friends-overlay .friend-avatar:first-child {
+        margin-left: 0;
+      }
+
+      .feed-friends-overlay .friend-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .feed-friends-overlay .friend-avatar.more {
+        background: rgba(229, 64, 79, 0.15);
+        border-color: rgba(229, 64, 79, 0.3);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+      }
+
+      .feed-friends-overlay .friends-count {
+        font-size: 12px;
+        font-weight: 600;
+        color: #fff;
+        white-space: nowrap;
+        padding-right: 2px;
+      }
+
+      .feed-body {
+        padding: 14px 16px 16px;
+      }
+
+      .feed-title {
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 4px;
+      }
+
+      .feed-location {
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+
+      /* MY FESTIVALS VIEW */
+
+      .my-view {
+        display: none;
+      }
+
+      .my-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .my-card {
+        border-radius: 22px;
+        background: var(--bg-card-soft);
+        border: 1px solid var(--border-subtle);
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        transition: transform var(--transition), border-color var(--transition);
+      }
+
+      .my-card:hover {
+        transform: translateY(-1px);
+        border-color: rgba(255, 255, 255, 0.15);
+      }
+
+      .my-image {
+        width: 72px;
+        height: 72px;
+        border-radius: 18px;
+        background-size: cover;
+        background-position: center;
+        flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .my-image::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 0.1),
+          rgba(0, 0, 0, 0.3)
+        );
+      }
+
+      .my-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .my-name {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+
+      .my-meta {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+
+      .my-pill {
+        padding: 6px 12px;
+        border-radius: var(--radius-pill);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(229, 64, 79, 0.08);
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--accent-soft);
+        white-space: nowrap;
+      }
+
+      /* BOTTOM NAV */
+
+      .bottom-nav {
+        position: fixed;
+        bottom: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 400px;
+        background: rgba(10, 6, 12, 0.96);
+        backdrop-filter: blur(22px);
+        -webkit-backdrop-filter: blur(22px);
+        border-radius: 26px;
+        padding: 8px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        justify-content: space-around;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95);
+        z-index: 60;
+      }
+
+      .nav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        border-radius: 22px;
+        padding: 6px 10px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: background var(--transition), color var(--transition);
+      }
+
+      .nav-item.active {
+        background: rgba(229, 64, 79, 0.16);
+        color: var(--accent-soft);
+      }
+
+      .nav-icon {
+        width: 22px;
+        height: 22px;
+      }
+
+      .nav-item .icon-outline {
+        display: block;
+      }
+      .nav-item .icon-filled {
+        display: none;
+      }
+      .nav-item.active .icon-outline {
+        display: none;
+      }
+      .nav-item.active .icon-filled {
+        display: block;
+      }
+
+      .nav-label {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- HEADER -->
+      <header class="header">
+        <div class="header-row">
+          <div class="view-toggle">
+            <button
+              type="button"
+              class="toggle-btn active"
+              data-view="discover"
+            >
+              Discover
+            </button>
+            <button type="button" class="toggle-btn" data-view="my">
+              My festivals
+            </button>
+          </div>
+          <button type="button" class="search-btn" aria-label="Search">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- DISCOVER VIEW -->
+      <main class="content">
+        <section id="discover-view">
+          <!-- QUICK ACTIONS SCROLL -->
+          <div class="quick-actions-wrapper">
+            <div class="quick-actions" id="quickActionsScroll">
+              <!-- Nearby first - standard size -->
+              <div class="action-card active centered" data-filter="nearby">
+                <div class="action-icon-wrapper">
+                  <svg
+                    class="action-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"
+                    ></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                </div>
+                <div class="action-content">
+                  <div class="action-label">Nearby</div>
+                  <div class="action-count">12 festivals</div>
+                </div>
+              </div>
+
+              <!-- Friends - featured/wider -->
+              <div class="action-card featured" data-filter="friends">
+                <div class="action-icon-wrapper">
+                  <svg
+                    class="action-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                </div>
+                <div class="action-content">
+                  <div class="action-label">Friends are going</div>
+                  <div class="action-count">24 friends • 8 festivals</div>
+                </div>
+                <div class="action-badge">New</div>
+              </div>
+
+              <div class="action-card" data-filter="month">
+                <div class="action-icon-wrapper">
+                  <svg
+                    class="action-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect
+                      x="3"
+                      y="4"
+                      width="18"
+                      height="18"
+                      rx="2"
+                      ry="2"
+                    ></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </div>
+                <div class="action-content">
+                  <div class="action-label">This month</div>
+                  <div class="action-count">6 festivals</div>
+                </div>
+              </div>
+
+              <div class="action-card" data-filter="edm">
+                <div class="action-icon-wrapper">
+                  <svg
+                    class="action-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M9 18V5l12-2v13"></path>
+                    <circle cx="6" cy="18" r="3"></circle>
+                    <circle cx="18" cy="16" r="3"></circle>
+                  </svg>
+                </div>
+                <div class="action-content">
+                  <div class="action-label">EDM</div>
+                  <div class="action-count">18 festivals</div>
+                </div>
+              </div>
+
+              <div class="action-card" data-filter="house">
+                <div class="action-icon-wrapper">
+                  <svg
+                    class="action-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polygon
+                      points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"
+                    ></polygon>
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                  </svg>
+                </div>
+                <div class="action-content">
+                  <div class="action-label">House</div>
+                  <div class="action-count">14 festivals</div>
+                </div>
+              </div>
+
+              <div class="action-card" data-filter="techno">
+                <div class="action-icon-wrapper">
+                  <svg
+                    class="action-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+                    ></path>
+                  </svg>
+                </div>
+                <div class="action-content">
+                  <div class="action-label">Techno</div>
+                  <div class="action-count">9 festivals</div>
+                </div>
+              </div>
+
+              <div class="action-card" data-filter="camping">
+                <div class="action-icon-wrapper">
+                  <svg
+                    class="action-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M3 20h18M5.07 20H19a2 2 0 0 0 1.75-2.93L13.41 4.83a2 2 0 0 0-3.5 0L2.25 17.07A2 2 0 0 0 4 20z"
+                    ></path>
+                  </svg>
+                </div>
+                <div class="action-content">
+                  <div class="action-label">Camping</div>
+                  <div class="action-count">7 festivals</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feed -->
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <div class="section-label" id="filterLabel">
+                  Showing: Nearby
+                </div>
+                <div class="section-title">Upcoming festivals</div>
+              </div>
+            </div>
+
+            <div class="feed-list">
+              <!-- Card 1 -->
+              <article class="feed-card">
+                <div
+                  class="feed-header"
+                  style="
+                    background-image: url('https://placehold.co/600x400/FF3B4F/111?text=EDC+Las+Vegas');
+                  "
+                >
+                  <div class="feed-date-badge">May 16 – 18</div>
+                  <div class="feed-friends-overlay">
+                    <div class="friends-avatars">
+                      <div class="friend-avatar">
+                        <img
+                          src="https://placehold.co/40x40/FFC966/333?text=J"
+                          alt=""
+                        />
+                      </div>
+                      <div class="friend-avatar">
+                        <img
+                          src="https://placehold.co/40x40/E5404F/333?text=M"
+                          alt=""
+                        />
+                      </div>
+                      <div class="friend-avatar">
+                        <img
+                          src="https://placehold.co/40x40/4FACFE/333?text=R"
+                          alt=""
+                        />
+                      </div>
+                      <div class="friend-avatar more">+5</div>
+                    </div>
+                    <div class="friends-count">8</div>
+                  </div>
+                </div>
+                <div class="feed-body">
+                  <div class="feed-title">EDC Las Vegas</div>
+                  <div class="feed-location">
+                    Las Vegas Motor Speedway • Electronic
+                  </div>
+                </div>
+              </article>
+
+              <!-- Card 2 -->
+              <article class="feed-card">
+                <div
+                  class="feed-header"
+                  style="
+                    background-image: url('https://placehold.co/600x400/00A0FF/111?text=Coachella');
+                  "
+                >
+                  <div class="feed-date-badge">Apr 11 – 13</div>
+                  <div class="feed-friends-overlay">
+                    <div class="friends-avatars">
+                      <div class="friend-avatar">
+                        <img
+                          src="https://placehold.co/40x40/FF51D7/333?text=S"
+                          alt=""
+                        />
+                      </div>
+                      <div class="friend-avatar">
+                        <img
+                          src="https://placehold.co/40x40/43E97B/333?text=A"
+                          alt=""
+                        />
+                      </div>
+                      <div class="friend-avatar more">+3</div>
+                    </div>
+                    <div class="friends-count">5</div>
+                  </div>
+                </div>
+                <div class="feed-body">
+                  <div class="feed-title">Coachella Weekend 1</div>
+                  <div class="feed-location">
+                    Indio, California • Multi-genre
+                  </div>
+                </div>
+              </article>
+
+              <!-- Card 3 -->
+              <article class="feed-card">
+                <div
+                  class="feed-header"
+                  style="
+                    background-image: url('https://placehold.co/600x400/43e97b/111?text=Electric+Forest');
+                  "
+                >
+                  <div class="feed-date-badge">Jun 19 – 22</div>
+                  <div class="feed-friends-overlay">
+                    <div class="friends-avatars">
+                      <div class="friend-avatar">
+                        <img
+                          src="https://placehold.co/40x40/FF1493/333?text=A"
+                          alt=""
+                        />
+                      </div>
+                      <div class="friend-avatar">
+                        <img
+                          src="https://placehold.co/40x40/FFD700/333?text=K"
+                          alt=""
+                        />
+                      </div>
+                      <div class="friend-avatar more">+1</div>
+                    </div>
+                    <div class="friends-count">3</div>
+                  </div>
+                </div>
+                <div class="feed-body">
+                  <div class="feed-title">Electric Forest</div>
+                  <div class="feed-location">Rothbury, Michigan • Camping</div>
+                </div>
+              </article>
+            </div>
+          </section>
+        </section>
+
+        <!-- MY FESTIVALS VIEW -->
+        <section id="my-view" class="my-view">
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <div class="section-label">Your plans</div>
+                <div class="section-title">Upcoming festivals</div>
+              </div>
+            </div>
+
+            <div class="my-list">
+              <article class="my-card">
+                <div
+                  class="my-image"
+                  style="
+                    background-image: url('https://placehold.co/300x200/FF3B4F/111?text=EDC');
+                  "
+                ></div>
+                <div class="my-main">
+                  <div class="my-name">EDC Las Vegas</div>
+                  <div class="my-meta">May 16 – 18 • Las Vegas</div>
+                  <div class="my-meta">8 friends in your squad</div>
+                </div>
+                <div class="my-pill">Open</div>
+              </article>
+
+              <article class="my-card">
+                <div
+                  class="my-image"
+                  style="
+                    background-image: url('https://placehold.co/300x200/00A0FF/111?text=Coachella');
+                  "
+                ></div>
+                <div class="my-main">
+                  <div class="my-name">Coachella Weekend 1</div>
+                  <div class="my-meta">Apr 11 – 13 • Indio, CA</div>
+                  <div class="my-meta">5 friends going</div>
+                </div>
+                <div class="my-pill">View</div>
+              </article>
+            </div>
+          </section>
+        </section>
+      </main>
+
+      <!-- BOTTOM NAV -->
+      <nav class="bottom-nav">
+        <div class="nav-item active" role="button" tabindex="0">
+          <svg
+            class="nav-icon icon-outline"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <svg
+            class="nav-icon icon-filled"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path
+              d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"
+            />
+          </svg>
+          <span class="nav-label">Home</span>
+        </div>
+        <div class="nav-item" role="button" tabindex="0">
+          <svg
+            class="nav-icon icon-outline"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <svg
+            class="nav-icon icon-filled"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path
+              d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2h15zM9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"
+            />
+          </svg>
+          <span class="nav-label">Activity</span>
+        </div>
+        <div class="nav-item" role="button" tabindex="0">
+          <svg
+            class="nav-icon icon-outline"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <svg
+            class="nav-icon icon-filled"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <circle cx="12" cy="7" r="4" />
+            <path d="M12 13c-4 0-7 2-7 5v1h14v-1c0-3-3-5-7-5z" />
+          </svg>
+          <span class="nav-label">Profile</span>
+        </div>
+      </nav>
+    </div>
+
+    <script>
+      // Toggle between views
+      const toggleButtons = document.querySelectorAll('.toggle-btn')
+      const discoverView = document.getElementById('discover-view')
+      const myView = document.getElementById('my-view')
+
+      toggleButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          toggleButtons.forEach((b) => b.classList.remove('active'))
+          btn.classList.add('active')
+
+          const view = btn.dataset.view
+          if (view === 'discover') {
+            discoverView.style.display = 'block'
+            myView.style.display = 'none'
+          } else {
+            discoverView.style.display = 'none'
+            myView.style.display = 'block'
+          }
+        })
+      })
+
+      // Quick actions scroll magic
+      const scrollContainer = document.getElementById('quickActionsScroll')
+      const actionCards = document.querySelectorAll('.action-card')
+      const filterLabel = document.getElementById('filterLabel')
+
+      const filterNames = {
+        nearby: 'Nearby',
+        friends: 'Friends are going',
+        month: 'This month',
+        edm: 'EDM',
+        house: 'House',
+        techno: 'Techno',
+        camping: 'Camping',
+      }
+
+      function updateCardScales() {
+        const containerCenter = scrollContainer.offsetWidth / 2
+
+        actionCards.forEach((card) => {
+          const cardRect = card.getBoundingClientRect()
+          const containerRect = scrollContainer.getBoundingClientRect()
+          const cardCenter =
+            cardRect.left - containerRect.left + cardRect.width / 2
+          const distanceFromCenter = Math.abs(cardCenter - containerCenter)
+
+          if (distanceFromCenter < 60) {
+            card.classList.add('centered')
+          } else {
+            card.classList.remove('centered')
+          }
+        })
+      }
+
+      function throttle(func, limit) {
+        let inThrottle
+        return function () {
+          const args = arguments
+          const context = this
+          if (!inThrottle) {
+            func.apply(context, args)
+            inThrottle = true
+            setTimeout(() => (inThrottle = false), limit)
+          }
+        }
+      }
+
+      scrollContainer.addEventListener('scroll', throttle(updateCardScales, 50))
+
+      actionCards.forEach((card) => {
+        card.addEventListener('click', () => {
+          actionCards.forEach((c) => c.classList.remove('active'))
+          card.classList.add('active')
+
+          const filter = card.dataset.filter
+          filterLabel.textContent = `Showing: ${filterNames[filter]}`
+
+          const cardRect = card.getBoundingClientRect()
+          const containerRect = scrollContainer.getBoundingClientRect()
+          const cardCenter =
+            cardRect.left - containerRect.left + cardRect.width / 2
+          const containerCenter = scrollContainer.offsetWidth / 2
+          const scrollOffset = cardCenter - containerCenter
+
+          scrollContainer.scrollBy({
+            left: scrollOffset,
+            behavior: 'smooth',
+          })
+        })
+      })
+
+      updateCardScales()
+
+      // Bottom nav
+      const navItems = document.querySelectorAll('.nav-item')
+      navItems.forEach((item) => {
+        item.addEventListener('click', () => {
+          navItems.forEach((i) => i.classList.remove('active'))
+          item.classList.add('active')
+        })
+      })
+    </script>
+  </body>
+</html>
