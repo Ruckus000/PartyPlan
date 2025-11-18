@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import HomeScreen from './src/screens/HomeScreen';
-import SquadScreen from './src/screens/SquadScreen';
+import PlansScreen from './src/screens/PlansScreen';
 import MapScreen from './src/screens/MapScreen';
 import Fab from './src/components/Fab';
 import AddModal from './src/components/AddModal';
@@ -274,7 +274,7 @@ export default function App() {
       case 'Home':
         return <HomeScreen />;
       case 'Plans':
-        return <SquadScreen />; // Will be replaced with PlansScreen in Step 4
+        return <PlansScreen />;
       case 'Profile':
         return <MapScreen />; // Will be replaced with ProfileScreen in Step 5
       default:
