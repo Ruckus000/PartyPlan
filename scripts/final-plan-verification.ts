@@ -69,3 +69,4 @@ console.log('  - When session is null: Fetch plans from DB (for attendees), skip
 console.log('  - When session exists: Load from AsyncStorage first, then sync from DB');
 console.log('  - This ensures attendees show even when not logged in');
 
+

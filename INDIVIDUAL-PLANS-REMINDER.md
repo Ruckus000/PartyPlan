@@ -32,3 +32,4 @@ After applying these changes, test that:
 3. Switching between squads and individual mode works correctly
 4. Plans sync correctly in both modes
 
+

@@ -25,3 +25,4 @@ FOR SELECT USING (
 -- 2. Anyone (including unauthenticated users) to read profiles of users who have created plans
 -- 3. This enables the join in plans queries to return profile data for displaying attendees
 
+

@@ -52,3 +52,4 @@ console.log('   - When NOT logged in: Fetch plans from DB (to show attendees)');
 console.log('   - When NOT logged in: Don\'t load from AsyncStorage (might be wrong user\'s plans)');
 console.log('   - When logged in: Load from AsyncStorage first (for offline), then sync from DB');
 
+
