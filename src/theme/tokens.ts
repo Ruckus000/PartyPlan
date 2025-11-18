@@ -71,6 +71,13 @@ export const spacing = {
   xxl: 24,
 } as const;
 
+export const layout = {
+  bottomNavHeight: 90,
+  bottomNavPadding: 20,
+  // Total space needed for bottom nav (height + padding)
+  screenBottomPadding: 110,
+} as const;
+
 export const typography = {
   // Font sizes
   size: {

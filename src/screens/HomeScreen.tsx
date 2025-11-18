@@ -126,8 +126,20 @@ function DiscoverView({
     <>
       {/* Quick Actions Scroll */}
       <View style={styles.quickActionsWrapper}>
-        <View style={styles.fadeLeft} pointerEvents="none" />
-        <View style={styles.fadeRight} pointerEvents="none" />
+        <LinearGradient
+          colors={[colors.bg, 'transparent']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.fadeLeft}
+          pointerEvents="none"
+        />
+        <LinearGradient
+          colors={['transparent', colors.bg]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.fadeRight}
+          pointerEvents="none"
+        />
 
         <ScrollView
           horizontal
@@ -391,8 +403,6 @@ const styles = StyleSheet.create({
     bottom: 8,
     width: 60,
     zIndex: 2,
-    backgroundColor: 'transparent',
-    // Gradient overlay would go here
   },
   fadeRight: {
     position: 'absolute',
@@ -401,7 +411,6 @@ const styles = StyleSheet.create({
     bottom: 8,
     width: 60,
     zIndex: 2,
-    backgroundColor: 'transparent',
   },
   quickActions: {
     paddingHorizontal: 20,

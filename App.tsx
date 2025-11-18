@@ -31,6 +31,9 @@ import { colors } from './src/theme/tokens';
 
 type Tab = 'Home' | 'Plans' | 'Profile';
 
+// Tab definition type - static tab data without dynamic state
+type TabDefinition = Omit<TabConfig, 'isActive' | 'showBadge'> & { key: Tab };
+
 // Debounce delay for AsyncStorage writes (reduces disk I/O and battery usage)
 const PERSISTENCE_DEBOUNCE_MS = 500;
 
@@ -289,13 +292,7 @@ export default function App() {
   const handleProfilePress = useCallback(() => setActiveTab('Profile'), []);
 
   // Static tab configuration (icons and labels)
-  const tabData: {
-    key: Tab;
-    label: string;
-    iconOutline: React.ReactNode;
-    iconFilled: React.ReactNode;
-    onPress: () => void;
-  }[] = useMemo(
+  const tabData: TabDefinition[] = useMemo(
     () => [
       {
         key: 'Home',

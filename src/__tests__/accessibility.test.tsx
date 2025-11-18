@@ -21,12 +21,6 @@ describe('Accessibility Compliance Tests', () => {
         height: 44,
       });
     });
-
-    it('All Pressable components have minimum 44pt touch targets', () => {
-      // This is a principle test - we've ensured all interactive elements
-      // meet iOS/Android guidelines throughout implementation
-      expect(true).toBe(true);
-    });
   });
 
   describe('Accessibility Labels', () => {

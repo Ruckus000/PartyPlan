@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, ViewStyle, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, gradients } from '../../theme/tokens';
+import { colors, gradients, layout } from '../../theme/tokens';
 
 interface AppScreenProps {
   children: React.ReactNode;
@@ -89,10 +89,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 110, // Space for bottom nav
+    paddingBottom: layout.screenBottomPadding, // Space for bottom nav
   },
   content: {
     flex: 1,
-    paddingBottom: 110,
+    paddingBottom: layout.screenBottomPadding,
   },
 });
