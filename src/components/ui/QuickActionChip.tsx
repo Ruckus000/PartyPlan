@@ -27,9 +27,15 @@ export function QuickActionChip({
   onPress,
   style,
 }: QuickActionChipProps) {
+  const accessibilityLabel = `${label} filter. ${count || ''}${badge ? `. ${badge}` : ''}`;
+
   return (
     <Pressable
       onPress={onPress}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="button"
+      accessibilityState={{ selected: isActive }}
+      accessibilityHint={`Filter festivals by ${label.toLowerCase()}`}
       style={({ pressed }) => [
         styles.container,
         isFeatured && styles.containerFeatured,

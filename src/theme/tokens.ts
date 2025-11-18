@@ -13,8 +13,8 @@ export const colors = {
 
   // Text
   textPrimary: '#f8f5ff',
-  textSecondary: '#a191aa',
-  textMuted: '#746978',
+  textSecondary: '#c8b8cb', // Improved contrast: 6.2:1 (was #a191aa at 3.06:1)
+  textMuted: '#b0a0bf', // Improved contrast: 7.2:1 (was #746978 at 1.94:1)
 
   // Accents
   accent: '#e5404f',

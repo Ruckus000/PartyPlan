@@ -23,6 +23,9 @@ export function SegmentedControl({
         <Pressable
           key={option}
           onPress={() => onChange(index)}
+          accessibilityLabel={`${option} view`}
+          accessibilityRole="button"
+          accessibilityState={{ selected: selectedIndex === index }}
           style={({ pressed }) => [
             styles.button,
             selectedIndex === index && styles.buttonActive,
@@ -54,11 +57,12 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    paddingVertical: 9,
+    paddingVertical: 11, // Increased from 9 to meet 44px minimum touch target
     paddingHorizontal: 18,
     borderRadius: radii.pill,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 38, // Ensures button itself is at least 38px (container adds 6px)
   },
   buttonActive: {
     backgroundColor: colors.accent,

@@ -54,7 +54,12 @@ export default function HomeScreen() {
             onChange={(index) => setViewMode(index === 0 ? 'discover' : 'my')}
           />
 
-          <Pressable style={styles.searchBtn}>
+          <Pressable
+            style={styles.searchBtn}
+            accessibilityLabel="Search festivals"
+            accessibilityRole="button"
+            accessibilityHint="Search for festivals and events"
+          >
             <SearchIcon size={18} />
           </Pressable>
         </View>
@@ -306,9 +311,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 20,
     top: '50%',
-    marginTop: -18,
-    width: 36,
-    height: 36,
+    marginTop: -22, // Half of height (44/2) for vertical centering
+    width: 44, // iOS minimum touch target: 44×44pt
+    height: 44,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',

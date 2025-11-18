@@ -37,9 +37,14 @@ export function MyFestivalCard({ festival, onPress }: MyFestivalCardProps) {
     }
   };
 
+  const friendsText = `${friendsCount} ${friendsCount === 1 ? 'friend' : 'friends'} in your squad`;
+
   return (
     <Pressable
       onPress={onPress}
+      accessibilityLabel={`${name}. ${dateRange}. ${location}. ${friendsText}. Status: ${getStatusLabel()}`}
+      accessibilityRole="button"
+      accessibilityHint="Tap to manage this festival plan"
       style={({ pressed }) => [
         styles.card,
         pressed && styles.cardPressed,

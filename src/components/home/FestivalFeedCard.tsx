@@ -32,9 +32,16 @@ export function FestivalFeedCard({ festival, onPress }: FestivalFeedCardProps) {
   const displayedFriends = friendsGoing.slice(0, 3);
   const remainingCount = Math.max(0, totalFriends - 3);
 
+  const friendText = totalFriends > 0
+    ? `${totalFriends} ${totalFriends === 1 ? 'friend is' : 'friends are'} going`
+    : '';
+
   return (
     <Pressable
       onPress={onPress}
+      accessibilityLabel={`${title} festival card. ${dateRange}. ${location}. ${genre}. ${friendText}`}
+      accessibilityRole="button"
+      accessibilityHint="Tap to view festival details"
       style={({ pressed }) => [
         styles.card,
         pressed && styles.cardPressed,
