@@ -4,7 +4,6 @@ import {
   StyleSheet,
   ViewStyle,
   Pressable,
-  PressableProps,
 } from 'react-native';
 import { colors, radii, shadows } from '../../theme/tokens';
 

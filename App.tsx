@@ -27,7 +27,6 @@ import { useDebouncedPersistence } from './src/hooks/useDebouncedPersistence';
 import { SyncProvider } from './src/contexts/SyncContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
-import { colors as oldColors } from './src/constants/colors';
 import { colors } from './src/theme/tokens';
 
 type Tab = 'Home' | 'Plans' | 'Profile';
