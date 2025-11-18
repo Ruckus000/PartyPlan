@@ -23,7 +23,7 @@ import {
   TechnoIcon,
   CampingIcon,
 } from '../components/icons/QuickActionIcons';
-import { colors, radii, typography, gradients } from '../theme/tokens';
+import { colors, typography, gradients } from '../theme/tokens';
 
 type ViewMode = 'discover' | 'my';
 type FilterType = 'nearby' | 'friends' | 'month' | 'edm' | 'house' | 'techno' | 'camping';

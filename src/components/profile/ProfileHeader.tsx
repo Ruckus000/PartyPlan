@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, radii, typography } from '../../theme/tokens';
+import { colors, typography } from '../../theme/tokens';
 
 interface ProfileHeaderProps {
   emoji: string;

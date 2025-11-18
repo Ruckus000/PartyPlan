@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet, ViewStyle } from 'react-native';
-import { colors, radii, typography, transitions } from '../../theme/tokens';
+import { colors, radii, typography } from '../../theme/tokens';
 
 interface QuickActionChipProps {
   label: string;

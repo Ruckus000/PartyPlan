@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import Svg, { Path, Circle, Line, Polyline, Rect } from 'react-native-svg';
-import { colors, radii, typography } from '../../theme/tokens';
+import Svg, { Path, Circle, Line, Polyline } from 'react-native-svg';
+import { colors, typography } from '../../theme/tokens';
 import { ToggleSwitch } from './ToggleSwitch';
 
 export type SettingIcon =

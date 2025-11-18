@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
+import { View, StyleSheet, FlatList, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppScreen } from '../components/ui/AppScreen';
 import { FilterTabs, FilterTab } from '../components/plans/FilterTabs';
 import { SquadCard, Squad } from '../components/plans/SquadCard';
 import { PlusIcon } from '../components/icons/TabIcons';
-import { colors, radii, gradients, typography } from '../theme/tokens';
+import { colors, gradients } from '../theme/tokens';
 
 type FilterType = 'all' | 'todo' | 'groups' | 'solo';
 

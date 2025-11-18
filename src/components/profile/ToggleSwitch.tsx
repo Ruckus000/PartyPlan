@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
-import { Pressable, View, StyleSheet, Animated } from 'react-native';
-import { colors, transitions } from '../../theme/tokens';
+import { Pressable, StyleSheet, Animated } from 'react-native';
+import { colors } from '../../theme/tokens';
 
 interface ToggleSwitchProps {
   value: boolean;

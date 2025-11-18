@@ -41,7 +41,7 @@ export interface Squad {
   members: SquadMember[];
   totalMembers: number;
   confirmedCount: number;
-  statuses: Array<{ type: StatusType; text: string; showIcon?: boolean }>;
+  statuses: { type: StatusType; text: string; showIcon?: boolean }[];
   activities?: ActivityItem[];
   hasInvite?: boolean;
   inviteText?: string;

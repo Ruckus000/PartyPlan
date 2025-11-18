@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Linking } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { AppScreen } from '../components/ui/AppScreen';
 import { ProfileHeader } from '../components/profile/ProfileHeader';
 import { SettingsSection } from '../components/profile/SettingsSection';
