@@ -50,16 +50,16 @@ export function BottomNav({ tabs }: BottomNavProps) {
       {Platform.OS === 'ios' ? (
         <BlurView intensity={80} tint="dark" style={styles.blur}>
           <View style={styles.innerContainer}>
-            {tabs.map((tab) => (
-              <NavItem key={tab.key} {...tab} />
+            {tabs.map(({ key, ...tabProps }) => (
+              <NavItem key={key} {...tabProps} />
             ))}
           </View>
         </BlurView>
       ) : (
         <View style={[styles.blur, styles.solidBackground]}>
           <View style={styles.innerContainer}>
-            {tabs.map((tab) => (
-              <NavItem key={tab.key} {...tab} />
+            {tabs.map(({ key, ...tabProps }) => (
+              <NavItem key={key} {...tabProps} />
             ))}
           </View>
         </View>

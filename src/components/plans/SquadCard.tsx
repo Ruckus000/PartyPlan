@@ -86,11 +86,15 @@ export const SquadCard = React.memo(function SquadCard({
   } = squad;
 
   const displayedMembers = members.slice(0, 4);
+  const cardStyle = StyleSheet.flatten([
+    styles.card,
+    hasInvite ? styles.cardWithInvite : undefined,
+  ]);
 
   return (
     <Card
       variant="default"
-      style={[styles.card, hasInvite && styles.cardWithInvite]}
+      style={cardStyle}
     >
       {/* Invite Notification */}
       {hasInvite && inviteText && (

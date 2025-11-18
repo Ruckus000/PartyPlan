@@ -49,7 +49,7 @@ export default function HomeScreen() {
       {/* Sticky Header */}
       <View style={styles.header}>
         <LinearGradient
-          colors={gradients.header.colors as string[]}
+          colors={[...gradients.header.colors]}
           locations={gradients.header.locations}
           style={StyleSheet.absoluteFill}
           pointerEvents="none"

@@ -69,7 +69,7 @@ export default function TimePicker({ value, onChange }: TimePickerProps) {
     }
   }, [value]);
 
-  const scrollToIndex = (ref: React.RefObject<ScrollView>, index: number) => {
+  const scrollToIndex = (ref: React.RefObject<ScrollView | null>, index: number) => {
     ref.current?.scrollTo({
       y: index * ITEM_HEIGHT,
       animated: true,
@@ -77,7 +77,7 @@ export default function TimePicker({ value, onChange }: TimePickerProps) {
   };
 
   const handleScroll = (
-    ref: React.RefObject<ScrollView>,
+    ref: React.RefObject<ScrollView | null>,
     items: (string | number)[],
     setter: (value: any) => void
   ) => {
@@ -93,7 +93,7 @@ export default function TimePicker({ value, onChange }: TimePickerProps) {
     items: (string | number)[],
     selectedValue: string | number,
     onScroll: (event: any) => void,
-    ref: React.RefObject<ScrollView>,
+    ref: React.RefObject<ScrollView | null>,
     formatValue: (item: string | number) => string = (item) => String(item).padStart(2, '0')
   ) => {
     const paddingTop = ITEM_HEIGHT * 1;
