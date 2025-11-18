@@ -108,7 +108,7 @@ export const SquadCard = React.memo(function SquadCard({
             <Pressable
               style={styles.inviteButton}
               onPress={(e) => {
-                e.stopPropagation();
+                e?.stopPropagation?.();
                 onAcceptInvite?.();
               }}
               accessibilityLabel="Accept invite"
@@ -119,7 +119,7 @@ export const SquadCard = React.memo(function SquadCard({
             <Pressable
               style={[styles.inviteButton, styles.inviteButtonDecline]}
               onPress={(e) => {
-                e.stopPropagation();
+                e?.stopPropagation?.();
                 onDeclineInvite?.();
               }}
               accessibilityLabel="Decline invite"
