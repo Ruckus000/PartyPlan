@@ -23,6 +23,9 @@ import { colors } from './src/constants/colors';
 
 type Tab = 'Timeline' | 'Squad' | 'Map';
 
+// TEMPORARY: Set to true to bypass login requirement
+const BYPASS_LOGIN = true;
+
 // Debounce delay for AsyncStorage writes (reduces disk I/O and battery usage)
 const PERSISTENCE_DEBOUNCE_MS = 500;
 
@@ -157,11 +160,13 @@ export default function App() {
     return <View style={{ flex: 1, backgroundColor: colors.bgSecondary }} />;
   }
 
-  if (!session) {
+  // TEMPORARY: Bypass login check
+  if (!BYPASS_LOGIN && !session) {
     return <AuthScreen />;
   }
 
-  if (!profile?.display_name) {
+  // TEMPORARY: Bypass profile setup check
+  if (!BYPASS_LOGIN && !profile?.display_name) {
     return <ProfileSetupScreen onProfileSetupComplete={handleProfileSetupComplete} />;
   }
 
