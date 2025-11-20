@@ -111,17 +111,20 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
     alignItems: 'center',
     zIndex: 60,
   },
   blur: {
-    // From mockup: border-radius: 26px
-    borderRadius: navigation.bottomNav.borderRadius,
+    width: '100%',
+    borderRadius: 0,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     overflow: 'hidden',
-    // From mockup: border: 1px solid rgba(255, 255, 255, 0.08)
-    borderWidth: navigation.bottomNav.borderWidth,
+    borderWidth: 0,
+    borderTopWidth: 1,
     borderColor: colors.borderSubtle,
-    ...shadows.large,
   },
   solidBackground: {
     // From mockup: background: rgba(10, 6, 12, 0.96)
@@ -132,8 +135,10 @@ const styles = StyleSheet.create({
     // From mockup: justify-content: space-around
     justifyContent: 'space-around',
     alignItems: 'center',
+    width: '100%',
+    maxWidth: 400,
+    alignSelf: 'center',
     // Padding is applied dynamically to handle safe area inset
-    // Width is applied dynamically via getBottomNavDimensions()
   },
   navItem: {
     flex: 1,

@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
   },
   quickActionsWrapper: {
     position: 'relative',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   fadeLeft: {
     position: 'absolute',
@@ -427,13 +427,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   sectionHeader: {
-    marginBottom: 10,
+    marginBottom: 12,
+    paddingTop: 4,
   },
   sectionLabel: {
-    fontSize: typography.size.sm,
+    fontSize: 11,
     textTransform: 'uppercase',
     letterSpacing: 0.14,
     color: colors.textMuted,
+    opacity: 0.6,
     marginBottom: 4,
   },
   sectionTitle: {

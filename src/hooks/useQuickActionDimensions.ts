@@ -5,12 +5,15 @@ import { useWindowDimensions } from 'react-native';
  * Scales proportionally on small screens, caps at design specs on large screens
  */
 export function useQuickActionDimensions() {
+  const { width: screenWidth } = useWindowDimensions();
+  const availableWidth = screenWidth - 40 - 16;
+  
   return {
-    standard: 110,
-    featured: 160,
+    standard: Math.floor(availableWidth / 3),
+    featured: Math.floor(availableWidth / 2) - 4,
     iconWrapper: {
-      standard: 28,
-      featured: 32,
+      standard: 24,
+      featured: 28,
     },
     gap: 8,
   };
