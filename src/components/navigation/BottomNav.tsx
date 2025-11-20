@@ -7,6 +7,7 @@ import {
   Platform,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, shadows, typography } from '../../theme/tokens';
 import { navigation } from '../../theme/dimensions';
@@ -41,18 +42,17 @@ export function BottomNav({ tabs }: BottomNavProps) {
   const navDimensions = getBottomNavDimensions();
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          bottom: 0,
-        },
-      ]}
-    >
+    <View style={styles.container}>
       {/* Blur background for iOS, solid background for Android */}
       {Platform.OS === 'ios' ? (
         <BlurView intensity={80} tint="dark" style={styles.blur}>
-          <View style={[styles.innerContainer, { width: navDimensions.width, paddingTop: navigation.bottomNav.paddingPlans, paddingHorizontal: navigation.bottomNav.paddingPlans, paddingBottom: navigation.bottomNav.paddingPlans + insets.bottom }]}>
+          <LinearGradient
+            colors={['rgba(229, 64, 79, 0.2)', 'rgba(229, 64, 79, 0)', 'rgba(229, 64, 79, 0)']}
+            locations={[0, 0.2, 1]}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
+          <View style={[styles.innerContainer, { paddingVertical: 10, paddingHorizontal: 16, paddingBottom: 10 + insets.bottom }]}>
             {tabs.map(({ key, ...tabProps }) => (
               <NavItem key={key} {...tabProps} />
             ))}
@@ -60,7 +60,13 @@ export function BottomNav({ tabs }: BottomNavProps) {
         </BlurView>
       ) : (
         <View style={[styles.blur, styles.solidBackground]}>
-          <View style={[styles.innerContainer, { width: navDimensions.width, paddingTop: navigation.bottomNav.paddingPlans, paddingHorizontal: navigation.bottomNav.paddingPlans, paddingBottom: navigation.bottomNav.paddingPlans + insets.bottom }]}>
+          <LinearGradient
+            colors={['rgba(229, 64, 79, 0.2)', 'rgba(229, 64, 79, 0)', 'rgba(229, 64, 79, 0)']}
+            locations={[0, 0.2, 1]}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
+          <View style={[styles.innerContainer, { paddingVertical: 10, paddingHorizontal: 16, paddingBottom: 10 + insets.bottom }]}>
             {tabs.map(({ key, ...tabProps }) => (
               <NavItem key={key} {...tabProps} />
             ))}
@@ -109,47 +115,35 @@ function NavItem({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
+    left: 20,
+    right: 20,
+    bottom: 8,
     backgroundColor: 'transparent',
     alignItems: 'center',
     zIndex: 60,
   },
   blur: {
-    width: '100%',
-    borderRadius: 0,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderRadius: 24,
     overflow: 'hidden',
     borderWidth: 0,
-    borderTopWidth: 1,
-    borderColor: colors.borderSubtle,
+    borderColor: 'transparent',
   },
   solidBackground: {
-    // From mockup: background: rgba(10, 6, 12, 0.96)
-    backgroundColor: 'rgba(10, 6, 12, 0.96)',
+    backgroundColor: 'rgba(18, 12, 20, 0.94)',
   },
   innerContainer: {
     flexDirection: 'row',
-    // From mockup: justify-content: space-around
     justifyContent: 'space-around',
     alignItems: 'center',
-    width: '100%',
-    maxWidth: 400,
     alignSelf: 'center',
-    // Padding is applied dynamically to handle safe area inset
   },
   navItem: {
-    flex: 1,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    // From mockup: aspect-ratio: 1
-    aspectRatio: 1,
-    // From mockup: max-width: 48px
-    maxWidth: navigation.bottomNav.itemMaxWidth,
-    // From mockup: border-radius: 16px
-    borderRadius: navigation.bottomNav.itemBorderRadius,
+    borderRadius: 22,
+    marginHorizontal: 6,
     position: 'relative',
   },
   navItemActive: {

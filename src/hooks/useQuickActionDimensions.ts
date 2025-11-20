@@ -10,7 +10,7 @@ export function useQuickActionDimensions() {
   
   return {
     standard: Math.floor(availableWidth / 3),
-    featured: Math.floor(availableWidth / 2) - 4,
+    featured: Math.min(180, Math.floor(availableWidth / 2) - 4),
     iconWrapper: {
       standard: 24,
       featured: 28,

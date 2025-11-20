@@ -70,11 +70,16 @@ export const QuickActionChip = React.memo(function QuickActionChip({
       <View style={styles.content}>
         <Text
           style={[styles.label, isFeatured && styles.labelFeatured]}
-          numberOfLines={2}
+          numberOfLines={1}
+          ellipsizeMode="tail"
         >
           {label}
         </Text>
-        {count && <Text style={styles.count}>{count}</Text>}
+        {count && (
+          <Text style={styles.count} numberOfLines={1} ellipsizeMode="tail">
+            {count}
+          </Text>
+        )}
       </View>
     </Pressable>
   );
@@ -142,11 +147,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(229, 64, 79, 0.15)',
   },
   content: {
-    gap: 2,
+    flex: 1,
+    minWidth: 0,
+    gap: 1,
   },
   label: {
-    fontSize: typography.size.base,
-    fontWeight: typography.weight.semibold,
+    fontSize: 13,
+    fontWeight: '600',
     letterSpacing: -0.01,
     color: colors.textPrimary,
     lineHeight: 17,
@@ -155,8 +162,9 @@ const styles = StyleSheet.create({
     fontSize: typography.size.md,
   },
   count: {
-    fontSize: typography.size.sm,
+    fontSize: 10,
     color: colors.textMuted,
+    opacity: 0.7,
     lineHeight: 14,
   },
 });

@@ -162,7 +162,7 @@ function DiscoverView({
           />
 
           <QuickActionChip
-            label="Friends are going"
+            label="Friends going"
             count="24 friends • 8 festivals"
             icon={<UsersIcon />}
             isActive={activeFilter === 'friends'}
@@ -216,12 +216,8 @@ function DiscoverView({
       {/* Section Header */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <View>
-            <Text style={styles.sectionLabel}>
-              Showing: {getFilterLabel(activeFilter)}
-            </Text>
-            <Text style={styles.sectionTitle}>Upcoming festivals</Text>
-          </View>
+          <Text style={styles.sectionTitle}>Upcoming</Text>
+          <Text style={styles.sectionLabel}>Showing: {getFilterLabel(activeFilter)}</Text>
         </View>
 
         {/* Feed List */}
@@ -429,17 +425,20 @@ const styles = StyleSheet.create({
   sectionHeader: {
     marginBottom: 12,
     paddingTop: 4,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
   },
   sectionLabel: {
-    fontSize: 11,
-    textTransform: 'uppercase',
+    fontSize: 13,
+    fontWeight: '500',
+    textTransform: 'none',
     letterSpacing: 0.14,
     color: colors.textMuted,
-    opacity: 0.6,
-    marginBottom: 4,
+    opacity: 0.5,
   },
   sectionTitle: {
-    fontSize: typography.size.xxl,
+    fontSize: 28,
     fontWeight: typography.weight.semibold,
     letterSpacing: -0.02,
     color: colors.textPrimary,
