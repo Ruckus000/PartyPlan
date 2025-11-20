@@ -69,7 +69,7 @@ export default function HomeScreen() {
             accessibilityRole="button"
             accessibilityHint="Search for festivals and events"
           >
-            <SearchIcon size={24} />
+            <SearchIcon size={28} />
           </Pressable>
         </View>
       </View>
@@ -118,8 +118,8 @@ function DiscoverView({
 
   const getItemLayout = useCallback(
     (_data: unknown, index: number) => ({
-      length: 340, // Estimated height of FestivalFeedCard
-      offset: 340 * index,
+      length: 260,
+      offset: 260 * index,
       index,
     }),
     []
@@ -370,8 +370,8 @@ const STUB_MY_FESTIVALS: MyFestival[] = [
 const styles = StyleSheet.create({
   header: {
     position: 'relative',
-    paddingTop: 12, // Reduced from 18 to move toggle up
-    paddingBottom: 20, // Increased from 12 to add space below
+    paddingTop: 12,
+    paddingBottom: 12,
     paddingHorizontal: 20,
   },
   headerRow: {
@@ -382,22 +382,23 @@ const styles = StyleSheet.create({
   },
   searchBtn: {
     position: 'absolute',
-    right: 20,
+    right: 12,
     top: '50%',
-    marginTop: -22, // Half of height (44/2) for vertical centering
-    width: 44, // iOS minimum touch target: 44×44pt
-    height: 44,
-    borderRadius: 12,
+    marginTop: -25,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   content: {
     flex: 1,
-    paddingTop: 16,
+    paddingTop: 8,
   },
   quickActionsWrapper: {
     position: 'relative',
-    marginBottom: 20,
+    marginBottom: 12,
   },
   fadeLeft: {
     position: 'absolute',
@@ -425,7 +426,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   sectionHeader: {
-    marginBottom: 14,
+    marginBottom: 10,
   },
   sectionLabel: {
     fontSize: typography.size.sm,

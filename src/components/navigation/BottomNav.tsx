@@ -45,15 +45,14 @@ export function BottomNav({ tabs }: BottomNavProps) {
       style={[
         styles.container,
         {
-          // From mockup: bottom: 18px + safe area
-          bottom: navigation.bottomNav.bottomOffset + Math.max(insets.bottom, 0),
+          bottom: 0,
         },
       ]}
     >
       {/* Blur background for iOS, solid background for Android */}
       {Platform.OS === 'ios' ? (
         <BlurView intensity={80} tint="dark" style={styles.blur}>
-          <View style={[styles.innerContainer, { width: navDimensions.width }]}>
+          <View style={[styles.innerContainer, { width: navDimensions.width, paddingTop: navigation.bottomNav.paddingPlans, paddingHorizontal: navigation.bottomNav.paddingPlans, paddingBottom: navigation.bottomNav.paddingPlans + insets.bottom }]}>
             {tabs.map(({ key, ...tabProps }) => (
               <NavItem key={key} {...tabProps} />
             ))}
@@ -61,7 +60,7 @@ export function BottomNav({ tabs }: BottomNavProps) {
         </BlurView>
       ) : (
         <View style={[styles.blur, styles.solidBackground]}>
-          <View style={[styles.innerContainer, { width: navDimensions.width }]}>
+          <View style={[styles.innerContainer, { width: navDimensions.width, paddingTop: navigation.bottomNav.paddingPlans, paddingHorizontal: navigation.bottomNav.paddingPlans, paddingBottom: navigation.bottomNav.paddingPlans + insets.bottom }]}>
             {tabs.map(({ key, ...tabProps }) => (
               <NavItem key={key} {...tabProps} />
             ))}
@@ -133,8 +132,7 @@ const styles = StyleSheet.create({
     // From mockup: justify-content: space-around
     justifyContent: 'space-around',
     alignItems: 'center',
-    // From mockup (plans): padding: 10px
-    padding: navigation.bottomNav.paddingPlans,
+    // Padding is applied dynamically to handle safe area inset
     // Width is applied dynamically via getBottomNavDimensions()
   },
   navItem: {

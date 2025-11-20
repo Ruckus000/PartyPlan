@@ -83,11 +83,12 @@ export const QuickActionChip = React.memo(function QuickActionChip({
 const styles = StyleSheet.create({
   container: {
     // width: 140, // Handled dynamically
+    minHeight: 76,
     backgroundColor: 'rgba(21, 16, 25, 0.6)',
     borderWidth: 1,
     borderColor: colors.borderSubtle,
     borderRadius: 18,
-    padding: 16,
+    padding: 12,
     position: 'relative',
   },
   containerFeatured: {

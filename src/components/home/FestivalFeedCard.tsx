@@ -110,8 +110,7 @@ const styles = StyleSheet.create({
     borderColor: colors.borderMedium,
   },
   header: {
-    // From mockup: height: 240px
-    height: home.festivalFeed.card.imageHeight,
+    height: 140,
     position: 'relative',
   },
   headerImage: {
@@ -203,6 +202,7 @@ const styles = StyleSheet.create({
   },
   body: {
     // From mockup: padding: 14px 16px 16px
+    flex: 1,
     paddingTop: home.festivalFeed.card.bodyPadding.top,
     paddingHorizontal: home.festivalFeed.card.bodyPadding.horizontal,
     paddingBottom: home.festivalFeed.card.bodyPadding.bottom,
