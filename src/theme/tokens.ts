@@ -2,7 +2,25 @@
  * Design Tokens
  * Extracted from HTML mockups (home.html, plan.html, profile.html)
  * Based on CSS variables in :root
+ *
+ * Re-exports from dimensions.ts for convenience
+ * Import from dimensions.ts for component-specific sizing
  */
+
+export { spacing, radii, typography, icons, elevation } from './dimensions';
+export { touchTargetSizes } from './accessibility';
+export {
+  scale,
+  verticalScale,
+  moderateScale,
+  normalize,
+  responsive,
+  getDeviceSize,
+  isTablet,
+  getMaxContentWidth,
+  getBottomNavDimensions,
+  getShadowElevation,
+} from './responsive';
 
 export const colors = {
   // Backgrounds
@@ -31,13 +49,6 @@ export const colors = {
   borderHeavy: 'rgba(255, 255, 255, 0.18)',
 } as const;
 
-export const radii = {
-  lg: 24,
-  md: 18,
-  sm: 12,
-  pill: 999,
-} as const;
-
 export const shadows = {
   small: {
     shadowColor: '#000',
@@ -62,49 +73,11 @@ export const shadows = {
   },
 } as const;
 
-export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  xxl: 24,
-} as const;
-
 export const layout = {
   bottomNavHeight: 90,
   bottomNavPadding: 20,
   // Total space needed for bottom nav (height + padding)
   screenBottomPadding: 110,
-} as const;
-
-export const typography = {
-  // Font sizes
-  size: {
-    xs: 10,
-    sm: 11,
-    base: 13,
-    md: 14,
-    lg: 15,
-    xl: 17,
-    xxl: 20,
-    xxxl: 24,
-  },
-  // Font weights
-  weight: {
-    normal: '400' as const,
-    medium: '500' as const,
-    semibold: '600' as const,
-    bold: '700' as const,
-    extrabold: '800' as const,
-  },
-  // Letter spacing
-  letterSpacing: {
-    tight: -0.02,
-    normal: 0,
-    wide: 0.06,
-    wider: 0.14,
-  },
 } as const;
 
 // Gradient backgrounds from mockups

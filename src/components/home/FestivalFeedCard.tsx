@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, ImageBackground, StyleSheet, Pressable } from 'react-native';
-import { colors, radii, typography } from '../../theme/tokens';
+import { colors, typography } from '../../theme/tokens';
+import { home, radii } from '../../theme/dimensions';
 
 export interface FriendAvatar {
   emoji: string;
@@ -97,9 +98,11 @@ export const FestivalFeedCard = React.memo(function FestivalFeedCard({ festival,
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.bgCard,
-    borderWidth: 1,
+    // From mockup: border: 1px solid var(--border-subtle)
+    borderWidth: home.festivalFeed.card.borderWidth,
     borderColor: colors.borderSubtle,
-    borderRadius: radii.lg,
+    // From mockup: border-radius: 24px
+    borderRadius: home.festivalFeed.card.borderRadius,
     overflow: 'hidden',
   },
   cardPressed: {
@@ -107,7 +110,8 @@ const styles = StyleSheet.create({
     borderColor: colors.borderMedium,
   },
   header: {
-    height: 240,
+    // From mockup: height: 240px
+    height: home.festivalFeed.card.imageHeight,
     position: 'relative',
   },
   headerImage: {
@@ -116,58 +120,68 @@ const styles = StyleSheet.create({
   vignette: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'transparent',
-    // Radial gradient would need react-native-linear-gradient with radial support
-    // For now, using subtle overlay
+    // From mockup: radial-gradient(ellipse at center, rgba(0,0,0,0) 50%, rgba(5,3,6,0.25) 100%)
+    // Native doesn't support radial gradients easily, subtle overlay is fine
     borderRadius: 0,
   },
   dateBadge: {
+    // From mockup: top: 12px, left: 12px
     position: 'absolute',
-    top: 12,
-    left: 12,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: radii.pill,
+    top: home.festivalFeed.dateBadge.position.top,
+    left: home.festivalFeed.dateBadge.position.left,
+    // From mockup: padding: 6px 12px
+    paddingVertical: home.festivalFeed.dateBadge.padding.vertical,
+    paddingHorizontal: home.festivalFeed.dateBadge.padding.horizontal,
+    borderRadius: home.festivalFeed.dateBadge.borderRadius,
+    // From mockup: background: rgba(0, 0, 0, 0.6), backdrop-filter: blur(10px)
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    borderWidth: 1,
+    borderWidth: home.festivalFeed.dateBadge.borderWidth,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   dateBadgeText: {
-    fontSize: typography.size.sm,
+    // From mockup: font-size: 11px, font-weight: 600
+    fontSize: typography.size.xxs,
     fontWeight: typography.weight.semibold,
     color: '#fff',
   },
   friendsOverlay: {
+    // From mockup: top: 12px, right: 12px
     position: 'absolute',
-    top: 12,
-    right: 12,
+    top: home.festivalFeed.friendsOverlay.position.top,
+    right: home.festivalFeed.friendsOverlay.position.right,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    paddingLeft: 6,
+    // From mockup: padding: 6px 10px 6px 6px
+    paddingVertical: home.festivalFeed.friendsOverlay.padding.vertical,
+    paddingHorizontal: home.festivalFeed.friendsOverlay.padding.horizontal,
+    paddingLeft: home.festivalFeed.friendsOverlay.padding.left,
     borderRadius: radii.pill,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    borderWidth: 1,
+    borderWidth: home.festivalFeed.friendsOverlay.borderWidth,
     borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   friendsAvatars: {
     flexDirection: 'row',
   },
   friendAvatar: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    // From mockup: width/height: 26px
+    width: home.festivalFeed.friendsOverlay.avatarSize,
+    height: home.festivalFeed.friendsOverlay.avatarSize,
+    borderRadius: home.festivalFeed.friendsOverlay.avatarSize / 2,
     backgroundColor: '#30202a',
-    borderWidth: 1.5,
+    // From mockup: border: 1.5px solid rgba(0, 0, 0, 0.4)
+    borderWidth: home.festivalFeed.friendsOverlay.avatarBorderWidth,
     borderColor: 'rgba(0, 0, 0, 0.4)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   friendAvatarStacked: {
-    marginLeft: -8,
+    // From mockup: margin-left: -8px (except first-child)
+    marginLeft: home.festivalFeed.friendsOverlay.avatarOverlap,
   },
   friendAvatarMore: {
+    // From mockup: background: rgba(229, 64, 79, 0.15), border-color: rgba(229, 64, 79, 0.3)
     backgroundColor: 'rgba(229, 64, 79, 0.15)',
     borderColor: 'rgba(229, 64, 79, 0.3)',
   },
@@ -175,30 +189,35 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   friendMoreText: {
-    fontSize: typography.size.xs,
+    // From mockup: font-size: 10px, font-weight: 700
+    fontSize: typography.size.xxxs,
     fontWeight: typography.weight.bold,
     color: '#fff',
   },
   friendsCount: {
-    fontSize: 12,
+    // From mockup: font-size: 12px, font-weight: 600
+    fontSize: typography.size.xs,
     fontWeight: typography.weight.semibold,
     color: '#fff',
     paddingRight: 2,
   },
   body: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    paddingBottom: 16,
+    // From mockup: padding: 14px 16px 16px
+    paddingTop: home.festivalFeed.card.bodyPadding.top,
+    paddingHorizontal: home.festivalFeed.card.bodyPadding.horizontal,
+    paddingBottom: home.festivalFeed.card.bodyPadding.bottom,
   },
   title: {
-    fontSize: typography.size.xl,
+    // From mockup: font-size: 17px, font-weight: 700, letter-spacing: -0.02em
+    fontSize: typography.size.lg,
     fontWeight: typography.weight.bold,
-    letterSpacing: -0.02,
+    letterSpacing: typography.letterSpacing.tight,
     color: colors.textPrimary,
     marginBottom: 4,
   },
   location: {
-    fontSize: typography.size.base,
+    // From mockup: font-size: 13px
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
   },
 });

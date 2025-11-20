@@ -23,6 +23,7 @@ import {
   TechnoIcon,
   CampingIcon,
 } from '../components/icons/QuickActionIcons';
+import { useQuickActionDimensions } from '../hooks/useQuickActionDimensions';
 import { colors, typography, gradients } from '../theme/tokens';
 
 type ViewMode = 'discover' | 'my';
@@ -68,7 +69,7 @@ export default function HomeScreen() {
             accessibilityRole="button"
             accessibilityHint="Search for festivals and events"
           >
-            <SearchIcon size={18} />
+            <SearchIcon size={24} />
           </Pressable>
         </View>
       </View>
@@ -105,6 +106,8 @@ function DiscoverView({
   const handleHousePress = useCallback(() => onFilterChange('house'), [onFilterChange]);
   const handleTechnoPress = useCallback(() => onFilterChange('techno'), [onFilterChange]);
   const handleCampingPress = useCallback(() => onFilterChange('camping'), [onFilterChange]);
+
+  const dimensions = useQuickActionDimensions();
 
   const renderFestivalItem = useCallback(
     ({ item }: { item: FestivalFeed }) => <FestivalFeedCard festival={item} />,
@@ -145,7 +148,7 @@ function DiscoverView({
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.quickActions}
-          snapToInterval={150}
+          snapToInterval={dimensions.standard + dimensions.gap}
           decelerationRate="fast"
         >
           <QuickActionChip
@@ -367,15 +370,15 @@ const STUB_MY_FESTIVALS: MyFestival[] = [
 const styles = StyleSheet.create({
   header: {
     position: 'relative',
-    paddingTop: 18,
-    paddingBottom: 12,
+    paddingTop: 12, // Reduced from 18 to move toggle up
+    paddingBottom: 20, // Increased from 12 to add space below
     paddingHorizontal: 20,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingRight: 52,
+    paddingRight: 70, // Increased from 60 to further separate toggle and search
   },
   searchBtn: {
     position: 'absolute',
@@ -438,11 +441,11 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   feedList: {
-    gap: 18,
+    gap: 24, // Increased from 18
     paddingBottom: 20,
   },
   myList: {
-    gap: 14,
+    gap: 20, // Increased from 14
     paddingBottom: 20,
   },
 });

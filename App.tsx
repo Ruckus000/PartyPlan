@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import HomeScreen from './src/screens/HomeScreen';
 import PlansScreen from './src/screens/PlansScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
-import Fab from './src/components/Fab';
 import AddModal from './src/components/AddModal';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import { BottomNav, TabConfig } from './src/components/navigation/BottomNav';
@@ -63,95 +62,45 @@ export default function App() {
 
   useEffect(() => {
     const fetchSessionAndProfile = async () => {
-      setLoading(true);
+      try {
+        setLoading(true);
 
-      // Check session FIRST before loading cached data
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
+        // Check session FIRST before loading cached data
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
 
-      if (session) {
-        // Logged in: Load from AsyncStorage first (for offline support)
-        try {
-          const [cachedPendingOps, cachedPlans] = await Promise.all([
-            AsyncStorage.getItem('pendingOps'),
-            AsyncStorage.getItem('plans'),
-          ]);
+        if (session) {
+          // Logged in: Load from AsyncStorage first (for offline support)
+          try {
+            const [cachedPendingOps, cachedPlans] = await Promise.all([
+              AsyncStorage.getItem('pendingOps'),
+              AsyncStorage.getItem('plans'),
+            ]);
 
-          if (cachedPendingOps) {
-            const ops = JSON.parse(cachedPendingOps);
-            useStore.getState().setPendingOperations(ops);
+            if (cachedPendingOps) {
+              const ops = JSON.parse(cachedPendingOps);
+              useStore.getState().setPendingOperations(ops);
+            }
+
+            if (cachedPlans) {
+              const parsedPlans = JSON.parse(cachedPlans);
+              useStore.getState().setPlans(parsedPlans);
+            }
+          } catch (error) {
+            console.error('Failed to load cached data:', error);
           }
-
-          if (cachedPlans) {
-            const parsedPlans = JSON.parse(cachedPlans);
-            useStore.getState().setPlans(parsedPlans);
-          }
-        } catch (error) {
-          console.error('Failed to load cached data:', error);
-        }
-      } else {
-        // Not logged in: Fetch plans from DB (for attendees), skip AsyncStorage
-        // This ensures we show attendees even when not logged in
-        // and avoids loading wrong user's cached data
-        try {
-          const { data: plansData } = await supabase
-            .from('plans')
-            .select('*, profiles!created_by(emoji, display_name)')
-            .is('squad_id', null);
-
-          if (plansData) {
-            // Transform the data to match our Plan type
-            const transformedPlans = plansData.map((plan: any) => ({
-              ...plan,
-              profile: plan.profiles ? {
-                emoji: plan.profiles.emoji,
-                display_name: plan.profiles.display_name,
-              } : undefined,
-            }));
-            useStore.getState().setPlans(transformedPlans);
-          }
-        } catch (error) {
-          console.error('Failed to fetch plans for unauthenticated state:', error);
-        }
-      }
-
-      if (session) {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        setProfile(profileData);
-
-        // Fetch user's squads (via squad_members join)
-        const { data: squadMemberships } = await supabase
-          .from('squad_members')
-          .select('squad_id, squads(*)')
-          .eq('profile_id', session.user.id);
-
-        if (squadMemberships && squadMemberships.length > 0) {
-          // Use type guard to filter out null squads safely
-          const squads = squadMemberships
-            .map((m: any) => m.squads as Squad | null)
-            .filter((s): s is Squad => s !== null);
-
-          useStore.getState().setSquads(squads);
-
-          // Set first squad as active (or find "My Schedule")
-          // Guard against empty squads array after filtering
-          if (squads.length > 0) {
-            const mySchedule = squads.find(s => s.name === 'My Schedule');
-            const activeSquad = mySchedule || squads[0];
-            useStore.getState().setActiveSquadId(activeSquad.id);
-
-            // Fetch plans for active squad (ALL plans, not just user's)
+        } else {
+          // Not logged in: Fetch plans from DB (for attendees), skip AsyncStorage
+          // This ensures we show attendees even when not logged in
+          // and avoids loading wrong user's cached data
+          try {
             const { data: plansData } = await supabase
               .from('plans')
               .select('*, profiles!created_by(emoji, display_name)')
-              .eq('squad_id', activeSquad.id);
+              .is('squad_id', null);
 
             if (plansData) {
-              // Transform the data to match our Plan type (Supabase returns profiles as nested object)
+              // Transform the data to match our Plan type
               const transformedPlans = plansData.map((plan: any) => ({
                 ...plan,
                 profile: plan.profiles ? {
@@ -161,8 +110,78 @@ export default function App() {
               }));
               useStore.getState().setPlans(transformedPlans);
             }
+          } catch (error) {
+            console.error('Failed to fetch plans for unauthenticated state:', error);
+          }
+        }
+
+        if (session) {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          setProfile(profileData);
+
+          // Fetch user's squads (via squad_members join)
+          const { data: squadMemberships } = await supabase
+            .from('squad_members')
+            .select('squad_id, squads(*)')
+            .eq('profile_id', session.user.id);
+
+          if (squadMemberships && squadMemberships.length > 0) {
+            // Use type guard to filter out null squads safely
+            const squads = squadMemberships
+              .map((m: any) => m.squads as Squad | null)
+              .filter((s): s is Squad => s !== null);
+
+            useStore.getState().setSquads(squads);
+
+            // Set first squad as active (or find "My Schedule")
+            // Guard against empty squads array after filtering
+            if (squads.length > 0) {
+              const mySchedule = squads.find(s => s.name === 'My Schedule');
+              const activeSquad = mySchedule || squads[0];
+              useStore.getState().setActiveSquadId(activeSquad.id);
+
+              // Fetch plans for active squad (ALL plans, not just user's)
+              const { data: plansData } = await supabase
+                .from('plans')
+                .select('*, profiles!created_by(emoji, display_name)')
+                .eq('squad_id', activeSquad.id);
+
+              if (plansData) {
+                // Transform the data to match our Plan type (Supabase returns profiles as nested object)
+                const transformedPlans = plansData.map((plan: any) => ({
+                  ...plan,
+                  profile: plan.profiles ? {
+                    emoji: plan.profiles.emoji,
+                    display_name: plan.profiles.display_name,
+                  } : undefined,
+                }));
+                useStore.getState().setPlans(transformedPlans);
+              }
+            } else {
+              // No squads, fetch ALL individual plans (from all users)
+              const { data: plansData } = await supabase
+                .from('plans')
+                .select('*, profiles!created_by(emoji, display_name)')
+                .is('squad_id', null);
+
+              if (plansData) {
+                // Transform the data to match our Plan type
+                const transformedPlans = plansData.map((plan: any) => ({
+                  ...plan,
+                  profile: plan.profiles ? {
+                    emoji: plan.profiles.emoji,
+                    display_name: plan.profiles.display_name,
+                  } : undefined,
+                }));
+                useStore.getState().setPlans(transformedPlans);
+              }
+            }
           } else {
-            // No squads, fetch ALL individual plans (from all users)
+            // No squad memberships, fetch ALL individual plans (from all users)
             const { data: plansData } = await supabase
               .from('plans')
               .select('*, profiles!created_by(emoji, display_name)')
@@ -180,28 +199,14 @@ export default function App() {
               useStore.getState().setPlans(transformedPlans);
             }
           }
-        } else {
-          // No squad memberships, fetch ALL individual plans (from all users)
-          const { data: plansData } = await supabase
-            .from('plans')
-            .select('*, profiles!created_by(emoji, display_name)')
-            .is('squad_id', null);
-
-          if (plansData) {
-            // Transform the data to match our Plan type
-            const transformedPlans = plansData.map((plan: any) => ({
-              ...plan,
-              profile: plan.profiles ? {
-                emoji: plan.profiles.emoji,
-                display_name: plan.profiles.display_name,
-              } : undefined,
-            }));
-            useStore.getState().setPlans(transformedPlans);
-          }
         }
+        // Note: When not logged in, plans are already fetched above (before this if block)
+        setLoading(false);
+      } catch (error) {
+        console.error('Error in fetchSessionAndProfile:', error);
+        // Always set loading to false even on error so app doesn't hang
+        setLoading(false);
       }
-      // Note: When not logged in, plans are already fetched above (before this if block)
-      setLoading(false);
     };
 
     fetchSessionAndProfile();
@@ -258,19 +263,14 @@ export default function App() {
     setLoading(false);
   };
 
-  if (loading) {
-    return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
-  }
+  // ===================================================================
+  // ALL HOOKS MUST BE ABOVE ANY EARLY RETURNS (Rules of Hooks)
+  // ===================================================================
 
-  // Login screen disabled for now
-  // if (!session) {
-  //   return <AuthScreen />;
-  // }
-
-  // Profile setup disabled for now
-  // if (!profile?.display_name) {
-  //   return <ProfileSetupScreen onProfileSetupComplete={handleProfileSetupComplete} />;
-  // }
+  // Memoize tab press handlers to prevent recreation on every render
+  const handleHomePress = useCallback(() => setActiveTab('Home'), []);
+  const handlePlansPress = useCallback(() => setActiveTab('Plans'), []);
+  const handleProfilePress = useCallback(() => setActiveTab('Profile'), []);
 
   // Memoize active screen to prevent unnecessary re-renders
   const ActiveScreen = useMemo(() => {
@@ -285,11 +285,6 @@ export default function App() {
         return <HomeScreen />;
     }
   }, [activeTab]);
-
-  // Memoize tab press handlers to prevent recreation on every render
-  const handleHomePress = useCallback(() => setActiveTab('Home'), []);
-  const handlePlansPress = useCallback(() => setActiveTab('Plans'), []);
-  const handleProfilePress = useCallback(() => setActiveTab('Profile'), []);
 
   // Static tab configuration (icons and labels)
   const tabData: TabDefinition[] = useMemo(
@@ -330,6 +325,24 @@ export default function App() {
     [activeTab, pendingOperations.length, tabData]
   );
 
+  // ===================================================================
+  // EARLY RETURNS (after all hooks)
+  // ===================================================================
+
+  if (loading) {
+    return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
+  }
+
+  // Login screen disabled for now
+  // if (!session) {
+  //   return <AuthScreen />;
+  // }
+
+  // Profile setup disabled for now
+  // if (!profile?.display_name) {
+  //   return <ProfileSetupScreen onProfileSetupComplete={handleProfileSetupComplete} />;
+  // }
+
   return (
     <SafeAreaProvider>
       <ErrorBoundary>
@@ -340,7 +353,6 @@ export default function App() {
               {ActiveScreen}
             </View>
             <BottomNav tabs={tabs} />
-            <Fab onPress={() => setModalVisible(true)} />
             <AddModal visible={modalVisible} onClose={() => setModalVisible(false)} />
           </SafeAreaView>
         </SyncProvider>

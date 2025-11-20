@@ -63,6 +63,8 @@ export function useSyncManager() {
   }, [removePendingOperation, updatePendingOperation, addPlan]);
 
   // Sync plans from Supabase
+  // Note: Intentionally omitting activeSquadId from deps to prevent infinite loops
+  // We read it directly inside the function instead
   const syncPlans = useCallback(async (showLoading = true) => {
     if (showLoading) setIsSyncing(true);
 
@@ -70,14 +72,16 @@ export function useSyncManager() {
       // Process pending operations first
       await processPendingOperations();
 
+      // Read activeSquadId directly from store to avoid dependency
+      const currentSquadId = useStore.getState().activeSquadId;
       let plansData;
-      
-      if (activeSquadId) {
+
+      if (currentSquadId) {
         // Fetch plans for active squad (ALL plans, not just user's)
         const { data, error } = await supabase
           .from('plans')
           .select('*, profiles!created_by(emoji, display_name)')
-          .eq('squad_id', activeSquadId);
+          .eq('squad_id', currentSquadId);
 
         if (error) throw error;
         // Transform the data to match our Plan type
@@ -120,7 +124,7 @@ export function useSyncManager() {
     } finally {
       if (showLoading) setIsSyncing(false);
     }
-  }, [activeSquadId, processPendingOperations, getPendingDeleteIds, setPlans]);
+  }, [processPendingOperations, getPendingDeleteIds, setPlans]);
 
   // Manual sync (for pull-to-refresh)
   const syncNow = useCallback(async () => {
@@ -175,7 +179,8 @@ export function useSyncManager() {
       subscription.remove();
       stopSyncInterval();
     };
-  }, [syncPlans, startSyncInterval, stopSyncInterval]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount - callbacks are stable
 
   // Initial sync on mount and when active squad changes
   useEffect(() => {
@@ -186,17 +191,20 @@ export function useSyncManager() {
     return () => {
       stopSyncInterval();
     };
-  }, [activeSquadId, syncPlans, startSyncInterval, stopSyncInterval]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSquadId]); // Only re-run when activeSquadId changes
 
   // Restart interval when power mode changes (without syncing)
   useEffect(() => {
-    // Always start interval (supports individual plans)
+    // Restart the interval when power mode changes to adjust sync frequency
+    stopSyncInterval();
     startSyncInterval();
 
     return () => {
       stopSyncInterval();
     };
-  }, [isLowPowerMode, activeSquadId, startSyncInterval, stopSyncInterval]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLowPowerMode]); // Only re-run when power mode changes
 
   // Check battery level periodically
   useEffect(() => {

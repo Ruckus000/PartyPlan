@@ -8,7 +8,10 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, radii, shadows, typography } from '../../theme/tokens';
+import { colors, shadows, typography } from '../../theme/tokens';
+import { navigation } from '../../theme/dimensions';
+import { getBottomNavDimensions } from '../../theme/responsive';
+import { defaultHitSlop } from '../../theme/accessibility';
 
 export interface TabConfig {
   key: string;
@@ -27,29 +30,30 @@ interface BottomNavProps {
 /**
  * BottomNav - Floating bottom navigation bar
  * Matches the rounded, blurred container from HTML mockups
- * - Fixed at bottom center
- * - Rounded corners (radius-lg)
- * - Blur background effect
+ * - Responsive width: min(90%, maxWidth)
+ * - Fixed bottom offset: 18pt + safe area
+ * - Exact dimensions from mockup
  * - Icon swap on active state (outline → filled)
- * - Uppercase labels
  * - Safe area inset handling
  */
 export function BottomNav({ tabs }: BottomNavProps) {
   const insets = useSafeAreaInsets();
+  const navDimensions = getBottomNavDimensions();
 
   return (
     <View
       style={[
         styles.container,
         {
-          bottom: Math.max(insets.bottom, 18),
+          // From mockup: bottom: 18px + safe area
+          bottom: navigation.bottomNav.bottomOffset + Math.max(insets.bottom, 0),
         },
       ]}
     >
       {/* Blur background for iOS, solid background for Android */}
       {Platform.OS === 'ios' ? (
         <BlurView intensity={80} tint="dark" style={styles.blur}>
-          <View style={styles.innerContainer}>
+          <View style={[styles.innerContainer, { width: navDimensions.width }]}>
             {tabs.map(({ key, ...tabProps }) => (
               <NavItem key={key} {...tabProps} />
             ))}
@@ -57,7 +61,7 @@ export function BottomNav({ tabs }: BottomNavProps) {
         </BlurView>
       ) : (
         <View style={[styles.blur, styles.solidBackground]}>
-          <View style={styles.innerContainer}>
+          <View style={[styles.innerContainer, { width: navDimensions.width }]}>
             {tabs.map(({ key, ...tabProps }) => (
               <NavItem key={key} {...tabProps} />
             ))}
@@ -84,6 +88,11 @@ function NavItem({
         isActive && styles.navItemActive,
         pressed && styles.navItemPressed,
       ]}
+      hitSlop={defaultHitSlop}
+      accessibilityRole="tab"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: isActive }}
+      accessibilityHint={`Navigate to ${label}`}
     >
       {/* Notification badge */}
       {showBadge && <View style={styles.badge} />}
@@ -93,12 +102,7 @@ function NavItem({
         {isActive ? iconFilled : iconOutline}
       </View>
 
-      {/* Label - only show on larger screens or when active */}
-      {isActive && (
-        <Text style={styles.navLabel} numberOfLines={1}>
-          {label}
-        </Text>
-      )}
+      {/* Note: Labels removed - mockup only shows icons */}
     </Pressable>
   );
 }
@@ -112,61 +116,64 @@ const styles = StyleSheet.create({
     zIndex: 60,
   },
   blur: {
-    borderRadius: radii.lg + 2, // 26px to match mockups
+    // From mockup: border-radius: 26px
+    borderRadius: navigation.bottomNav.borderRadius,
     overflow: 'hidden',
-    borderWidth: 1,
+    // From mockup: border: 1px solid rgba(255, 255, 255, 0.08)
+    borderWidth: navigation.bottomNav.borderWidth,
     borderColor: colors.borderSubtle,
     ...shadows.large,
   },
   solidBackground: {
+    // From mockup: background: rgba(10, 6, 12, 0.96)
     backgroundColor: 'rgba(10, 6, 12, 0.96)',
   },
   innerContainer: {
     flexDirection: 'row',
+    // From mockup: justify-content: space-around
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    width: '90%',
-    maxWidth: 320, // Smaller than home mockup's 400px for compact look
+    // From mockup (plans): padding: 10px
+    padding: navigation.bottomNav.paddingPlans,
+    // Width is applied dynamically via getBottomNavDimensions()
   },
   navItem: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    // From mockup: aspect-ratio: 1
     aspectRatio: 1,
-    maxWidth: 48,
-    borderRadius: 16,
+    // From mockup: max-width: 48px
+    maxWidth: navigation.bottomNav.itemMaxWidth,
+    // From mockup: border-radius: 16px
+    borderRadius: navigation.bottomNav.itemBorderRadius,
     position: 'relative',
   },
   navItemActive: {
+    // From mockup: background: rgba(229, 64, 79, 0.16)
     backgroundColor: 'rgba(229, 64, 79, 0.16)',
   },
   navItemPressed: {
     opacity: 0.6,
   },
   iconContainer: {
-    width: 24,
-    height: 24,
+    // From mockup: width/height: 24px
+    width: navigation.bottomNav.iconSize,
+    height: navigation.bottomNav.iconSize,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  navLabel: {
-    fontSize: typography.size.xs,
-    fontWeight: typography.weight.semibold,
-    color: colors.accentSoft,
-    textTransform: 'uppercase',
-    letterSpacing: typography.letterSpacing.wider,
-    marginTop: 4,
-  },
   badge: {
+    // From mockup (plan): top: 6px, right: 6px
     position: 'absolute',
     top: 6,
     right: 6,
+    // From mockup: width/height: 8px
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: colors.accent,
+    // From mockup: border: 2px solid rgba(10, 6, 12, 0.96)
     borderWidth: 2,
     borderColor: 'rgba(10, 6, 12, 0.96)',
   },

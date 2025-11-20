@@ -8,7 +8,10 @@ const supabaseUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_URL || pro
 const supabaseAnonKey = Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables. Please check your .env file.');
+  console.error('❌ Missing Supabase environment variables!');
+  console.error('  URL:', supabaseUrl);
+  console.error('  Key exists:', !!supabaseAnonKey);
+  throw new Error('Missing Supabase environment variables. Please check your app.json extra config or rebuild with expo-dev-client.');
 }
 
 console.log('🔧 Supabase Configuration:');

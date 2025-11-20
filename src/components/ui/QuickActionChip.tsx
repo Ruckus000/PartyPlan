@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet, ViewStyle } from 'react-native';
 import { colors, radii, typography } from '../../theme/tokens';
+import { useQuickActionDimensions } from '../../hooks/useQuickActionDimensions';
 
 interface QuickActionChipProps {
   label: string;
@@ -27,6 +28,7 @@ export const QuickActionChip = React.memo(function QuickActionChip({
   onPress,
   style,
 }: QuickActionChipProps) {
+  const dimensions = useQuickActionDimensions();
   const accessibilityLabel = `${label} filter. ${count || ''}${badge ? `. ${badge}` : ''}`;
 
   return (
@@ -38,6 +40,7 @@ export const QuickActionChip = React.memo(function QuickActionChip({
       accessibilityHint={`Filter festivals by ${label.toLowerCase()}`}
       style={({ pressed }) => [
         styles.container,
+        { width: isFeatured ? dimensions.featured : dimensions.standard },
         isFeatured && styles.containerFeatured,
         isActive && styles.containerActive,
         pressed && styles.containerPressed,
@@ -53,6 +56,10 @@ export const QuickActionChip = React.memo(function QuickActionChip({
       <View
         style={[
           styles.iconWrapper,
+          {
+            width: isFeatured ? dimensions.iconWrapper.featured : dimensions.iconWrapper.standard,
+            height: isFeatured ? dimensions.iconWrapper.featured : dimensions.iconWrapper.standard,
+          },
           isFeatured && styles.iconWrapperFeatured,
           isActive && styles.iconWrapperActive,
         ]}
@@ -75,7 +82,7 @@ export const QuickActionChip = React.memo(function QuickActionChip({
 
 const styles = StyleSheet.create({
   container: {
-    width: 140,
+    // width: 140, // Handled dynamically
     backgroundColor: 'rgba(21, 16, 25, 0.6)',
     borderWidth: 1,
     borderColor: colors.borderSubtle,
@@ -84,7 +91,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   containerFeatured: {
-    width: 200,
+    // width: 200, // Handled dynamically
   },
   containerActive: {
     backgroundColor: 'rgba(229, 64, 79, 0.08)',
@@ -117,8 +124,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.05,
   },
   iconWrapper: {
-    width: 36,
-    height: 36,
+    // width: 36, // Handled dynamically
+    // height: 36, // Handled dynamically
     borderRadius: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     alignItems: 'center',
@@ -126,8 +133,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   iconWrapperFeatured: {
-    width: 40,
-    height: 40,
+    // width: 40, // Handled dynamically
+    // height: 40, // Handled dynamically
   },
   iconWrapperActive: {
     backgroundColor: 'rgba(229, 64, 79, 0.15)',
@@ -151,3 +158,4 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
 });
+
