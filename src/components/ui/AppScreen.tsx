@@ -8,6 +8,7 @@ import { screen } from '../../theme/dimensions';
 interface AppScreenProps {
   children: React.ReactNode;
   scrollable?: boolean;
+  noSafeArea?: boolean;
   style?: ViewStyle;
   contentContainerStyle?: ViewStyle;
 }
@@ -23,13 +24,16 @@ interface AppScreenProps {
 export function AppScreen({
   children,
   scrollable = true,
+  noSafeArea = false,
   style,
   contentContainerStyle,
 }: AppScreenProps) {
   const insets = useSafeAreaInsets();
+  const Container = noSafeArea ? View : SafeAreaView;
+  const containerProps = noSafeArea ? {} : { edges: ['top'] as const };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <Container style={styles.safeArea} {...containerProps}>
       <View style={styles.root}>
         {/* Radial background gradient circle at top-left */}
         {/* From mockup: radial-gradient(circle at 0 0, rgba(229, 64, 79, 0.25) 0, transparent 55%) */}
@@ -69,7 +73,7 @@ export function AppScreen({
           )}
         </View>
       </View>
-    </SafeAreaView>
+    </Container>
   );
 }
 

@@ -8,6 +8,7 @@ import {
   Pressable,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppScreen } from '../components/ui/AppScreen';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
 import { QuickActionChip } from '../components/ui/QuickActionChip';
@@ -36,6 +37,7 @@ type FilterType = 'nearby' | 'friends' | 'month' | 'edm' | 'house' | 'techno' | 
 export default function HomeScreen() {
   const [viewMode, setViewMode] = useState<ViewMode>('discover');
   const [activeFilter, setActiveFilter] = useState<FilterType>('nearby');
+  const insets = useSafeAreaInsets();
 
   const handleViewModeChange = useCallback((index: number) => {
     setViewMode(index === 0 ? 'discover' : 'my');
@@ -46,9 +48,9 @@ export default function HomeScreen() {
   }, []);
 
   return (
-    <AppScreen scrollable={false}>
+    <AppScreen scrollable={false} noSafeArea={true}>
       {/* Sticky Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
         <LinearGradient
           colors={[...gradients.header.colors]}
           locations={gradients.header.locations}
@@ -370,7 +372,6 @@ const STUB_MY_FESTIVALS: MyFestival[] = [
 const styles = StyleSheet.create({
   header: {
     position: 'relative',
-    paddingTop: 12,
     paddingBottom: 12,
     paddingHorizontal: 20,
   },

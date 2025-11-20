@@ -347,7 +347,7 @@ export default function App() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <SyncProvider value={syncManager}>
-          <SafeAreaView style={styles.container} edges={['top']}>
+          <SafeAreaView style={styles.container} edges={[]}>
             <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
             <View style={styles.content}>
               {ActiveScreen}
