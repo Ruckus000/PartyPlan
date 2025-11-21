@@ -1,20 +1,16 @@
-import { useWindowDimensions } from 'react-native';
-
 /**
- * Get responsive card dimensions
- * Scales proportionally on small screens, caps at design specs on large screens
+ * Quick Action Chip Dimensions
+ * Fixed values from mockup spec (home.html)
+ * Horizontal scroller uses fixed widths, not responsive calculations
  */
 export function useQuickActionDimensions() {
-  const { width: screenWidth } = useWindowDimensions();
-  const availableWidth = screenWidth - 40 - 16;
-  
   return {
-    standard: Math.floor(availableWidth / 3),
-    featured: Math.min(180, Math.floor(availableWidth / 2) - 4),
+    standard: 140,   // From home.html line 232
+    featured: 200,   // From home.html line 236
     iconWrapper: {
-      standard: 24,
-      featured: 28,
+      standard: 36,  // From home.html line 255
+      featured: 40,  // From home.html line 271
     },
-    gap: 8,
+    gap: 10,        // From home.html line 203
   };
 }

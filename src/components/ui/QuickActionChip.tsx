@@ -88,13 +88,13 @@ export const QuickActionChip = React.memo(function QuickActionChip({
 const styles = StyleSheet.create({
   container: {
     // width: 140, // Handled dynamically
-    minHeight: 68,
-    maxHeight: 68,
+    flexDirection: 'column',
     backgroundColor: 'rgba(21, 16, 25, 0.6)',
     borderWidth: 1,
     borderColor: colors.borderSubtle,
     borderRadius: 18,
-    padding: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     position: 'relative',
   },
   containerFeatured: {
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 6,
+    marginBottom: 10,
   },
   iconWrapperFeatured: {
     // width: 40, // Handled dynamically
@@ -147,9 +147,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(229, 64, 79, 0.15)',
   },
   content: {
-    flex: 1,
     minWidth: 0,
-    gap: 1,
+    gap: 3,
   },
   label: {
     fontSize: 13,
