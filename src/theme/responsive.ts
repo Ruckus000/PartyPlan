@@ -174,7 +174,7 @@ export function getBottomNavDimensions() {
     width: Math.min(Math.max(ninetyPercent, minWidth), maxWidth),
     maxWidth,
     minWidth,
-    bottomOffset: 8, // Reduced from 18 to lower nav bar
+    bottomOffset: 18, // From mockup: bottom: 18px (proper floating effect)
   };
 }
 

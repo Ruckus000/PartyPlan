@@ -52,7 +52,7 @@ export function BottomNav({ tabs }: BottomNavProps) {
             style={StyleSheet.absoluteFill}
             pointerEvents="none"
           />
-          <View style={[styles.innerContainer, { paddingVertical: 10, paddingHorizontal: 16, paddingBottom: 10 + insets.bottom }]}>
+          <View style={[styles.innerContainer, styles.navPadding]}>
             {tabs.map(({ key, ...tabProps }) => (
               <NavItem key={key} {...tabProps} />
             ))}
@@ -66,7 +66,7 @@ export function BottomNav({ tabs }: BottomNavProps) {
             style={StyleSheet.absoluteFill}
             pointerEvents="none"
           />
-          <View style={[styles.innerContainer, { paddingVertical: 10, paddingHorizontal: 16, paddingBottom: 10 + insets.bottom }]}>
+          <View style={[styles.innerContainer, styles.navPadding]}>
             {tabs.map(({ key, ...tabProps }) => (
               <NavItem key={key} {...tabProps} />
             ))}
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 20,
     right: 20,
-    bottom: 8,
+    bottom: 18,
     backgroundColor: 'transparent',
     alignItems: 'center',
     zIndex: 60,
@@ -136,6 +136,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
     alignSelf: 'center',
+  },
+  navPadding: {
+    paddingVertical: 8,
+    paddingHorizontal: 10,
   },
   navItem: {
     width: 44,
