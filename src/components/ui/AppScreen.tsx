@@ -112,7 +112,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    // From mockup: padding-bottom: 110px
-    paddingBottom: layout.screenBottomPadding,
+    // No bottom padding - each screen's scrollable content manages its own padding
   },
 });

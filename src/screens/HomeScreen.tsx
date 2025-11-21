@@ -445,10 +445,10 @@ const styles = StyleSheet.create({
   },
   feedList: {
     gap: 24, // Increased from 18
-    paddingBottom: 20,
+    paddingBottom: 110, // From mockup: padding-bottom: 110px (clearance for floating nav)
   },
   myList: {
     gap: 20, // Increased from 14
-    paddingBottom: 20,
+    paddingBottom: 110, // From mockup: padding-bottom: 110px (clearance for floating nav)
   },
 });
