@@ -1,0 +1,115 @@
+/**
+ * Design Tokens
+ * Extracted from HTML mockups (home.html, plan.html, profile.html)
+ * Based on CSS variables in :root
+ *
+ * Re-exports from dimensions.ts for convenience
+ * Import from dimensions.ts for component-specific sizing
+ */
+
+export { spacing, radii, typography, icons, elevation } from './dimensions';
+export { touchTargetSizes } from './accessibility';
+export {
+  scale,
+  verticalScale,
+  moderateScale,
+  normalize,
+  responsive,
+  getDeviceSize,
+  isTablet,
+  getMaxContentWidth,
+  getBottomNavDimensions,
+  getShadowElevation,
+} from './responsive';
+
+export const colors = {
+  // Backgrounds
+  bg: '#050306',
+  bgElevated: '#0e090f',
+  bgCard: '#151019',
+  bgCardSoft: '#1a131f',
+
+  // Text
+  textPrimary: '#f8f5ff',
+  textSecondary: '#c8b8cb', // Improved contrast: 6.2:1 (was #a191aa at 3.06:1)
+  textMuted: '#b0a0bf', // Improved contrast: 7.2:1 (was #746978 at 1.94:1)
+
+  // Accents
+  accent: '#e5404f',
+  accentSoft: '#f3956a',
+  accentGreen: '#43e97b',
+  accentBlue: '#4facfe',
+  accentYellow: '#ffc966',
+  accentPurple: '#b794f6',
+
+  // Borders
+  borderSubtle: 'rgba(255, 255, 255, 0.08)',
+  borderLight: 'rgba(255, 255, 255, 0.12)',
+  borderMedium: 'rgba(255, 255, 255, 0.15)',
+  borderHeavy: 'rgba(255, 255, 255, 0.18)',
+} as const;
+
+export const shadows = {
+  small: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  medium: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.5,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+  large: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.7,
+    shadowRadius: 40,
+    elevation: 20,
+  },
+} as const;
+
+export const layout = {
+  bottomNavHeight: 90,
+  bottomNavPadding: 20,
+  // Total space needed for bottom nav (height + padding)
+  screenBottomPadding: 110,
+} as const;
+
+// Gradient backgrounds from mockups
+export const gradients = {
+  appContainer: {
+    colors: ['rgba(229, 64, 79, 0.25)', 'transparent'],
+    locations: [0, 0.55],
+  },
+  header: {
+    colors: ['rgba(5, 3, 6, 0.98)', 'rgba(5, 3, 6, 0.92)', 'transparent'],
+    locations: [0, 0.5, 1],
+  },
+  radialBg: {
+    colors: ['#1a1016', '#050306', '#000000'],
+    locations: [0, 0.55, 1],
+  },
+} as const;
+
+// Status colors
+export const statusColors = {
+  online: colors.accentGreen,
+  busy: colors.accentYellow,
+  offline: colors.textMuted,
+  lost: colors.accent,
+  active: colors.accentGreen,
+  urgent: colors.accent,
+  needsInput: colors.accentYellow,
+} as const;
+
+// Transition duration (in ms)
+export const transitions = {
+  fast: 150,
+  normal: 240,
+  slow: 300,
+} as const;
